@@ -411,7 +411,6 @@ static struct AP_System{
     uint8_t nav_ok                  : 1; // 4   // deprecated
     uint8_t CH7_flag                : 1; // 5   // manages state of the ch7 toggle switch
     uint8_t usb_connected           : 1; // 6   // true if APM is powered from USB connection
-    uint8_t run_50hz_loop           : 1; // 7   // toggles the 100hz loop for 50hz
     uint8_t alt_sensor_flag         : 1; // 8   // used to track when to read sensors vs estimate alt
     uint8_t yaw_stopped             : 1; // 9   // Used to manage the Yaw hold capabilities
 
@@ -856,14 +855,10 @@ static int16_t gps_fix_count;
 // --------------
 // Time in microseconds of main control loop
 static uint32_t fast_loopTimer;
-// Time in microseconds of 50hz control loop
-static uint32_t fiftyhz_loopTimer = 0;
 // Counters for branching from 10 hz control loop
 static byte medium_loopCounter;
 // Counters for branching from 3 1/3hz control loop
 static byte slow_loopCounter;
-// Counters for branching at 1 hz
-static byte counter_one_herz;
 // Counter of main loop executions.  Used for performance monitoring and failsafe processing
 static uint16_t mainLoop_count;
 // Delta Time in milliseconds for navigation computations, updated with every good GPS read
@@ -939,15 +934,142 @@ void setup() {
     init_ardupilot();
 }
 
+
+static void compass_accumulate(void)
+{
+    if (g.compass_enabled) {
+        compass.accumulate();
+    }    
+}
+
+static void perf_update(void)
+{
+    if (g.log_bitmask & MASK_LOG_PM)
+        Log_Write_Performance();
+    perf_info_reset();
+    gps_fix_count = 0;
+}
+
+static void check_gcs_input(void)
+{
+    gcs_check();
+}
+
+#define SCHEDULER_DEBUG 0
+
+
+/*
+  return number of micros until the main loop will want to run again
+ */
+static int16_t main_loop_time_available(void)
+{
+    uint32_t dt = (micros() - fast_loopTimer);
+    if (dt > 10000) {
+        return 0;
+    }
+    return 10000 - dt;
+}
+
+typedef void (*event_fn_t)(void);
+
+struct timer_event_table {
+    event_fn_t func;
+    uint16_t time_interval_10ms;
+    uint16_t min_time_usec;
+};
+
+#define NUM_TIMER_EVENTS 8
+
+/*
+  scheduler table - all regular events apart from the fast_loop()
+  should be listed here, along with how often they should be called
+  (in 10ms units) and how long they are expected to take
+ */
+static const struct timer_event_table PROGMEM timer_events[NUM_TIMER_EVENTS] = {
+    { update_GPS,         2,     900 },
+    { update_navigation,  2,     700 },
+    { medium_loop,        2,    2500 },
+    { fifty_hz_loop,      2,    3000 },
+    { compass_accumulate, 2,     700 },
+    { check_gcs_input,    2,    1000 },
+    { super_slow_loop,    100,  1100 },
+    { perf_update,        1000, 1300 }
+};
+static uint16_t timer_counters[NUM_TIMER_EVENTS];
+
+static uint16_t tick_counter;
+static uint32_t event_time_started;
+static uint16_t event_time_allowed;
+
+/*
+  return number of micros until the current event reaches its deadline
+ */
+static int16_t event_time_available(void)
+{
+    uint32_t dt = micros() - event_time_started;
+    if (dt > event_time_allowed) {
+        return 0;
+    }
+    return event_time_allowed - dt;
+}
+
+/*
+  run as many scheduler events as we can
+ */
+static void run_events(uint16_t time_available_usec)
+{
+    for (uint8_t i=0; i<NUM_TIMER_EVENTS; i++) {
+        if (tick_counter - timer_counters[i] >= pgm_read_word(&timer_events[i].time_interval_10ms)) {
+            // this event is due to run. Do we have enough time to run it?
+            event_time_allowed = pgm_read_word(&timer_events[i].min_time_usec);
+            if (event_time_allowed <= time_available_usec) {
+                // run it
+                event_time_started = micros();
+                event_fn_t func = (event_fn_t)pgm_read_pointer(&timer_events[i].func);
+                func();
+                
+                // record the tick counter when we ran. This drives
+                // when we next run the event
+                timer_counters[i] = tick_counter;
+                
+                // work out how long the event actually took
+                uint32_t time_taken = micros() - event_time_started;
+                
+                if (time_taken > time_available_usec) {
+                    // the event overran!
+#if SCHEDULER_DEBUG
+                    cliSerial->printf_P(PSTR("overrun in event %u (%u/%u)\n"), 
+                                        (unsigned)i, 
+                                        (unsigned)time_taken,
+                                        (unsigned)event_time_allowed);
+#endif
+                    return;
+                }
+                time_available_usec -= time_taken;
+            }
+        }
+    }
+}
+
 void loop()
 {
     uint32_t timer = micros();
-    uint16_t num_samples;
 
     // We want this to execute fast
     // ----------------------------
-    num_samples = ins.num_samples_available();
-    if (num_samples >= 2) {
+    if (ins.num_samples_available() >= 2) {
+
+#if SCHEDULER_DEBUG
+        // useful debugging tool
+        uint16_t num_samples = ins.num_samples_available();
+        uint32_t deltat = timer - fast_loopTimer;
+        static uint16_t counter;
+        if (num_samples != 2 || (counter++ % 200 == 0) || (deltat > 10500)) {
+            cliSerial->printf_P(PSTR("num_samples=%u dt=%u\n"),
+                                (unsigned)num_samples,
+                                (unsigned)deltat);
+        }
+#endif
 
         #if DEBUG_FAST_LOOP == ENABLED
         Log_Write_Data(DATA_FAST_LOOP, (int32_t)(timer - fast_loopTimer));
@@ -966,69 +1088,17 @@ void loop()
         // ---------------------
         fast_loop();
 
-        // run the 50hz loop 1/2 the time
-        ap_system.run_50hz_loop = !ap_system.run_50hz_loop;
-
-        if(ap_system.run_50hz_loop) {
-
-            #if DEBUG_MED_LOOP == ENABLED
-            Log_Write_Data(DATA_MED_LOOP, (int32_t)(timer - fiftyhz_loopTimer));
-            #endif
-
-            // store the micros for the 50 hz timer
-            fiftyhz_loopTimer               = timer;
-
-            // check for new GPS messages
-            // --------------------------
-            update_GPS();
-
-            // run navigation routines
-            update_navigation();
-
-            // perform 10hz tasks
-            // ------------------
-            medium_loop();
-
-            // Stuff to run at full 50hz, but after the med loops
-            // --------------------------------------------------
-            fifty_hz_loop();
-
-            counter_one_herz++;
-
-            // trgger our 1 hz loop
-            if(counter_one_herz >= 50) {
-                super_slow_loop();
-                counter_one_herz = 0;
-            }
-            perf_mon_counter++;
-            if (perf_mon_counter >= 500 ) {     // 500 iterations at 50hz = 10 seconds
-                if (g.log_bitmask & MASK_LOG_PM)
-                    Log_Write_Performance();
-                perf_info_reset();
-                gps_fix_count           = 0;
-                perf_mon_counter        = 0;
-            }
-        }else{
-            // process communications with the GCS
-            gcs_check();
-        }
+        tick_counter++;
     } else {
-#ifdef DESKTOP_BUILD
-        usleep(1000);
-#endif
-        if (timer - fast_loopTimer < 9000) {
-            // we have some spare cycles available
-            // less than 10ms has passed. We have at least one millisecond
-            // of free time. The most useful thing to do with that time is
-            // to accumulate some sensor readings, specifically the
-            // compass, which is often very noisy but is not interrupt
-            // driven, so it can't accumulate readings by itself
-            if (g.compass_enabled) {
-                compass.accumulate();
-            }
+        uint16_t time_to_next_loop;
+        uint16_t dt = timer - fast_loopTimer;
+        if (dt > 10000) {
+            time_to_next_loop = 0;
+        } else {
+            time_to_next_loop = 10000 - dt;
         }
+        run_events(time_to_next_loop);
     }
-
 }
 
 // Main loop - 100hz
