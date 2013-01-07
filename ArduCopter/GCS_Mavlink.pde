@@ -465,10 +465,10 @@ static void NOINLINE send_raw_imu2(mavlink_channel_t chan)
 
 static void NOINLINE send_raw_imu3(mavlink_channel_t chan)
 {
+
     Vector3f mag_offsets = compass.get_offsets();
     Vector3f accel_offsets = ins.get_accel_offsets();
     Vector3f gyro_offsets = ins.get_gyro_offsets();
-
     mavlink_msg_sensor_offsets_send(chan,
                                     mag_offsets.x,
                                     mag_offsets.y,
@@ -533,6 +533,15 @@ static bool mavlink_try_send_message(mavlink_channel_t chan, enum ap_message id,
     if (telemetry_delayed(chan)) {
         return false;
     }
+
+    // if we don't have at least 1ms remaining before the main loop
+    // wants to fire then don't send a mavlink message. We want to
+    // prioritise the main flight control loop over communications
+    if (event_time_available() < 900) {
+        return false;
+    }
+
+    uint32_t tstart = micros();
 
     switch(id) {
     case MSG_HEARTBEAT:
@@ -664,6 +673,15 @@ static bool mavlink_try_send_message(mavlink_channel_t chan, enum ap_message id,
     case MSG_RETRY_DEFERRED:
         break; // just here to prevent a warning
     }
+
+    uint32_t dt = micros() - tstart;
+    if (dt > 950) {
+        cliSerial->printf_P(PSTR("mavlink id %u took %u usec\n"),
+                            (unsigned)id, 
+                            (unsigned)dt);
+    }
+    
+    
     return true;
 }
 
