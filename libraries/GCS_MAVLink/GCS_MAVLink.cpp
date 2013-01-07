@@ -51,3 +51,17 @@ uint8_t mav_var_type(enum ap_var_type t)
 }
 
 
+void comm_send_buffer(mavlink_channel_t chan, const uint8_t *buf, uint8_t len)
+{
+    switch(chan) {
+	case MAVLINK_COMM_0:
+		mavlink_comm_0_port->write_buffer_nonblock(buf, len);
+		break;
+	case MAVLINK_COMM_1:
+		mavlink_comm_1_port->write_buffer_nonblock(buf, len);
+		break;
+	default:
+		break;
+	}
+}
+

@@ -12,6 +12,8 @@
 // to select MAVLink 1.0 in the arduino GUI build
 #define MAVLINK_SEPARATE_HELPERS
 
+#define MAVLINK_SEND_UART_BYTES(chan, buf, len) comm_send_buffer(chan, buf, len)
+
 #include "include/mavlink/v1.0/ardupilotmega/version.h"
 
 // this allows us to make mavlink_message_t much smaller. It means we
@@ -49,6 +51,8 @@ static inline void comm_send_ch(mavlink_channel_t chan, uint8_t ch)
 		break;
 	}
 }
+
+void comm_send_buffer(mavlink_channel_t chan, const uint8_t *buf, uint8_t len);
 
 /// Read a byte from the nominated MAVLink channel
 ///
