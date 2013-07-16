@@ -344,6 +344,13 @@
 	    <field type="float" name="distance">distance in meters</field>
 	    <field type="float" name="voltage">raw voltage if available, zero otherwise</field>
 	  </message>
+
+	  <message name="THERMOPILE_ATTITUDE" id="174">
+	    <description>Attitude from thermopile sensors</description>
+            <field type="uint32_t" name="time_boot_ms">Timestamp (milliseconds since system boot)</field>
+	    <field type="float" name="roll">Euler angle roll from thermopile sensors in radians. Positive for right roll</field>
+	    <field type="float" name="pitch">Euler angle pitch from thermopile sensors in radians. Posititive for pitch up</field>
+	  </message>
 	 
      </messages>
 </mavlink>
