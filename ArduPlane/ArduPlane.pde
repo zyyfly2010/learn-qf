@@ -666,6 +666,16 @@ AP_Mount camera_mount2(&current_loc, g_gps, &ahrs, 1);
 //pinMode(camtrig, OUTPUT);			// these are free pins PE3(5), PH3(15), PH6(18), PB4(23), PB5(24), PL1(36), PL3(38), PA6(72), PA7(71), PK0(89), PK1(88), PK2(87), PK3(86), PK4(83), PK5(84), PK6(83), PK7(82)
 #endif
 
+/*
+  thermopile sensor support
+  contributed by Daniel Ginn
+  This will become a thermopile object when the library is complete
+*/
+static struct {
+    int32_t roll_sensor;
+    int16_t pitch_sensor;
+} thermopile;
+
 ////////////////////////////////////////////////////////////////////////////////
 // Top-level logic
 ////////////////////////////////////////////////////////////////////////////////
@@ -793,6 +803,9 @@ static void fast_loop()
     if (g.log_bitmask & MASK_LOG_ATTITUDE_FAST)
         Log_Write_Attitude();
 
+    if (g.log_bitmask & MASK_LOG_THERMO_ATTITUDE_FAST)
+        Log_Write_Thermo_Attitude(); 
+        
     if (g.log_bitmask & MASK_LOG_IMU)
         Log_Write_IMU();
 }
@@ -872,6 +885,9 @@ static void update_logging(void)
     if ((g.log_bitmask & MASK_LOG_ATTITUDE_MED) && !(g.log_bitmask & MASK_LOG_ATTITUDE_FAST))
         Log_Write_Attitude();
     
+    if ((g.log_bitmask & MASK_LOG_THERMO_ATTITUDE_MED) && !(g.log_bitmask & MASK_LOG_THERMO_ATTITUDE_FAST))
+        Log_Write_Thermo_Attitude(); 
+            
     if (g.log_bitmask & MASK_LOG_CTUN)
         Log_Write_Control_Tuning();
     

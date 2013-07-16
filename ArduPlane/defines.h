@@ -137,6 +137,7 @@ enum ap_message {
     MSG_SIMSTATE,
     MSG_HWSTATUS,
     MSG_WIND,
+    MSG_THERMOPILE_ATTITUDE,
     MSG_RETRY_DEFERRED // this must be last
 };
 
@@ -158,6 +159,7 @@ enum log_messages {
     LOG_MODE_MSG,
     LOG_COMPASS_MSG,
     LOG_TECS_MSG,
+    LOG_THERMO_ATTITUDE_MSG,
     MAX_NUM_LOGS // always at the end
 };
 
@@ -174,6 +176,8 @@ enum log_messages {
 #define MASK_LOG_COMPASS                (1<<10)
 #define MASK_LOG_TECS                   (1<<11)
 #define MASK_LOG_CAMERA                 (1<<12)
+#define MASK_LOG_THERMO_ATTITUDE_FAST   (1<<13)
+#define MASK_LOG_THERMO_ATTITUDE_MED    (1<<14)
 
 // Waypoint Modes
 // ----------------

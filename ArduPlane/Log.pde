@@ -51,6 +51,8 @@ print_log_menu(void)
         PLOG(COMPASS);
         PLOG(TECS);
         PLOG(CAMERA);
+        PLOG(THERMO_ATTITUDE_FAST);
+        PLOG(THERMO_ATTITUDE_MED); 
  #undef PLOG
     }
 
@@ -142,6 +144,8 @@ select_logs(uint8_t argc, const Menu::arg *argv)
         TARG(COMPASS);
         TARG(TECS);
         TARG(CAMERA);
+        TARG(THERMO_ATTITUDE_FAST);
+        TARG(THERMO_ATTITUDE_MED); 
  #undef TARG
     }
 
@@ -179,6 +183,23 @@ static void Log_Write_Attitude(void)
     DataFlash.WriteBlock(&pkt, sizeof(pkt));
 }
 
+struct PACKED log_Thermo_Attitude {
+    LOG_PACKET_HEADER;
+    int32_t thermo_roll;
+    int16_t thermo_pitch;
+};
+
+// Write a Thermo Attitude packet. Total length : ??? bytes
+static void Log_Write_Thermo_Attitude(void)
+{
+    struct log_Thermo_Attitude pkt = {
+        LOG_PACKET_HEADER_INIT(LOG_THERMO_ATTITUDE_MSG),
+        thermo_roll  : thermopile.roll_sensor,
+        thermo_pitch : thermopile.pitch_sensor
+    };
+    DataFlash.WriteBlock(&pkt, sizeof(pkt));
+}
+ 
 struct PACKED log_Performance {
     LOG_PACKET_HEADER;
     uint32_t loop_time;
@@ -457,6 +478,8 @@ static const struct LogStructure log_structure[] PROGMEM = {
       "CURR", "hhhHf",      "Thr,Volt,Curr,Vcc,CurrTot" },
     { LOG_COMPASS_MSG, sizeof(log_Compass),             
       "MAG", "hhhhhhhhh",   "MagX,MagY,MagZ,OfsX,OfsY,OfsZ,MOfsX,MOfsY,MOfsZ" },
+    { LOG_THERMO_ATTITUDE_MSG, sizeof(log_Thermo_Attitude),             
+      "THMP", "ih",   "RollCD,PitchCD" },
     TECS_LOG_FORMAT(LOG_TECS_MSG),
 };
 
@@ -498,6 +521,7 @@ static void Log_Write_Mode(uint8_t mode) {}
 static void Log_Write_Compass() {}
 static void Log_Write_GPS() {}
 static void Log_Write_IMU() {}
+static void Log_Write_Thermo_Attitude()  {}
 
 static int8_t process_logs(uint8_t argc, const Menu::arg *argv) {
     return 0;

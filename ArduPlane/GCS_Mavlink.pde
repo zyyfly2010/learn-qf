@@ -118,6 +118,15 @@ static NOINLINE void send_attitude(mavlink_channel_t chan)
         omega.z);
 }
 
+static NOINLINE void send_thermopile_attitude(mavlink_channel_t chan)
+{
+    mavlink_msg_thermopile_attitude_send(
+        chan,
+        millis(),
+        ToRad(thermopile.roll_sensor*0.01f),
+        ToRad(thermopile.pitch_sensor*0.01f));
+}
+ 
 #if GEOFENCE_ENABLED == ENABLED
 static NOINLINE void send_fence_status(mavlink_channel_t chan)
 {
@@ -572,6 +581,11 @@ static bool mavlink_try_send_message(mavlink_channel_t chan, enum ap_message id,
         send_attitude(chan);
         break;
 
+    case MSG_THERMOPILE_ATTITUDE:
+        CHECK_PAYLOAD_SIZE(THERMOPILE_ATTITUDE);
+        send_thermopile_attitude(chan);
+        break;
+  
     case MSG_LOCATION:
         CHECK_PAYLOAD_SIZE(GLOBAL_POSITION_INT);
         send_location(chan);
@@ -1007,6 +1021,7 @@ GCS_MAVLINK::data_stream_send(void)
         send_message(MSG_RAW_IMU1);
         send_message(MSG_RAW_IMU2);
         send_message(MSG_RAW_IMU3);
+        send_message(MSG_THERMOPILE_ATTITUDE);
     }
 
     if (gcs_out_of_time) return;
