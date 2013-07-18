@@ -88,7 +88,8 @@ static void stabilize_pitch(float speed_scaler)
     int32_t demanded_pitch = nav_pitch_cd + g.pitch_trim_cd + channel_throttle->servo_out * g.kff_throttle_to_pitch;
     channel_pitch->servo_out = g.pitchController.get_servo_out(demanded_pitch - ahrs.pitch_sensor, 
                                                                speed_scaler, 
-                                                               control_mode == STABILIZE);
+                                                               control_mode == STABILIZE,
+                                                               true);
 }
 
 /*
@@ -259,7 +260,7 @@ static void stabilize_acro(float speed_scaler)
         // 'stabilze' to true, which disables the roll integrator
         channel_roll->servo_out  = g.rollController.get_servo_out(roll_error_cd,
                                                                   speed_scaler,
-                                                                  true);
+                                                                  false);
     } else {
         /*
           aileron stick is non-zero, use pure rate control until the
@@ -276,14 +277,37 @@ static void stabilize_acro(float speed_scaler)
          */
         if (!acro_state.locked_pitch) {
             acro_state.locked_pitch = true;
+            acro_state.locked_pitch_err = 0;
             acro_state.locked_pitch_cd = ahrs.pitch_sensor;
+        } else if (acro_state.locked_roll) {
+            acro_state.locked_pitch_err = 0;
+            nav_pitch_cd = acro_state.locked_pitch_cd;
+            channel_pitch->servo_out  = g.pitchController.get_servo_out(nav_pitch_cd - ahrs.pitch_sensor,
+                                                                        speed_scaler,
+                                                                        false,
+                                                                        true);
+        } else {
+            float y_rate = ahrs.get_gyro().y;
+            float rate_offset;
+            if (labs(channel_roll->control_in) > 1500 ||
+                (labs(ahrs.roll_sensor) > g.roll_limit_cd &&
+                 labs(ahrs.roll_sensor) < 18000 - g.roll_limit_cd)) {
+                // when rolling fast or in a high bank don't do turn coordination
+                rate_offset = 0;
+            } else {
+                rate_offset = g.pitchController.get_coordination_rate_offset();
+            }
+            y_rate -= ToRad(rate_offset);
+            acro_state.locked_pitch_err += y_rate * 0.02f;
+            // try to hold the locked pitch. Note that we have the pitch
+            // integrator enabled, which helps with inverted flight
+            int32_t pitch_error_cd = ToDeg(acro_state.locked_pitch_err)*100;
+            nav_pitch_cd = ahrs.pitch_sensor + pitch_error_cd;
+            channel_pitch->servo_out  = g.pitchController.get_servo_out(pitch_error_cd,
+                                                                        speed_scaler,
+                                                                        false,
+                                                                        false);
         }
-        // try to hold the locked pitch. Note that we have the pitch
-        // integrator enabled, which helps with inverted flight
-        nav_pitch_cd = acro_state.locked_pitch_cd;
-        channel_pitch->servo_out  = g.pitchController.get_servo_out(nav_pitch_cd - ahrs.pitch_sensor,
-                                                                    speed_scaler,
-                                                                    false);
     } else {
         /*
           user has non-zero pitch input, use a pure rate controller
@@ -397,11 +421,15 @@ static void calc_throttle()
 // ----------------------------------------------------------------------
 static void calc_nav_yaw(float speed_scaler, float ch4_inf)
 {
+    float rudder_mix = g.kff_rudder_mix;
+    if (labs(ahrs.roll_sensor) > 9000) {
+        rudder_mix = -rudder_mix;
+    }
     if (hold_course_cd != -1) {
         // steering on or close to ground
         int32_t bearing_error_cd = nav_controller->bearing_error_cd();
         channel_rudder->servo_out = g.pidWheelSteer.get_pid_4500(bearing_error_cd, speed_scaler) + 
-            g.kff_rudder_mix * channel_roll->servo_out;
+            rudder_mix * channel_roll->servo_out;
         channel_rudder->servo_out = constrain_int16(channel_rudder->servo_out, -4500, 4500);
         return;
     }
@@ -410,7 +438,7 @@ static void calc_nav_yaw(float speed_scaler, float ch4_inf)
                                                               control_mode == STABILIZE);
 
     // add in rudder mixing from roll
-    channel_rudder->servo_out += channel_roll->servo_out * g.kff_rudder_mix;
+    channel_rudder->servo_out += channel_roll->servo_out * rudder_mix;
     channel_rudder->servo_out = constrain_int16(channel_rudder->servo_out, -4500, 4500);
 }
 

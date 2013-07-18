@@ -464,6 +464,7 @@ static struct {
     bool locked_roll;
     bool locked_pitch;
     float locked_roll_err;
+    float locked_pitch_err;
     int32_t locked_pitch_cd;
 } acro_state;
 
@@ -1142,7 +1143,7 @@ static void update_flight_mode(void)
                 nav_roll_cd = ahrs.roll_sensor;
             }
             if (acro_state.locked_pitch) {
-                nav_pitch_cd = acro_state.locked_pitch_cd;
+                nav_pitch_cd = acro_state.locked_pitch_err;
             } else {
                 nav_pitch_cd = ahrs.pitch_sensor;
             }
