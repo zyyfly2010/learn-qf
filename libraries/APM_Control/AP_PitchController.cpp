@@ -114,13 +114,27 @@ int32_t AP_PitchController::_get_rate_out(float desired_rate, float scaler, bool
 	
 	// Calculate the pitch rate error (deg/sec) and scale
 	float rate_error = (desired_rate - ToDeg(omega_y)) * scaler;
+
+    bool freeze_integrator = false;
+    bool inverted;
+	if (labs(_ahrs->roll_sensor) < 9000) {
+        inverted = false;
+        if (labs(_ahrs->roll_sensor) > 6000) {
+            freeze_integrator = true;
+        }
+	} else {
+		inverted = true;
+        if (labs(_ahrs->roll_sensor) < 12000) {
+            freeze_integrator = true;
+        }
+    }
 	
 	// Multiply pitch rate error by _ki_rate and integrate
 	// Don't integrate if in stabilise mode as the integrator will wind up against the pilots inputs
 	if (!stabilize && _K_I > 0) {
         float ki_rate = _K_I * _tau;
 		//only integrate if gain and time step are positive and airspeed above min value.
-		if (dt > 0 && aspeed > 0.5f*float(aparm.airspeed_min)) {
+		if (!freeze_integrator && dt > 0 && aspeed > 0.5f*float(aparm.airspeed_min)) {
 		    float integrator_delta = rate_error * ki_rate * delta_time;
 			if (_last_out < -45) {
 				// prevent the integrator from increasing if surface defln demand is above the upper limit
@@ -129,17 +143,29 @@ int32_t AP_PitchController::_get_rate_out(float desired_rate, float scaler, bool
 				// prevent the integrator from decreasing if surface defln demand  is below the lower limit
 				integrator_delta = min(integrator_delta , 0);
 			}
-			_integrator += integrator_delta;
+            if (inverted) {
+                _integrator_dn += integrator_delta;
+            } else {
+                _integrator_up += integrator_delta;
+            }
 		}
 	} else {
-		_integrator = 0;
+		_integrator_up = 0;
+		_integrator_dn = 0;
 	}
 
     // Scale the integration limit
     float intLimScaled = _imax * 0.01f / scaler;
 
     // Constrain the integrator state
-    _integrator = constrain_float(_integrator, -intLimScaled, intLimScaled);
+    float integrator;
+    if (inverted) {
+        _integrator_dn = constrain_float(_integrator_dn, -intLimScaled, intLimScaled);
+        integrator = _integrator_dn;
+    } else {
+        _integrator_up = constrain_float(_integrator_up, -intLimScaled, intLimScaled);
+        integrator = _integrator_up;
+    }
 
 	// Calculate equivalent gains so that values for K_P and K_I can be taken across from the old PID law
     // No conversion is required for K_D
@@ -149,7 +175,7 @@ int32_t AP_PitchController::_get_rate_out(float desired_rate, float scaler, bool
 	// Note the scaler is applied again. We want a 1/speed scaler applied to the feed-forward
 	// path, but want a 1/speed^2 scaler applied to the rate error path. 
 	// This is because acceleration scales with speed^2, but rate scales with speed.
-	_last_out = ( (rate_error * _K_D) + _integrator + (desired_rate * kp_ff) ) * scaler;
+	_last_out = ( (rate_error * _K_D) + integrator + (desired_rate * kp_ff) ) * scaler;
 	
 	// Convert to centi-degrees and constrain
 	return constrain_float(_last_out * 100, -4500, 4500);
@@ -230,7 +256,7 @@ float AP_PitchController::get_coordination_rate_offset(void) const
 // 4) minimum FBW airspeed (metres/sec)
 // 5) maximum FBW airspeed (metres/sec)
 //
-int32_t AP_PitchController::get_servo_out(int32_t angle_err, float scaler, bool stabilize)
+int32_t AP_PitchController::get_servo_out(int32_t angle_err, float scaler, bool stabilize, bool coordination)
 {
 	// Calculate offset to pitch rate demand required to maintain pitch angle whilst banking
 	// Calculate ideal turn rate from bank angle and airspeed assuming a level coordinated turn
@@ -243,7 +269,11 @@ int32_t AP_PitchController::get_servo_out(int32_t angle_err, float scaler, bool 
         _tau = 0.1;
     }
 
-    rate_offset = _get_coordination_rate_offset(aspeed, inverted);
+    if (coordination) {
+        rate_offset = _get_coordination_rate_offset(aspeed, inverted);
+    } else {
+        rate_offset = 0;
+    }
 	
 	// Calculate the desired pitch rate (deg/sec) from the angle error
 	float desired_rate = angle_err * 0.01f / _tau;
@@ -271,5 +301,6 @@ int32_t AP_PitchController::get_servo_out(int32_t angle_err, float scaler, bool 
 
 void AP_PitchController::reset_I()
 {
-	_integrator = 0;
+	_integrator_up = 0;
+	_integrator_dn = 0;
 }

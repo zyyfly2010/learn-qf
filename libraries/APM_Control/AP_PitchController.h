@@ -19,7 +19,7 @@ public:
 	void set_ahrs(AP_AHRS *ahrs) { _ahrs = ahrs; }
 
 	int32_t get_rate_out(float desired_rate, float scaler);
-	int32_t get_servo_out(int32_t angle_err, float scaler, bool stabilize);
+	int32_t get_servo_out(int32_t angle_err, float scaler, bool stabilize, bool coordination);
     float   get_coordination_rate_offset(void) const;
 
 	void reset_I();
@@ -39,7 +39,8 @@ private:
 	uint32_t _last_t;
 	float _last_out;
 	
-	float _integrator;
+	float _integrator_up;
+	float _integrator_dn;
 
 	int32_t _get_rate_out(float desired_rate, float scaler, bool stabilize, float aspeed);
     float   _get_coordination_rate_offset(float &aspeed, bool &inverted) const;
