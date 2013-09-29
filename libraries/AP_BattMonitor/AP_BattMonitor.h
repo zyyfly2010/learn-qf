@@ -18,10 +18,10 @@
 #if CONFIG_HAL_BOARD == HAL_BOARD_APM1
  # define AP_BATT_VOLT_PIN                  0       // Battery voltage on A0
  # define AP_BATT_CURR_PIN                  1       // Battery current on A1
- # define AP_BATT_VOLTDIVIDER_DEFAULT       10.0
+ # define AP_BATT_VOLTDIVIDER_DEFAULT       3.56    // on-board APM1 voltage divider with a 3.9kOhm resistor
  # define AP_BATT_CURR_AMP_PERVOLT_DEFAULT  0
 #elif CONFIG_HAL_BOARD == HAL_BOARD_APM2
- # define AP_BATT_VOLT_PIN                  13      // defaults using APM2.5/2.6 and 3dr power module
+ # define AP_BATT_VOLT_PIN                  13      // APM2.5/2.6 with 3dr power module
  # define AP_BATT_CURR_PIN                  12
  # define AP_BATT_VOLTDIVIDER_DEFAULT       10.0
  # define AP_BATT_CURR_AMP_PERVOLT_DEFAULT   0
@@ -50,6 +50,13 @@
  # define AP_BATT_VOLTDIVIDER_DEFAULT       10.0
  # define AP_BATT_CURR_AMP_PERVOLT_DEFAULT  0
 #endif
+
+// Other values normally set directly by mission planner
+// # define AP_BATT_VOLTDIVIDER_DEFAULT 15.70   // Volt divider for AttoPilot 50V/90A sensor
+// # define AP_BATT_VOLTDIVIDER_DEFAULT 4.127   // Volt divider for AttoPilot 13.6V/45A sensor
+// # define AP_BATT_CURR_AMP_PERVOLT_DEFAULT 27.32  // Amp/Volt for AttoPilot 50V/90A sensor
+// # define AP_BATT_CURR_AMP_PERVOLT_DEFAULT 13.66  // Amp/Volt for AttoPilot 13.6V/45A sensor
+
 
 #define AP_BATT_CAPACITY_DEFAULT            1760
 
