@@ -252,14 +252,14 @@ test_failsafe(uint8_t argc, const Menu::arg *argv)
 static int8_t
 test_battery(uint8_t argc, const Menu::arg *argv)
 {
-    if (battery.monitoring() == AP_BATT_MONITOR_VOLTAGE || battery.monitoring() == AP_BATT_MONITOR_VOLTAGE_AND_CURRENT) {
+    if (battery.monitoring() == AP_BATT_MONITOR_VOLTAGE_ONLY || battery.monitoring() == AP_BATT_MONITOR_VOLTAGE_AND_CURRENT) {
         print_hit_enter();
 
         while(1) {
             delay(100);
             read_radio();
             read_battery();
-            if (battery.monitoring() == AP_BATT_MONITOR_VOLTAGE) {
+            if (battery.monitoring() == AP_BATT_MONITOR_VOLTAGE_ONLY) {
                 cliSerial->printf_P(PSTR("V: %4.4f\n"),
                                 battery.voltage(),
                                 battery.current_amps(),
