@@ -109,7 +109,7 @@ AP_BattMonitor::read()
 }
 
 /// capacity_remaining_pct - returns the % battery capacity remaining (0 ~ 100)
-uint8_t AP_BattMonitor::capacity_remaining_pct()
+uint8_t AP_BattMonitor::capacity_remaining_pct() const
 {
     return (100.0 * (_pack_capacity - _current_total_mah) / _pack_capacity);
 }

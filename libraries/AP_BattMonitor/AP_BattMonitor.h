@@ -76,25 +76,25 @@ public:
     void read();
 
     /// monitoring - returns whether we are monitoring voltage only or voltage and current
-    int8_t monitoring() { return _monitoring; }
+    int8_t monitoring() const { return _monitoring; }
 
     /// pack_capacity - battery pack capacity in mAh less reserve
-    float pack_capacity() { return _pack_capacity; }
+    float pack_capacity() const { return _pack_capacity; }
 
     /// Battery voltage.  Initialized to 99 to prevent low voltage events at startup
-    float voltage() { return _voltage; }
+    float voltage() const { return _voltage; }
 
     /// Battery pack instantaneous currrent draw in amperes
-    float current_amps() { return _current_amps; }
+    float current_amps() const { return _current_amps; }
 
     /// Total current drawn since start-up (Amp-hours)
-    float current_total_mah() { return _current_total_mah; }
+    float current_total_mah() const { return _current_total_mah; }
 
     /// time when current was last read
-    uint32_t last_time_ms() { return _last_time_ms; }
+    uint32_t last_time_ms() const { return _last_time_ms; }
 
     /// capacity_remaining_pct - returns the % battery capacity remaining (0 ~ 100)
-    uint8_t capacity_remaining_pct();
+    uint8_t capacity_remaining_pct() const;
 
     static const struct AP_Param::GroupInfo var_info[];
 
