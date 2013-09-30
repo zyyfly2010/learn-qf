@@ -44,7 +44,7 @@ FLYMAPLEAnalogIn::FLYMAPLEAnalogIn() :
 
 void FLYMAPLEAnalogIn::init(void* machtnichts) {
     /* Register FLYMAPLEAnalogIn::_timer_event with the scheduler. */
-    hal.scheduler->register_timer_process(AP_HAL_TIMEDPROC(&FLYMAPLEAnalogIn::_timer_event), this);
+    hal.scheduler->register_timer_process(AP_HAL_MEMBERPROC(&FLYMAPLEAnalogIn::_timer_event));
     /* Register each private channel with FLYMAPLEAnalogIn. */
     _register_channel(&_vcc);
 }
