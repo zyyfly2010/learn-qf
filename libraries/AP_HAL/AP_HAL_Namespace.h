@@ -51,5 +51,10 @@ namespace AP_HAL {
 
 }
 
+#if __AVR__ && __GNUC__ == 4 && __GNUC_MINOR__ > 6
+#define AP_HAL_TIMEDPROC(func) reinterpret_cast<AP_HAL::TimedProc>(func)
+#else
+#define AP_HAL_TIMEDPROC(func) (AP_HAL::TimedProc)(func)
+#endif
 
 #endif // __AP_HAL_NAMESPACE_H__
