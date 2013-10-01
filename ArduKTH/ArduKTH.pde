@@ -26,11 +26,12 @@
 #include <Filter.h>             // library to Filter Sensor Data
 #include <AP_ADC.h>             // ArduPilot Mega Analog to Digital Converter Library
 #include <PID.h>                // ArduPilot Mega RC Library
+#include <memcheck.h> 
 
 const AP_HAL::HAL& hal = AP_HAL_BOARD_DRIVER;
 //---------------------------------------------------------------------------
-static AP_GPS_UBLOX g_gps_driver;
-static GPS         *g_gps = &g_gps_driver;
+static GPS         *g_gps;
+static AP_GPS_Auto g_gps_driver(&g_gps);
 
 #if CONFIG_HAL_BOARD == HAL_BOARD_AVR_SITL
 static SITL sitl;
@@ -178,7 +179,7 @@ struct CC_leg{
     float depth;      // [m]
     float rpm;        // [-]
 };
-static CC_leg   CC_mission[50];
+static CC_leg   CC_mission[20];
 
 struct GPS_leg{
     float lon;        // [rad]
@@ -187,7 +188,7 @@ struct GPS_leg{
     float rpm;        // [-]
     float wp_radius;  // [m] 
 };
-static GPS_leg  GPS_mission[50];
+static GPS_leg  GPS_mission[20];
 
 static int        Nlegs_cc;
 static int        Nlegs_GPS;
@@ -198,14 +199,15 @@ static void wait_ms(uint32_t ms_to_wait){hal.scheduler->delay(ms_to_wait);}
 //-------------------------------------------------------------------------------
 void setup(void)
 {   
+    memcheck_init();
     hal.console->println("\n\n---------------------------------------------------------------------------------");
     ms_start = hal.scheduler->millis();
     hal.console->println("\n << MSY goes Autonomous. Bitte Anschnallen!  >>\n");
     hal.console->println("Starting setup:");
+    g_gps = &g_gps_driver;
     init_GPS();  //wait_ms(5000);update_GPS();print_GPS();
     setup_Flash();
     init_AHRS();
-
     // lower the rate at which the accelerometers and GPS corrects the
     // attitude
     // this will smooth out the roll/pitch when still

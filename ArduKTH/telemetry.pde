@@ -9,7 +9,7 @@ char read_one_char_from_serial()
 {
     char c = '_';   //'\0';
     uint32_t t0 = hal.scheduler->millis();
-    while((hal.scheduler->millis()-t0)<100 && c=='_') { 
+    while((hal.scheduler->millis()-t0)<100 && c=='_') {   
       c = (char)hal.console->read();  
     }
     return c;
@@ -292,7 +292,7 @@ void parse_incoming_telemetry()  {
 //-------------------------------------------------------------------------------
 void view_debug_data()
 {
-  hal.console->printf("lat=%0.5f, lon=%0.5f, Alt=%.2fm sog=%.2fm/s cog=%.1f SAT=%d time=%lu status=%i\n",
+  hal.console->printf_P(PSTR"lat=%0.5f, lon=%0.5f, Alt=%.2fm sog=%.2fm/s cog=%.1f SAT=%d time=%lu status=%i\n"),
               ToDeg(gps.lat),ToDeg(gps.lon),gps.alt,gps.sog,ToDeg(gps.cog), gps.nsats,  gps.time,  gps.status);
   hal.console->printf_P(PSTR("cc=%4.1fdeg    roll=%0.1fdeg   pitch= %0.1fdeg \n"),ToDeg(heading),ToDeg(roll),ToDeg(pitch));
   hal.console->printf_P(PSTR("Acc=%4.2f,%4.2f,%4.2f (norm:%4.2f)  Gyro: %4.3f,%4.3f,%4.3f\n"),accel.x, accel.y, accel.z, accel.length(), gyro.x, gyro.y, gyro.z);
@@ -301,6 +301,8 @@ void view_debug_data()
 void print_settings(){
    hal.console->printf_P(PSTR("\n-----------------------------------------------------------------------------------------\n"));
    hal.console->printf_P(PSTR("<< Info dump >>\n"));
+   hal.console->printf_P(PSTR("Memory free:  %u   (out of 8000 bytes)\n"),(unsigned) memcheck_available_memory());
+   
    hal.console->printf_P(PSTR("     Craft type    = '%c'\n"),craft_type);
    hal.console->printf_P(PSTR("     Control mode  = '%c'\n"),ctrl_mode);
    hal.console->printf("\n");          
@@ -310,15 +312,15 @@ void print_settings(){
    hal.console->printf_P(PSTR("     PID 3  : %10.2f %10.2f %10.2f     \n"),pid_3.kP() ,pid_3.kI() , pid_3.kD() );
    hal.console->printf_P(PSTR("     PID 4  : %10.2f %10.2f %10.2f     \n"),pid_4.kP() ,pid_4.kI() , pid_4.kD() );
    hal.console->printf_P(PSTR("     After mixing pwm_port=%i  pwm_stbd=%i\n\n"), pwm_port , pwm_stbd);
-   hal.console->printf("\n     GPS:   lon=%0.5f, lat=%0.5f, Altitude=%.2fm sog=%.2fm/s cog=%.1f SAT=%d time=%lu status=%i\n",
+   hal.console->printf_P(PSTR("\n     GPS:   lon=%0.5f, lat=%0.5f, Altitude=%.2fm sog=%.2fm/s cog=%.1f SAT=%d time=%lu status=%i\n"),
               ToDeg(gps.lon),ToDeg(gps.lat),gps.alt,gps.sog,ToDeg(gps.cog), gps.nsats,  gps.time,  gps.status);
-   hal.console->printf("     Current position lon=%0.5f, lat=%0.5f  (Could be GPS or dead reconing) \n",ToDeg(current_pos.lon),ToDeg(current_pos.lat));          
+   hal.console->printf_P(PSTR("     Current position lon=%0.5f, lat=%0.5f  (Could be GPS or dead reconing) \n"),ToDeg(current_pos.lon),ToDeg(current_pos.lat));          
    hal.console->printf_P(PSTR("     IMU: cc =%4.1fdeg    roll=%0.1fdeg   pitch= %0.1fdeg  "),ToDeg(heading),ToDeg(roll),ToDeg(pitch));
    hal.console->printf_P(PSTR("  Acc=%4.2f,%4.2f,%4.2f (norm:%4.2f)  Gyro: %4.3f,%4.3f,%4.3f\n"),accel.x, accel.y, accel.z, accel.length(), gyro.x, gyro.y, gyro.z);
    print_CC_mission();
    print_GPS_mission(); 
    hal.console->printf_P(PSTR("\n     Analogue channels:  adc0: %f, adc1: %f, adc2: %f, adc4: %f, vcc: %f\r\n"),adc0, adc1, adc2, adc4, vcc);            
-   hal.console->printf("-----------------------------------------------------------------------------------------\n");
+   hal.console->printf_P(PSTR("-----------------------------------------------------------------------------------------\n"));
 }
 //-------------------------------------------------------------------------------
 void kill_mission(){
