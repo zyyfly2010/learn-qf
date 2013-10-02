@@ -6,6 +6,7 @@
 
 void start_CC_mission(){ 
    hal.console->printf_P(PSTR("Starting CC mission\n"));
+   start_new_log();
    arm_RC();
    mission_start_ms = time_ms; 
    mission_ms       = 0;
@@ -18,6 +19,7 @@ void start_GPS_mission(){
      hal.console->printf_P(PSTR("I refuse to start GPS mission since gps status =0\n"));
      return;
    }
+   start_new_log();
    mission_start_pos = current_pos;
    hal.console->printf_P(PSTR("\nStarting GPS mission (at position %.5f,  %.5f)  \n"),ToDeg(mission_start_pos.lon), ToDeg(mission_start_pos.lat));
    arm_RC();

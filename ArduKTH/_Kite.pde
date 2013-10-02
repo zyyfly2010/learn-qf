@@ -91,6 +91,7 @@ void Kite_craft_setup(){
 void write_Kite_telementry_data(){
   if ((time_ms-last_data_sent_ms)>100)  {
     last_data_sent_ms = time_ms; 
+    write_a_row_to_flash();
     hal.console->printf_P(PSTR("#Kite:   rpc:%.1f %.1f %.1f,   PWM:%i %i   SOG:%.1fm/s  %.5f %.5f \n"),
                         ToDeg(roll),ToDeg(pitch),ToDeg(heading),
                         pwm_port,pwm_stbd,  // Ctrl

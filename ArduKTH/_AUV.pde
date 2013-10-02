@@ -143,7 +143,6 @@ void AUV(){
   if (RC_feedthrough)  { AUV_RC();  }          // Radio control the bugger
   else 
   if (ctrl_mode != 'i')  { AUV_Control_Laws(); write_AUV_telementry_data(); }
-
 }
 //-------------------------------------------------------------------------------
 

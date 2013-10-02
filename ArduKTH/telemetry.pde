@@ -293,7 +293,8 @@ void parse_incoming_telemetry()  {
 void view_debug_data()
 {
   hal.console->printf_P(PSTR("lat=%0.5f, lon=%0.5f, Alt=%.2fm sog=%.2fm/s cog=%.1f SAT=%d time=%lu status=%i\n"),
-              ToDeg(gps.lat),ToDeg(gps.lon),gps.alt,gps.sog,ToDeg(gps.cog), gps.nsats,  gps.time,  gps.status);
+                        ToDeg(gps.lat),ToDeg(gps.lon),gps.alt,gps.sog,ToDeg(gps.cog), gps.nsats,  
+                        (unsigned long)gps.time,  gps.status);
   hal.console->printf_P(PSTR("cc=%4.1fdeg    roll=%0.1fdeg   pitch= %0.1fdeg \n"),ToDeg(heading),ToDeg(roll),ToDeg(pitch));
   hal.console->printf_P(PSTR("Acc=%4.2f,%4.2f,%4.2f (norm:%4.2f)  Gyro: %4.3f,%4.3f,%4.3f\n"),accel.x, accel.y, accel.z, accel.length(), gyro.x, gyro.y, gyro.z);
 }
@@ -313,7 +314,8 @@ void print_settings(){
    hal.console->printf_P(PSTR("     PID 4  : %10.2f %10.2f %10.2f     \n"),pid_4.kP() ,pid_4.kI() , pid_4.kD() );
    hal.console->printf_P(PSTR("     After mixing pwm_port=%i  pwm_stbd=%i\n\n"), pwm_port , pwm_stbd);
    hal.console->printf_P(PSTR("\n     GPS:   lon=%0.5f, lat=%0.5f, Altitude=%.2fm sog=%.2fm/s cog=%.1f SAT=%d time=%lu status=%i\n"),
-              ToDeg(gps.lon),ToDeg(gps.lat),gps.alt,gps.sog,ToDeg(gps.cog), gps.nsats,  gps.time,  gps.status);
+                         ToDeg(gps.lon),ToDeg(gps.lat),gps.alt,gps.sog,ToDeg(gps.cog), gps.nsats,  
+                         (unsigned long)gps.time,  gps.status);
    hal.console->printf_P(PSTR("     Current position lon=%0.5f, lat=%0.5f  (Could be GPS or dead reconing) \n"),ToDeg(current_pos.lon),ToDeg(current_pos.lat));          
    hal.console->printf_P(PSTR("     IMU: cc =%4.1fdeg    roll=%0.1fdeg   pitch= %0.1fdeg  "),ToDeg(heading),ToDeg(roll),ToDeg(pitch));
    hal.console->printf_P(PSTR("  Acc=%4.2f,%4.2f,%4.2f (norm:%4.2f)  Gyro: %4.3f,%4.3f,%4.3f\n"),accel.x, accel.y, accel.z, accel.length(), gyro.x, gyro.y, gyro.z);

@@ -34,7 +34,7 @@ static GPS         *g_gps;
 static AP_GPS_Auto g_gps_driver(&g_gps);
 
 #if CONFIG_HAL_BOARD == HAL_BOARD_AVR_SITL
-static SITL sitl;
+SITL sitl;
 #endif
 
 //---------------------------------------------------------------------------

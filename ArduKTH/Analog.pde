@@ -18,12 +18,12 @@ void init_analog(){
 void read_analogue_channels(){
    if (abs(time_ms-last_adc_update)>20){
       last_adc_update = time_ms;
-       adc0 =  (float)Ch0->read_average()/1024.*5.;  // [Volt]
-       adc1 =  (float)Ch1->read_average()/1024.*5.;  // [Volt]
-       adc2 =  (float)Ch2->read_average()/1024.*5.;  // [Volt]
-       adc3 =  (float)Ch3->read_average()/1024.*5.;  // [Volt]
-       adc4 =  (float)Ch4->read_average()/1024.*5.;  // [Volt]
-       vcc  =  (float)Vcc->read_average()/1000.;     // [Volt]
+      adc0 =  Ch0->voltage_average();
+      adc1 =  Ch1->voltage_average();
+      adc2 =  Ch2->voltage_average();
+      adc3 =  Ch3->voltage_average();
+      adc4 =  Ch4->voltage_average();
+      vcc  =  Vcc->voltage_average();
       //hal.console->printf_P(PSTR("Analogue channels:  adc0=%.2f, adc1=%.2f,   adc2=%.2f, vcc: %f\r\n"),adc0,adc1, adc1, vcc);
     }
 }//-------------------------------------------------------------------------------
