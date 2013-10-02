@@ -10,7 +10,7 @@ void init_AHRS()
   ahrs.set_compass(&compass);
   ins.init(AP_InertialSensor::COLD_START,AP_InertialSensor::RATE_100HZ);
   ahrs.init();
-  hal.console->println("  Done :-)");
+  hal.console->println_P(PSTR("  Done :-)"));
 }
 
 //-------------------------------------------------------------------------------

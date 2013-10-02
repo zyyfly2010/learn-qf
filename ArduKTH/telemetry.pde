@@ -246,20 +246,20 @@ void parse_GPS_mission(){
 //-------------------------------------------------------------------------------
 void print_main_menu()
 {
-  hal.console->printf_P(PSTR("-----------------------------------------------------------------------------------------\n"));
-  hal.console->printf_P(PSTR("Craft:    #S Solar    #A AUV       #P Plane    #K Kite \n"));
-  hal.console->printf_P(PSTR("PID:      #x,kP,kI,kD,x        (PID controller no x) \n"));
-  hal.console->printf_P(PSTR("Mission:  #C Upload Compass mission,  Format  #C,Nlegs,  duration,cc,depth,rpm,          duration,cc,depth,rpm,C \n"));
-  hal.console->printf_P(PSTR("          #G Upload GPS mission,      Format  #G,Nlegs,  lon,lat,depth,wp_radius,rpm,    lon,lat,depth,wp_radiusrpm,G\n"));
-  hal.console->printf_P(PSTR("Run mode: #c Start  compass mission           #g Start GPS mission     #q Kill mission\n"));
-  hal.console->printf_P(PSTR("Log:      #s Send entire log\n"));
-  hal.console->printf_P(PSTR("          #t Continuosly send\n"));
-  hal.console->printf_P(PSTR("          #a Print all status \n "));
-  hal.console->printf_P(PSTR("          #d Start Deviation Mission\n"));
-  hal.console->printf_P(PSTR("          #E Erase logs\n"));
-  hal.console->printf_P(PSTR("          #k X-track error compensation,  Example  #6,k_value,6 \n"));
+    hal.console->println_P(PSTR("-----------------------------------------------------------------------------------------"));
+    hal.console->println_P(PSTR("Craft:    #S Solar    #A AUV       #P Plane    #K Kite"));
+    hal.console->println_P(PSTR("PID:      #x,kP,kI,kD,x        (PID controller no x) "));
+    hal.console->println_P(PSTR("Mission:  #C Upload Compass mission,  Format  #C,Nlegs,  duration,cc,depth,rpm,          duration,cc,depth,rpm,C "));
+    hal.console->println_P(PSTR("          #G Upload GPS mission,      Format  #G,Nlegs,  lon,lat,depth,wp_radius,rpm,    lon,lat,depth,wp_radiusrpm,G"));
+    hal.console->println_P(PSTR("Run mode: #c Start  compass mission           #g Start GPS mission     #q Kill mission"));
+    hal.console->println_P(PSTR("Log:      #s Send entire log"));
+    hal.console->println_P(PSTR("          #t Continuosly send"));
+    hal.console->println_P(PSTR("          #a Print all status  "));
+    hal.console->println_P(PSTR("          #d Start Deviation Mission"));
+    hal.console->println_P(PSTR("          #E Erase logs"));
+    hal.console->println_P(PSTR("          #k X-track error compensation,  Example  #6,k_value,6 "));
   
-  hal.console->printf_P(PSTR("-----------------------------------------------------------------------------------------\n"));
+    hal.console->println_P(PSTR("-----------------------------------------------------------------------------------------"));
 }
 //-------------------------------------------------------------------------------
 void parse_incoming_telemetry()  {
