@@ -4,7 +4,7 @@
 //---------------------------------------------------------------------------
 
 void arm_RC() {
- //hal.console->printf("  Arming RC-channels.\n");
+ //hal.console->printf_P(PSTR("  Arming RC-channels.\n"));
  hal.rcout->enable_ch(CH_1); 
  hal.rcout->enable_ch(CH_2); 
  hal.rcout->enable_ch(CH_3);
@@ -16,7 +16,7 @@ void arm_RC() {
 }
 //---------------------------------------------------------------------------
 void disarm_RC() {
- //hal.console->printf("  Disarming RC-channels. \n");
+ //hal.console->printf_P(PSTR("  Disarming RC-channels. \n"));
  hal.rcout->disable_ch(CH_1); 
  hal.rcout->disable_ch(CH_2); 
  hal.rcout->disable_ch(CH_3);

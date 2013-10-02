@@ -37,7 +37,7 @@ void start_GPS_mission(){
 
 //-------------------------------------------------------------------------------
 void setup_default_CC_mission(){
-    hal.console->printf("Setting up default CC mission: ");
+    hal.console->printf_P(PSTR("Setting up default CC mission: "));
     CC_leg leg;
     Nlegs_cc          = 0;
     leg.duration   = 10; leg.course= ToRad(0);   leg.rpm=1600;    leg.depth=0.0;    CC_mission[Nlegs_cc] = leg;   Nlegs_cc++;
@@ -91,7 +91,7 @@ void print_GPS_mission(){
    hal.console->printf_P(PSTR("\n     GPS type Mission:   %i legs\n"),Nlegs_GPS);
    hal.console->printf_P(PSTR("     k_Xtrack      = %.1f\n"),k_xtrack);
    hal.console->printf_P(PSTR("     sog_threshold = %.1f\n"),sog_threshold);
-   hal.console->printf("     Leg     Lon     Lat         Depth   Radius   rpm  \n");
+   hal.console->printf_P(PSTR("     Leg     Lon     Lat         Depth   Radius   rpm  \n"));
     for (int ii=0; ii<(Nlegs_GPS); ii++) {
        hal.console->printf_P(PSTR("    %3i   %8.5f %8.5f %8.0f %8.0f %10.0f \n"),
            ii,
@@ -149,9 +149,9 @@ void GPS_mission_manager(){
      ctt = calc_course_to_wp_wrpt_Xtrack_error( wpA, target_WP ,current_pos);
      
      float dtt           = tmp.dist;  // [m]
-     //hal.console->printf("Target        %.5f  %.5f \n",ToDeg(target_WP.lon),ToDeg(target_WP.lat) );
-     //hal.console->printf("Current pos   %.5f  %.5f \n",ToDeg(current_pos.lon),ToDeg(current_pos.lat) );
-     //hal.console->printf("GPS-mission  Leg=%i(%i) CC=%.1f  COG = %.1f,  CTT=%.1fdeg,   DTT=%.1fm  \n ",current_leg_nr,Nlegs_GPS,ToDeg(heading),gps.sog,ToDeg(ctt),dtt );
+     //hal.console->printf_P(PSTR("Target        %.5f  %.5f \n"),ToDeg(target_WP.lon),ToDeg(target_WP.lat) );
+     //hal.console->printf_P(PSTR("Current pos   %.5f  %.5f \n"),ToDeg(current_pos.lon),ToDeg(current_pos.lat) );
+     //hal.console->printf_P(PSTR("GPS-mission  Leg=%i(%i) CC=%.1f  COG = %.1f,  CTT=%.1fdeg,   DTT=%.1fm  \n "),current_leg_nr,Nlegs_GPS,ToDeg(heading),gps.sog,ToDeg(ctt),dtt );
 
      if (dtt*1852<GPS_mission[current_leg_nr].wp_radius){ 
        current_leg_nr++; 
@@ -168,7 +168,7 @@ void GPS_mission_manager(){
 //-------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------
 void Deviation_mission_manager(){
-      //hal.console->printf("Deviation mission: ");
+      //hal.console->printf_P(PSTR("Deviation mission: "));
  mission_ms   = time_ms-mission_start_ms;
   if ((time_ms-mission_update_timer_ms)>1000)  {
      mission_update_timer_ms = time_ms;

@@ -116,7 +116,7 @@ void setup_default_Solar_mission(){
   Nlegs_GPS++;
 
   current_leg_nr = 0;
-  hal.console->printf("done\n");
+  hal.console->printf_P(PSTR("done\n"));
   print_GPS_mission();
 }
 //-------------------------------------------------------------------------------

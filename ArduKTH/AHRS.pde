@@ -5,7 +5,7 @@
 
 void init_AHRS()
 {
- hal.console->printf("  Init AHRS:  ");
+  hal.console->printf_P(PSTR("  Init AHRS:  "));
   compass.init();
   ahrs.set_compass(&compass);
   ins.init(AP_InertialSensor::COLD_START,AP_InertialSensor::RATE_100HZ);
@@ -16,10 +16,10 @@ void init_AHRS()
 //-------------------------------------------------------------------------------
 static void print_AHRS()
 {
-   hal.console->printf_P(PSTR("== cc=%4.1fdeg    roll=%0.1fdeg   pitch= %0.1fdeg \n"),
-                       ToDeg(heading),ToDeg(roll),ToDeg(pitch));
-   hal.console->printf_P(PSTR("Acc=%4.2f,%4.2f,%4.2f (norm:%4.2f)  Gyro: %4.3f,%4.3f,%4.3f\n"),
-                       accel.x, accel.y, accel.z, accel.length(), gyro.x, gyro.y, gyro.z);
+    hal.console->printf_P(PSTR("== cc=%4.1fdeg    roll=%0.1fdeg   pitch= %0.1fdeg \n"),
+                               ToDeg(heading),ToDeg(roll),ToDeg(pitch));
+    hal.console->printf_P(PSTR("Acc=%4.2f,%4.2f,%4.2f (norm:%4.2f)  Gyro: %4.3f,%4.3f,%4.3f\n"),
+                               accel.x, accel.y, accel.z, accel.length(), gyro.x, gyro.y, gyro.z);
 }
 //-------------------------------------------------------------------------------
 static void update_heading(){
@@ -28,7 +28,7 @@ static void update_heading(){
     }else{
       heading = cc;  
     }
-  //hal.console->printf_P(PSTR("heading= %.1f \n"),ToDeg(heading));
+  //hal.console->printf_P(PSTR("heading= %.1f \n"))),ToDeg(heading));
 }
 //-------------------------------------------------------------------------------
 
