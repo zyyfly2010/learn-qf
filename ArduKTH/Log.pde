@@ -33,9 +33,9 @@ static const struct LogStructure log_structure[] PROGMEM = {
 
 static void erase_logs(void)
 {
-    hal.console->println("    Erasing... Data flash card (be patient!)");
+    hal.console->printf_P(PSTR("    Erasing... Data flash card (be patient!)  "));
     DataFlash.EraseAll();
-    hal.console->println("done!");
+    hal.console->printf_P(PSTR("done!\n"));
 }
 
 
@@ -86,7 +86,7 @@ static void write_a_row_to_flash()
 //-------------------------------------------------------------------------------
 void flash_read_all_packets()
 {
-  hal.console->printf("\nWill now read Flash card \n");
+  hal.console->printf_P(PSTR("\nWill now read Flash card \n"));
   DataFlash.ListAvailableLogs(hal.console);
 
   uint16_t last_log_num = DataFlash.find_last_log();

@@ -35,7 +35,7 @@
 //   A8:  
 //-------------------------------------------------------------------------------
 void setup_default_Solar_mission(){
-  hal.console->printf("Setting up default SOLAR GPS mission: ");
+  hal.console->printf_P(PSTR("Setting up default SOLAR GPS mission: \n"));
   Nlegs_GPS = 0;
 
   GPS_mission[Nlegs_GPS].lon       = ToRad(18.26580); // Grannen Erik
@@ -166,7 +166,7 @@ void Solar_craft_setup(){
 void write_Solar_telementry_data(){
   if ((time_ms-last_data_sent_ms)>200)  {
     last_data_sent_ms = time_ms; 
-    hal.console->printf("#S, %.1f, Leg=%i, ctt=%.1f, dtt=%.0fm    heading=%.1f,  roll=%.1f,  pitch=%.2f,  Acc=[%.1f,%.1f,%.1f],   sog=%.1f,  cog=%.1f,   %i,%i\n",
+    hal.console->printf_P(PSTR("#S, %.1f, Leg=%i, ctt=%.1f, dtt=%.0fm    heading=%.1f,  roll=%.1f,  pitch=%.2f,  Acc=[%.1f,%.1f,%.1f],   sog=%.1f,  cog=%.1f,   %i,%i\n"),
     (float)mission_ms/1000,current_leg_nr,
     ToDeg(target_ctt), target_dtt*1852,      // Mission
     ToDeg(heading),ToDeg(roll),ToDeg(pitch), // Attitudes

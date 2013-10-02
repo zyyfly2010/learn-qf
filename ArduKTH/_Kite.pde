@@ -35,12 +35,12 @@
 //   A8:  
 //-------------------------------------------------------------------------------
 void setup_default_Kite_mission(){
-    hal.console->printf("Setting up default Kite mission: ");
+    hal.console->printf_P(PSTR("Setting up default Kite mission: "));
     CC_leg leg;
     Nlegs_cc          = 0;
     leg.duration   = 99999; leg.course= ToRad(0);   leg.rpm=1600;    leg.depth=0.0;    CC_mission[Nlegs_cc] = leg;   Nlegs_cc++;
     current_leg_nr = 0;
-    hal.console->printf("done\n");
+    hal.console->printf_P(PSTR("done\n"));
 
   }
 //-------------------------------------------------------------------------------
@@ -91,7 +91,7 @@ void Kite_craft_setup(){
 void write_Kite_telementry_data(){
   if ((time_ms-last_data_sent_ms)>100)  {
     last_data_sent_ms = time_ms; 
-    hal.console->printf("#Kite:   rpc:%.1f %.1f %.1f,   PWM:%i %i   SOG:%.1fm/s  %.5f %.5f \n",
+    hal.console->printf_P(PSTR("#Kite:   rpc:%.1f %.1f %.1f,   PWM:%i %i   SOG:%.1fm/s  %.5f %.5f \n"),
                         ToDeg(roll),ToDeg(pitch),ToDeg(heading),
                         pwm_port,pwm_stbd,  // Ctrl
                         gps.sog,ToDeg(gps.lon),ToDeg(gps.lat));  // AHRS

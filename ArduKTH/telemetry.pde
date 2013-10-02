@@ -33,11 +33,11 @@ double get_a_float_field_from_serial(){
          ch          = hal.console->read();
          str[Nchar]  = ch; 
          Nchar       += 1;
-         //hal.console->printf("%c",ch);
+         //hal.console->printf_P(PSTR("%c",ch));
        }    
     }
     val = atof(str);// atof
-    //hal.console->printf("Value = %f\n",val);
+    //hal.console->printf_P(PSTR("Value = %f\n",val));
     return val;
 }
 //-------------------------------------------------------------------------------
@@ -49,92 +49,92 @@ void parse_PID_1()
 {
    // Example  #1,11,22,333,1      (3 fields obviously :-)
    // #1,   99.9  ,21,31,1  
-   hal.console->printf("Parsing PID 1: ");
+   hal.console->printf_P(PSTR("Parsing PID 1: "));
    bool flag =true; // The flag sayin "ok" or "not ok"
    if (!shoul_be_this_char_at_serial(',')){flag =false;}
-   float kP = (float)get_a_float_field_from_serial();  //hal.console->printf("Float %.5f\n",f);
-   float kI = (float)get_a_float_field_from_serial();  //hal.console->printf("Float %.5f\n",f);
-   float kD = (float)get_a_float_field_from_serial();  //hal.console->printf("Float %.5f\n",f);
+   float kP = (float)get_a_float_field_from_serial();  //hal.console->printf_P(PSTR("Float %.5f\n",f));
+   float kI = (float)get_a_float_field_from_serial();  //hal.console->printf_P(PSTR("Float %.5f\n",f));
+   float kD = (float)get_a_float_field_from_serial();  //hal.console->printf_P(PSTR("Float %.5f\n",f));
    
    if (kP==NAN || kI==NAN || kD==NAN) {flag =false;} 
    if (!shoul_be_this_char_at_serial('1')){flag =false;} // Identidier check
    
    if (flag){
       pid_1.kP(kP); pid_1.kI(kI); pid_1.kD(kD);  pid_1.imax(500); pid_1.save_gains();
-      hal.console->printf("Ok\n");
+      hal.console->printf_P(PSTR("Ok\n"));
       print_settings();   
    }
    else{
-      hal.console->printf("Not Ok\n");
+      hal.console->printf_P(PSTR("Not Ok\n"));
    } 
 }
 //-------------------------------------------------------------------------------
 void parse_PID_2()
 {
    // Example  #2,0000000011,0000000022,0000000333,2      (3 fields obviously :-)
-   hal.console->printf("Parsing PID 2: ");
+   hal.console->printf_P(PSTR("Parsing PID 2: "));
    bool flag =true; // The flag sayin "ok" or "not ok"
    if (!shoul_be_this_char_at_serial(',')){flag =false;}
-   float kP = (float)get_a_float_field_from_serial();  //hal.console->printf("Float %.5f\n",f);
-   float kI = (float)get_a_float_field_from_serial();  //hal.console->printf("Float %.5f\n",f);
-   float kD = (float)get_a_float_field_from_serial();  //hal.console->printf("Float %.5f\n",f);
+   float kP = (float)get_a_float_field_from_serial();  //hal.console->printf_P(PSTR("Float %.5f\n",f));
+   float kI = (float)get_a_float_field_from_serial();  //hal.console->printf_P(PSTR("Float %.5f\n",f));
+   float kD = (float)get_a_float_field_from_serial();  //hal.console->printf_P(PSTR("Float %.5f\n",f));
    
    if (kP==NAN || kI==NAN || kD==NAN) {flag =false;} 
    if (!shoul_be_this_char_at_serial('2')){flag =false;} // Identidier check
    
    if (flag){
       pid_2.kP(kP); pid_2.kI(kI); pid_2.kD(kD);  pid_2.imax(500); pid_2.save_gains();
-      hal.console->printf("Ok\n"); 
+      hal.console->printf_P(PSTR("Ok\n")); 
       print_settings();  
    }
    else{
-      hal.console->printf("Not Ok\n");
+      hal.console->printf_P(PSTR("Not Ok\n"));
    } 
 }
 //-------------------------------------------------------------------------------
 void parse_PID_3()
 {
    // Example  #3, 400, 0 ,  0 ,3      (3 fields obviously :-)
-   hal.console->printf("Parsing PID 3: ");
+   hal.console->printf_P(PSTR("Parsing PID 3: "));
    bool flag =true; // The flag sayin "ok" or "not ok"
    if (!shoul_be_this_char_at_serial(',')){flag =false;}
-   float kP = (float)get_a_float_field_from_serial();  //hal.console->printf("Float %.5f\n",f);
-   float kI = (float)get_a_float_field_from_serial();  //hal.console->printf("Float %.5f\n",f);
-   float kD = (float)get_a_float_field_from_serial();  //hal.console->printf("Float %.5f\n",f);
+   float kP = (float)get_a_float_field_from_serial();  //hal.console->printf_P(PSTR("Float %.5f\n",f));
+   float kI = (float)get_a_float_field_from_serial();  //hal.console->printf_P(PSTR("Float %.5f\n",f));
+   float kD = (float)get_a_float_field_from_serial();  //hal.console->printf_P(PSTR("Float %.5f\n",f));
    
    if (kP==NAN || kI==NAN || kD==NAN) {flag =false;} 
    if (!shoul_be_this_char_at_serial('3')){flag =false;} // Identidier check
    
    if (flag){
       pid_3.kP(kP); pid_3.kI(kI); pid_3.kD(kD);  pid_3.imax(500); pid_3.save_gains();
-      hal.console->printf("Ok\n"); 
+      hal.console->printf_P(PSTR("Ok\n")); 
       print_settings();  
    }
    else{
-      hal.console->printf("Not Ok\n");
+      hal.console->printf_P(PSTR("Not Ok\n"));
    } 
 }
 //-------------------------------------------------------------------------------
 void parse_PID_4()
 {
    // Example  #4, 400, 0 ,  0 ,3      (3 fields obviously :-)
-   hal.console->printf("Parsing PID 4: ");
+   hal.console->printf_P(PSTR("Parsing PID 4: "));
    bool flag =true; // The flag sayin "ok" or "not ok"
    if (!shoul_be_this_char_at_serial(',')){flag =false;}
-   float kP = (float)get_a_float_field_from_serial();  //hal.console->printf("Float %.5f\n",f);
-   float kI = (float)get_a_float_field_from_serial();  //hal.console->printf("Float %.5f\n",f);
-   float kD = (float)get_a_float_field_from_serial();  //hal.console->printf("Float %.5f\n",f);
+   float kP = (float)get_a_float_field_from_serial();  //hal.console->printf_P(PSTR("Float %.5f\n",f));
+   float kI = (float)get_a_float_field_from_serial();  //hal.console->printf_P(PSTR("Float %.5f\n",f));
+   float kD = (float)get_a_float_field_from_serial();  //hal.console->printf_P(PSTR("Float %.5f\n",f));
    
    if (kP==NAN || kI==NAN || kD==NAN) {flag =false;} 
    if (!shoul_be_this_char_at_serial('4')){flag =false;} // Identidier check
    
    if (flag){
       pid_4.kP(kP); pid_4.kI(kI); pid_4.kD(kD);  pid_4.imax(500); pid_4.save_gains();
-      hal.console->printf("Ok\n"); 
+      hal.console->printf_P(PSTR("Ok\n")); 
       print_settings();  
    }
    else{
-      hal.console->printf("Not Ok\n");
+      hal.console->printf_P(PSTR("Not Ok\n"));
    } 
 }
 
@@ -142,7 +142,7 @@ void parse_PID_4()
 void do_deviation_mission()
 {
    kill_mission();
-   //hal.console->printf("You wanna do Deviation, lets try :-)\n");
+   //hal.console->printf_P(PSTR("You wanna do Deviation, lets try :-)\n"));
   //start_Deviation_mission();
    mission_start_pos = current_pos;
    hal.console->printf_P(PSTR("\nStarting Deviation mission (at position %.5f,  %.5f)  \n"),ToDeg(mission_start_pos.lon), ToDeg(mission_start_pos.lat));
@@ -162,21 +162,21 @@ void do_deviation_mission()
 void parse_k_Xtrack()
 {
    // Example  #6,k_value,6   
-   hal.console->printf("Parsing Xtrak: ");
+   hal.console->printf_P(PSTR("Parsing Xtrak: "));
    bool flag =true; // The flag sayin "ok" or "not ok"
    if (!shoul_be_this_char_at_serial(',')){flag =false;}
-   float k = (float)get_a_float_field_from_serial();  //hal.console->printf("Float %.5f\n",f);
+   float k = (float)get_a_float_field_from_serial();  //hal.console->printf_P(PSTR("Float %.5f\n",f));
    
    if (k==NAN) {flag =false;} 
    if (!shoul_be_this_char_at_serial('6')){flag =false;} // Identidier check
    
    if (flag){
       k_xtrack = min(max(k,0.0),1.0);
-      hal.console->printf("Ok\n"); 
+      hal.console->printf_P(PSTR("Ok\n")); 
       print_settings();  
    }
    else{
-      hal.console->printf("Not Ok\n");
+      hal.console->printf_P(PSTR("Not Ok\n"));
    } 
 }
 
@@ -186,7 +186,7 @@ void parse_CC_mission(){
   //           #C,   2     ,    20    ,     123.4,       1  ,       1600,       20,       180,         2,       200,C
   // Kvadrat:  #C,4,    10, 0,0,0,  10,90,0,0,  10,180,0,0,    10,270,0,0,C
   kill_mission();
-  hal.console->print("Parsing CC mission: ");
+  hal.console->printf_P(PSTR("Parsing CC mission: \n"));
   bool flag = true; // The flag saying "ok" or "not ok"
   if (!shoul_be_this_char_at_serial(',')){flag =false;}
   Nlegs_cc = (int)get_a_float_field_from_serial();  // Number of legs
@@ -202,12 +202,12 @@ void parse_CC_mission(){
    if (flag==true){
       //mission = prospect_mission;
       //for (int ii=0; ii<Nlegs; ii++) {mission[ii] = mission[ii]; }
-      hal.console->printf("Nlegs = %i\n",Nlegs_cc);
-      hal.console->print("Ok\n");   
+      hal.console->printf_P(PSTR("Nlegs = %i \n"),Nlegs_cc);
+      hal.console->printf_P(PSTR("Ok\n"));   
       print_CC_mission();
    }
    else{
-      hal.console->print("FAIL => I will therefor setup default mission.\n");
+      hal.console->printf_P(PSTR("FAIL => I will therefor setup default mission.\n"));
       setup_default_CC_mission();
    } 
 }
@@ -217,7 +217,7 @@ void parse_GPS_mission(){
   // Example  #G,3, 18.07205,59.34837,0,20,1600, 18.26582,59.31257,0,20,1700, 18.07205,59.34837,0,20,1500,G
   //
   kill_mission();
-  hal.console->print("Parsing GPS-mission: ");
+  hal.console->printf_P(PSTR("Parsing GPS-mission: \n"));
   bool flag = true; // The flag saying "ok" or "not ok"
   if (!shoul_be_this_char_at_serial(',')){flag =false;}
   Nlegs_GPS = (int)get_a_float_field_from_serial();  // Number of legs
@@ -234,32 +234,32 @@ void parse_GPS_mission(){
    if (flag==true){
     //mission = prospect_mission;
     //for (int ii=0; ii<Nlegs; ii++) {mission[ii] = mission[ii]; }
-    hal.console->printf("Nlegs = %i\n",Nlegs_GPS);
-    hal.console->print("Ok\n");   
+    hal.console->printf_P(PSTR("Nlegs = %i\n"),Nlegs_GPS);
+    hal.console->printf_P(PSTR("Ok\n"));   
     print_GPS_mission();
    }
    else{
-    hal.console->print("FAIL => I will therefor setup default mission.\n");
+    hal.console->printf_P(PSTR("FAIL => I will therefor setup default mission.\n"));
     setup_default_GPS_mission();
    }
 }
 //-------------------------------------------------------------------------------
 void print_main_menu()
 {
-  hal.console->println("-----------------------------------------------------------------------------------------");
-  hal.console->println("Craft:    #S Solar    #A AUV       #P Plane    #K Kite");
-  hal.console->println("PID:      #x,kP,kI,kD,x        (PID controller no x) ");
-  hal.console->println("Mission:  #C Upload Compass mission,  Format  #C,Nlegs,  duration,cc,depth,rpm,          duration,cc,depth,rpm,C ");
-  hal.console->println("          #G Upload GPS mission,      Format  #G,Nlegs,  lon,lat,depth,wp_radius,rpm,    lon,lat,depth,wp_radiusrpm,G");
-  hal.console->println("Run mode: #c Start  compass mission           #g Start GPS mission     #q Kill mission");
-  hal.console->println("Log:      #s Send entire log");
-  hal.console->println("          #t Continuosly send");
-  hal.console->println("          #a Print all status  ");
-  hal.console->println("          #d Start Deviation Mission");
-  hal.console->println("          #E Erase logs");
-  hal.console->println("          #k X-track error compensation,  Example  #6,k_value,6 ");
+  hal.console->printf_P(PSTR("-----------------------------------------------------------------------------------------\n"));
+  hal.console->printf_P(PSTR("Craft:    #S Solar    #A AUV       #P Plane    #K Kite \n"));
+  hal.console->printf_P(PSTR("PID:      #x,kP,kI,kD,x        (PID controller no x) \n"));
+  hal.console->printf_P(PSTR("Mission:  #C Upload Compass mission,  Format  #C,Nlegs,  duration,cc,depth,rpm,          duration,cc,depth,rpm,C \n"));
+  hal.console->printf_P(PSTR("          #G Upload GPS mission,      Format  #G,Nlegs,  lon,lat,depth,wp_radius,rpm,    lon,lat,depth,wp_radiusrpm,G\n"));
+  hal.console->printf_P(PSTR("Run mode: #c Start  compass mission           #g Start GPS mission     #q Kill mission\n"));
+  hal.console->printf_P(PSTR("Log:      #s Send entire log\n"));
+  hal.console->printf_P(PSTR("          #t Continuosly send\n"));
+  hal.console->printf_P(PSTR("          #a Print all status \n "));
+  hal.console->printf_P(PSTR("          #d Start Deviation Mission\n"));
+  hal.console->printf_P(PSTR("          #E Erase logs\n"));
+  hal.console->printf_P(PSTR("          #k X-track error compensation,  Example  #6,k_value,6 \n"));
   
-  hal.console->println("-----------------------------------------------------------------------------------------");
+  hal.console->printf_P(PSTR("-----------------------------------------------------------------------------------------\n"));
 }
 //-------------------------------------------------------------------------------
 void parse_incoming_telemetry()  {
@@ -281,7 +281,7 @@ void parse_incoming_telemetry()  {
      case 'C': kill_mission();parse_CC_mission();           break;
      case 'G': kill_mission();parse_GPS_mission();          break;
      case 'd': kill_mission();do_deviation_mission();       break;
-     case 'r': kill_mission(); ctrl_mode='r';  hal.console->printf("\nRC dude\n");break;
+     case 'r': kill_mission(); ctrl_mode='r';  hal.console->printf_P(PSTR("\nRC dude\n"));break;
      case 't': continously_send=true; break;
      case 'q': kill_mission();break;
      case 's': kill_mission();continously_send=false;flash_read_all_packets();break;
@@ -292,7 +292,7 @@ void parse_incoming_telemetry()  {
 //-------------------------------------------------------------------------------
 void view_debug_data()
 {
-  hal.console->printf_P(PSTR"lat=%0.5f, lon=%0.5f, Alt=%.2fm sog=%.2fm/s cog=%.1f SAT=%d time=%lu status=%i\n"),
+  hal.console->printf_P(PSTR("lat=%0.5f, lon=%0.5f, Alt=%.2fm sog=%.2fm/s cog=%.1f SAT=%d time=%lu status=%i\n"),
               ToDeg(gps.lat),ToDeg(gps.lon),gps.alt,gps.sog,ToDeg(gps.cog), gps.nsats,  gps.time,  gps.status);
   hal.console->printf_P(PSTR("cc=%4.1fdeg    roll=%0.1fdeg   pitch= %0.1fdeg \n"),ToDeg(heading),ToDeg(roll),ToDeg(pitch));
   hal.console->printf_P(PSTR("Acc=%4.2f,%4.2f,%4.2f (norm:%4.2f)  Gyro: %4.3f,%4.3f,%4.3f\n"),accel.x, accel.y, accel.z, accel.length(), gyro.x, gyro.y, gyro.z);
@@ -301,7 +301,7 @@ void view_debug_data()
 void print_settings(){
    hal.console->printf_P(PSTR("\n-----------------------------------------------------------------------------------------\n"));
    hal.console->printf_P(PSTR("<< Info dump >>\n"));
-   hal.console->printf_P(PSTR("Memory free:  %u   (out of 8000 bytes)\n"),(unsigned) memcheck_available_memory());
+   hal.console->printf_P(PSTR("Memory free:  %u bytes out of 8000 bytes installed.)\n"),(unsigned) memcheck_available_memory());
    
    hal.console->printf_P(PSTR("     Craft type    = '%c'\n"),craft_type);
    hal.console->printf_P(PSTR("     Control mode  = '%c'\n"),ctrl_mode);
@@ -325,7 +325,7 @@ void print_settings(){
 //-------------------------------------------------------------------------------
 void kill_mission(){
   if (  ctrl_mode != 'i') {
-    hal.console->printf("Killing mission\n");
+    hal.console->printf_P(PSTR("Killing mission\n"));
     disarm_RC();
     mission_start_ms = 0;
     current_leg_nr   = 0;

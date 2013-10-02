@@ -16,9 +16,9 @@ void init_AHRS()
 //-------------------------------------------------------------------------------
 static void print_AHRS()
 {
-   hal.console->printf("== cc=%4.1fdeg    roll=%0.1fdeg   pitch= %0.1fdeg \n",
+   hal.console->printf_P(PSTR("== cc=%4.1fdeg    roll=%0.1fdeg   pitch= %0.1fdeg \n"),
                        ToDeg(heading),ToDeg(roll),ToDeg(pitch));
-   hal.console->printf("Acc=%4.2f,%4.2f,%4.2f (norm:%4.2f)  Gyro: %4.3f,%4.3f,%4.3f\n",
+   hal.console->printf_P(PSTR("Acc=%4.2f,%4.2f,%4.2f (norm:%4.2f)  Gyro: %4.3f,%4.3f,%4.3f\n"),
                        accel.x, accel.y, accel.z, accel.length(), gyro.x, gyro.y, gyro.z);
 }
 //-------------------------------------------------------------------------------

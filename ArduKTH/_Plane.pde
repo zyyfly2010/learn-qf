@@ -35,7 +35,7 @@
 //   A8:  
 //-------------------------------------------------------------------------------
 void setup_default_Plane_mission(){
-  hal.console->printf("Setting up default Plane GPS mission: ");
+  hal.console->printf_P(PSTR("Setting up default Plane GPS mission: "));
   Nlegs_GPS = 0;
 
   GPS_mission[Nlegs_GPS].lon       = ToRad(18.287188); // Närmast skolan
@@ -74,7 +74,7 @@ void setup_default_Plane_mission(){
   Nlegs_GPS++;
 
   current_leg_nr = 0;
-  hal.console->printf("done\n");
+  hal.console->printf_P(PSTR("done\n"));
   print_GPS_mission();
 }
 //-------------------------------------------------------------------------------
@@ -124,7 +124,7 @@ void Plane_craft_setup(){
 void write_Plane_telementry_data(){
   if ((time_ms-last_data_sent_ms)>200)  {
     last_data_sent_ms = time_ms; 
-    hal.console->printf("#P, %.1f, Leg=%i, ctt=%.1f, dtt=%.0fm  heading=%.1f,  roll=%.1f,  pitch=%.2f,  Acc=[%.1f,%.1f,%.1f],   sog=%.1f,  cog=%.1f, h=%.1f,   %i,%i\n",
+    hal.console->printf_P(PSTR("#P, %.1f, Leg=%i, ctt=%.1f, dtt=%.0fm  heading=%.1f,  roll=%.1f,  pitch=%.2f,  Acc=[%.1f,%.1f,%.1f],   sog=%.1f,  cog=%.1f, h=%.1f,   %i,%i\n"),
     (float)mission_ms/1000,current_leg_nr,
     ToDeg(target_ctt), target_dtt*1852,      // Mission
     ToDeg(heading),ToDeg(roll),ToDeg(pitch), // Attitudes
