@@ -152,6 +152,9 @@ void SITL_State::_parse_command_line(int argc, char * const argv[])
 	_sitl_setup();
 }
 
+extern SITL sitl;
+extern AP_InertialSensor_HIL ins;
+extern AP_Compass_HIL compass;
 
 /*
   setup for SITL handling
@@ -170,10 +173,10 @@ void SITL_State::_sitl_setup(void)
 	fprintf(stdout, "Starting SITL input\n");
 
 	// find the barometer object if it exists
-	_sitl = (SITL *)AP_Param::find_object("SIM_");
+	_sitl = &sitl;
 	_barometer = (AP_Baro_HIL *)AP_Param::find_object("GND_");
-	_ins = (AP_InertialSensor_HIL *)AP_Param::find_object("INS_");
-	_compass = (AP_Compass_HIL *)AP_Param::find_object("COMPASS_");
+	_ins = &ins;
+	_compass = &compass;
 
     if (_sitl != NULL) {
         // setup some initial values
