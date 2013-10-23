@@ -205,10 +205,10 @@ static void wait_ms(uint32_t ms_to_wait){hal.scheduler->delay(ms_to_wait);}
 void setup(void)
 {   
     memcheck_init();
-    hal.console->println_P(PSTR("\n\n---------------------------------------------------------------------------------"));
+    hal.console->printf_P(PSTR("\n\n---------------------------------------------------------------------------------\n"));
     ms_start = hal.scheduler->millis();
-    hal.console->println_P(PSTR("\n << MSY goes Autonomous. Bitte Anschnallen!  >>\n"));
-    hal.console->println_P(PSTR("Starting setup:"));
+    hal.console->printf_P(PSTR("\n << MSY goes Autonomous. Bitte Anschnallen!  >>\n"));
+    hal.console->printf_P(PSTR("Starting setup:"));
     g_gps = &g_gps_driver;
     init_GPS();  //wait_ms(5000);update_GPS();print_GPS();
     setup_Flash();
@@ -225,8 +225,8 @@ void setup(void)
     print_main_menu();
     //;
     hal.scheduler->delay(1000);
-    hal.console->print("Leaving setup.\n");
-    hal.console->print("Now it is up to you :-) \n");
+    hal.console->printf_P("Leaving setup.\n");
+    hal.console->printf_P("Now it is up to you :-) \n");
 }
 
 //---------------------------------------------------------------------------
