@@ -42,7 +42,7 @@ static void start_new_log(void)
 
 static void erase_logs(void)
 {
-    hal.console->printf_P(PSTR("    Erasing... Data flash card (be patient!)  "));
+    hal.console->printf_P(PSTR("    Erasing... Data flash card (be patient!)  \n"));
     DataFlash.EraseAll();
     hal.console->printf_P(PSTR("done!\n"));
     start_new_log();

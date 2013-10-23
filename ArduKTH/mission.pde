@@ -22,7 +22,7 @@ void start_CC_mission(){
 //-------------------------------------------------------------------------------
 void start_GPS_mission(){
    if (gps.status!=2){
-     hal.console->printf_P(PSTR("I refuse to start GPS mission since gps status =0\n"));
+       hal.console->printf_P(PSTR("I refuse to start GPS mission since gps status =0\n"));
      return;
    }
    if (craft_type=='A') {initiate_AUV_mission(); }
@@ -58,8 +58,8 @@ void setup_default_CC_mission(){
   }
 //-------------------------------------------------------------------------------
 void print_CC_mission(){
-   hal.console->printf_P(PSTR("\n     Compass course type Mission:  %i legs\n"),Nlegs_cc);
-   hal.console->printf_P(PSTR("     Leg    Duration      CC       Depth        RPM \n"));
+    hal.console->printf_P(PSTR("\n     Compass course type Mission:  %i legs\n"),Nlegs_cc);
+    hal.console->printf_P(PSTR("     Leg    Duration      CC       Depth        RPM \n"));
     for (int ii=0; ii<(Nlegs_cc); ii++) {
        hal.console->printf_P(PSTR("    %3i %10.1f %10.1f %10.1f %10.0f  \n"),ii,CC_mission[ii].duration,ToDeg(CC_mission[ii].course), CC_mission[ii].depth, CC_mission[ii].rpm);
     }
@@ -106,7 +106,7 @@ static void setup_default_GPS_mission(){
   }
 //-------------------------------------------------------------------------------
 void print_GPS_mission(){
-   hal.console->printf_P(PSTR("\n     GPS type Mission:   %i legs\n"),Nlegs_GPS);
+    hal.console->printf_P(PSTR("\n     GPS type Mission:   %i legs\n"),Nlegs_GPS);
    hal.console->printf_P(PSTR("     k_Xtrack      = %.1f\n"),k_xtrack);
    hal.console->printf_P(PSTR("     sog_threshold = %.1f\n"),sog_threshold);
    hal.console->printf_P(PSTR("     Leg     Lon     Lat         Depth   Radius   rpm  \n"));

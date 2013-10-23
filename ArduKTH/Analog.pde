@@ -4,14 +4,14 @@
 //---------------------------------------------------------------------------
 
 void init_analog(){
-  hal.console->printf_P(PSTR("  Analog:  "));
+  hal.console->printf_P("  Analog: \n");
   Ch0 = hal.analogin->channel(0);
   Ch1 = hal.analogin->channel(1);
   Ch2 = hal.analogin->channel(2);
   Ch3 = hal.analogin->channel(3);
   Ch4 = hal.analogin->channel(4);
   Vcc = hal.analogin->channel(ANALOG_INPUT_BOARD_VCC);
-  hal.console->println_P(PSTR(" ok. "));
+  hal.console->printf_P(PSTR(" ok. \n"));
 }
 //-------------------------------------------------------------------------------
 

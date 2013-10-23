@@ -11,7 +11,7 @@ void init_AHRS()
   ins.init(AP_InertialSensor::COLD_START,AP_InertialSensor::RATE_100HZ);
   ahrs.init();
   ahrs._kp.set(0.1);// See APM_AHRS.cpp for other AHRS-parameters 
-  hal.console->println_P(PSTR("  Done :-)"));
+  hal.console->printf_P(PSTR("  Done :-) \n"));
 }
 
 //-------------------------------------------------------------------------------

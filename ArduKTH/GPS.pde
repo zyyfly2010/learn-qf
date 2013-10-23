@@ -6,14 +6,15 @@
 void print_GPS()
 {
     hal.console->printf_P(PSTR("lat=%.5f, lon=%.5f, Alt=%.1fm sog=%.1fm/s cog=%.1f SAT=%d time=%lu status=%i\n"),
-              ToDeg(gps.lat),ToDeg(gps.lon),gps.alt,gps.sog,ToDeg(gps.cog), gps.nsats,  gps.time,  gps.status);
+                          ToDeg(gps.lat),ToDeg(gps.lon),gps.alt,gps.sog,ToDeg(gps.cog), gps.nsats,  
+                          (unsigned long)gps.time,  gps.status);
 }
 //uint8_t fix = gpsA->status();
 
 //-------------------------------------------------------------------------------
 void init_GPS()
 {
-   hal.console->printf_P(PSTR("  Init GPS:  \n"));
+    hal.console->printf_P(PSTR("  Init GPS:  "));
    hal.uartB->begin(38400);
    g_gps->init(hal.uartB, GPS::GPS_ENGINE_AIRBORNE_2G);
    wait_ms(200);         // Why do I have this here?

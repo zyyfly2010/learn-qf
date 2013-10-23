@@ -52,9 +52,9 @@ void parse_PID_1()
    hal.console->printf_P(PSTR("Parsing PID 1: "));
    bool flag =true; // The flag sayin "ok" or "not ok"
    if (!shoul_be_this_char_at_serial(',')){flag =false;}
-   float kP = (float)get_a_float_field_from_serial();  //hal.console->printf_P(PSTR("Float %.5f\n",f));
-   float kI = (float)get_a_float_field_from_serial();  //hal.console->printf_P(PSTR("Float %.5f\n",f));
-   float kD = (float)get_a_float_field_from_serial();  //hal.console->printf_P(PSTR("Float %.5f\n",f));
+   float kP = (float)get_a_float_field_from_serial();  //hal.console->printf_P(PSTR("Float %.5f\n"),f);
+   float kI = (float)get_a_float_field_from_serial();  //hal.console->printf_P(PSTR("Float %.5f\n"),f);
+   float kD = (float)get_a_float_field_from_serial();  //hal.console->printf_P(PSTR("Float %.5f\n"),f);
    
    if (kP==NAN || kI==NAN || kD==NAN) {flag =false;} 
    if (!shoul_be_this_char_at_serial('1')){flag =false;} // Identidier check
@@ -65,7 +65,7 @@ void parse_PID_1()
       hal.console->printf_P(PSTR("     PID 1  : P:%10.2f I:%10.2f D:%10.2f     \n"),pid_1.kP() ,pid_1.kI() , pid_1.kD() );
    }
    else{
-      hal.console->printf_P(PSTR("Not Ok\n"));
+       hal.console->printf_P(PSTR("Not Ok\n"));
    } 
 }
 //-------------------------------------------------------------------------------
@@ -197,7 +197,7 @@ void parse_CC_mission(){
   //           #C,   2     ,    20    ,     123.4,       1  ,       1600,       20,       180,         2,       200,C
   // Kvadrat:  #C,4,    10, 0,0,0,  10,90,0,0,  10,180,0,0,    10,270,0,0,C
   kill_mission();
-  hal.console->printf_P(PSTR("Parsing CC mission: \n"));
+  hal.console->print("Parsing CC mission: ");
   bool flag = true; // The flag saying "ok" or "not ok"
   if (!shoul_be_this_char_at_serial(',')){flag =false;}
   Nlegs_cc = (int)get_a_float_field_from_serial();  // Number of legs
@@ -218,7 +218,7 @@ void parse_CC_mission(){
       print_CC_mission();
    }
    else{
-      hal.console->printf_P(PSTR("FAIL => I will therefor setup default mission.\n"));
+      hal.console->print("FAIL => I will therefor setup default mission.\n");
       setup_default_CC_mission();
    } 
 }
@@ -228,7 +228,7 @@ static void parse_GPS_mission(){
   // Example  #G,3, 18.07205,59.34837,0,20,1600, 18.26582,59.31257,0,20,1700, 18.07205,59.34837,0,20,1500,G
   //
   kill_mission();
-  hal.console->printf_P(PSTR("Parsing GPS-mission: \n"));
+  hal.console->print("Parsing GPS-mission: ");
   bool flag = true; // The flag saying "ok" or "not ok"
   if (!shoul_be_this_char_at_serial(',')){flag =false;}
   Nlegs_GPS = (int)get_a_float_field_from_serial();  // Number of legs
@@ -250,7 +250,7 @@ static void parse_GPS_mission(){
     print_GPS_mission();
    }
    else{
-    hal.console->printf_P(PSTR("FAIL => I will therefor setup default mission.\n"));
+    hal.console->print("FAIL => I will therefor setup default mission.\n");
     setup_default_GPS_mission();
    }
 }
@@ -331,9 +331,9 @@ void parse_incoming_telemetry()  {
 //-------------------------------------------------------------------------------
 void view_debug_data()
 {
-  hal.console->printf_P(PSTR("lat=%0.5f, lon=%0.5f, Alt=%.2fm sog=%.2fm/s cog=%.1f SAT=%d time=%lu status=%i\n"),
-                        ToDeg(gps.lat),ToDeg(gps.lon),gps.alt,gps.sog,ToDeg(gps.cog), gps.nsats,  
-                        (unsigned long)gps.time,  gps.status);
+    hal.console->printf_P(PSTR("lat=%0.5f, lon=%0.5f, Alt=%.2fm sog=%.2fm/s cog=%.1f SAT=%d time=%lu status=%i\n"),
+                          ToDeg(gps.lat),ToDeg(gps.lon),gps.alt,gps.sog,ToDeg(gps.cog), gps.nsats,  
+                          (unsigned long)gps.time,  gps.status);
   hal.console->printf_P(PSTR("cc=%4.1fdeg    roll=%0.1fdeg   pitch= %0.1fdeg \n"),ToDeg(heading),ToDeg(roll),ToDeg(pitch));
   hal.console->printf_P(PSTR("Acc=%4.2f,%4.2f,%4.2f (norm:%4.2f)  Gyro: %4.3f,%4.3f,%4.3f\n"),accel.x, accel.y, accel.z, accel.length(), gyro.x, gyro.y, gyro.z);
 }
@@ -341,7 +341,7 @@ void view_debug_data()
 void print_settings(){
    hal.console->printf_P(PSTR("\n-----------------------------------------------------------------------------------------\n"));
    hal.console->printf_P(PSTR("<< Info dump >>\n"));
-   hal.console->printf_P(PSTR("Memory free:  %u bytes out of 8000 bytes installed.)\n"),(unsigned) memcheck_available_memory());
+   hal.console->printf_P(PSTR("Memory free:  %u   (out of 8000 bytes)\n"),(unsigned) memcheck_available_memory());
    
    hal.console->printf_P(PSTR("     Craft type    = '%c'\n"),craft_type);
    hal.console->printf_P(PSTR("     Control mode  = '%c'\n"),ctrl_mode);
