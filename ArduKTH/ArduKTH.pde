@@ -26,9 +26,13 @@
 #include <Filter.h>             // library to Filter Sensor Data
 #include <AP_ADC.h>             // ArduPilot Mega Analog to Digital Converter Library
 #include <PID.h>                // ArduPilot Mega RC Library
-#include <memcheck.h> 
+#include <memcheck.h>
+#include <AP_BattMonitor.h>
 
 const AP_HAL::HAL& hal = AP_HAL_BOARD_DRIVER;
+
+AP_BattMonitor battery_mon;
+
 //---------------------------------------------------------------------------
 static GPS         *g_gps;
 static AP_GPS_Auto g_gps_driver(&g_gps);
@@ -63,16 +67,16 @@ AP_HAL::AnalogSource* Ch2;
 AP_HAL::AnalogSource* Ch3;
 AP_HAL::AnalogSource* Ch4;
 AP_HAL::AnalogSource* Vcc;
-float adc0 =  0.0; 
-float adc1 =  0.0; 
-float adc2 =  0.0;
-float adc3 =  0.0;
-float adc4 =  0.0;
-float vcc  =  0.0; 
+static float adc0 =  0.0; 
+static float adc1 =  0.0; 
+static float adc2 =  0.0;
+static float adc3 =  0.0;
+static float adc4 =  0.0;
+static float vcc  =  0.0; 
 //---------------------------------------------------------------------------
-static int      battery_volt_pin;
-static int      battery_curr_pin;
-static float 	battery_voltage;
+//static int      battery_volt_pin;
+//static int      battery_curr_pin;
+//static float 	battery_voltage;
 static float	current_amps;
 static float	current_total;
 //---------------------------------------------------------------------------
@@ -114,8 +118,8 @@ static float target_ctt    = 0.0;      // [rad] Compass course
 static float target_dtt    = 0.0;      // [rad] Compass course
 static float target_depth  = 0.0;      // [m]   
 static float target_rpm    = 0.0;      // [m]   
-static float ctrl_cc       = 0;        // [rad]  
-static float ctrl_depth    = 0;        // [m]
+static float ctrl_cc       = 0.0;      // [rad]  
+static float ctrl_depth    = 0.0;      // [m]
 
 static float err_cc       = 0.0;       // For PID-conrol
 static float err_depth    = 0.0;       // For PID-conrol
@@ -165,6 +169,7 @@ static uint32_t last_data_sent_ms;
 static uint32_t last_GPS_fix;
 static uint32_t last_adc_update;
 static uint32_t last_telemetry_check;
+static uint32_t last_power_update;
 
 static char      ctrl_mode         = 'i';    // idle mode
 static char      craft_type        = 'A';    // Default craft type
@@ -211,8 +216,7 @@ void setup(void)
     // lower the rate at which the accelerometers and GPS corrects the
     // attitude
     // this will smooth out the roll/pitch when still
-    ahrs._kp.set(0.1);
-
+    battery_mon.init();  // initialise the battery monitor
     init_analog();
     setup_default_CC_mission();
     setup_default_GPS_mission();
@@ -220,8 +224,9 @@ void setup(void)
     print_settings();
     print_main_menu();
     //;
-    hal.console->printf_P(PSTR("Leaving setup.\n"));
-    hal.console->printf_P(PSTR("Now it is up to you :-) \n"));
+    hal.scheduler->delay(1000);
+    hal.console->print("Leaving setup.\n");
+    hal.console->print("Now it is up to you :-) \n");
 }
 
 //---------------------------------------------------------------------------
@@ -235,6 +240,7 @@ void loop(void)
     read_analogue_channels();                              // 
     update_AHRS();                                         // 
     update_heading();  // Chooses if CC or GPS sets heading
+    //update_power_consumption();
     if (ctrl_mode =='c')  { CC_mission_manager();       }  // 
     if (ctrl_mode =='g')  { GPS_mission_manager();      }  // 
     if (ctrl_mode =='d')  { Deviation_mission_manager();}  // 

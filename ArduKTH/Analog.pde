@@ -26,9 +26,19 @@ void read_analogue_channels(){
       vcc  =  Vcc->voltage_average();
       //hal.console->printf_P(PSTR("Analogue channels:  adc0=%.2f, adc1=%.2f,   adc2=%.2f, vcc: %f\r\n"),adc0,adc1, adc1, vcc);
     }
-}//-------------------------------------------------------------------------------
-
-
+}
+//-------------------------------------------------------------------------------
+void update_power_consumption(){
+   if (abs(time_ms-last_power_update)>100){
+     last_power_update = time_ms;
+     battery_mon.read();
+      hal.console->printf_P(PSTR("\nVoltage: %.2f \tCurrent: %.2f \tTotCurr:%.2f"),
+			    battery_mon.voltage(),
+			    battery_mon.current_amps(),
+                            battery_mon.current_total_mah());
+   }
+}
+//-------------------------------------------------------------------------------
 
 
 
