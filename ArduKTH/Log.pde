@@ -43,6 +43,7 @@ static void start_new_log(void)
 static void erase_logs(void)
 {
     hal.console->printf_P(PSTR("    Erasing... Data flash card (be patient!)  \n"));
+    wait_ms(100);
     DataFlash.EraseAll();
     hal.console->printf_P(PSTR("done!\n"));
     start_new_log();
@@ -95,7 +96,7 @@ static void write_a_row_to_flash()
 //-------------------------------------------------------------------------------
 void flash_read_all_packets(uint16_t log_number_to_read)
 {
-  hal.console->printf_P(PSTR("\nWill now read Flash card \n"));
+  hal.console->printf_P(PSTR("Will try to read log #%i :-) \n"),(int)log_number_to_read);
   DataFlash.ListAvailableLogs(hal.console);
   uint16_t num_logs = DataFlash.get_num_logs();
   if (log_number_to_read>num_logs) {return;}

@@ -3,21 +3,38 @@
 //---------------------------------------------------------------------------
 // Jakob Kuttenkeuler, jakob@kth.se
 //---------------------------------------------------------------------------
+void kill_mission(){
+  if (  ctrl_mode != 'i') {
+      hal.console->printf_P(PSTR("Killing mission\n"));
+    disarm_RC();
+    mission_start_ms = 0;
+    current_leg_nr   = 0;
+    if (craft_type=='A') {  AUV_neutral_ctrl();  }
+    if (craft_type=='S') {  Solar_neutral_ctrl();}
+    if (craft_type=='P') {  Plane_neutral_ctrl();}
+    if (craft_type=='K') {  Kite_neutral_ctrl(); }
+    //print_main_menu();
+    ctrl_mode         = 'i';
+  }
+  continously_send  = false;
+  wait_ms(500); // Let everybody calm down :-)
+}
+//-------------------------------------------------------------------------------
 
 void start_CC_mission(){ 
    hal.console->printf_P(PSTR("Starting CC mission\n"));
    if (craft_type=='A') {initiate_AUV_mission();}
-   start_new_log();
+   //start_new_log();
    arm_RC();
    mission_start_ms = time_ms; 
    mission_ms       = 0;
-   current_leg_nr = 0;
-   ctrl_mode = 'c';
+   current_leg_nr   = 0;
+   ctrl_mode        = 'c';
    
-   hal.console->printf_P(PSTR("Flirting with motor control..."));
-   hal.rcout->write(CH_3,1500); // To make Motor-control happy
-   hal.scheduler->delay(2000); // Wait for Motor-control
-   hal.console->printf_P(PSTR(" done. \n")); 
+  // hal.console->printf_P(PSTR("Flirting with motor control..."));
+   //hal.rcout->write(CH_3,1500); // To make Motor-control happy
+   //hal.scheduler->delay(2000); // Wait for Motor-control
+   //hal.console->printf_P(PSTR(" done. \n")); 
 }
 //-------------------------------------------------------------------------------
 void start_GPS_mission(){
@@ -107,8 +124,8 @@ static void setup_default_GPS_mission(){
 //-------------------------------------------------------------------------------
 void print_GPS_mission(){
     hal.console->printf_P(PSTR("\n     GPS type Mission:   %i legs\n"),Nlegs_GPS);
-   hal.console->printf_P(PSTR("     k_Xtrack      = %.1f\n"),k_xtrack);
-   hal.console->printf_P(PSTR("     sog_threshold = %.1f\n"),sog_threshold);
+   hal.console->printf_P(PSTR("     k_Xtrack      = %.3f\n"),k_xtrack);
+   hal.console->printf_P(PSTR("     sog_threshold = %.2f\n"),sog_threshold);
    hal.console->printf_P(PSTR("     Leg     Lon     Lat         Depth   Radius   rpm  \n"));
     for (int ii=0; ii<(Nlegs_GPS); ii++) {
        hal.console->printf_P(PSTR("    %3i   %8.5f %8.5f %8.0f %8.0f %10.0f \n"),

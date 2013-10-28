@@ -89,7 +89,7 @@ void Plane_neutral_ctrl(){
   hal.rcout->write(CH_8,1500);
 }
 //---------------------------------------------------------------------------
-void Plane_craft_setup(){
+void plane_craft_setup(){
   hal.console->printf_P(PSTR("=============================\n"));
   hal.console->printf_P(PSTR("Setting up Plane craft\n"));
   hal.console->printf_P(PSTR("=============================\n"));

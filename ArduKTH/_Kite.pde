@@ -37,7 +37,7 @@
 void setup_default_Kite_mission(){
     hal.console->printf_P(PSTR("Setting up default Kite mission: "));
     CC_leg leg;
-    Nlegs_cc          = 0;
+    Nlegs_cc       = 0.0;
     leg.duration   = 99999; leg.course= ToRad(0);   leg.rpm=1600;    leg.depth=0.0;    CC_mission[Nlegs_cc] = leg;   Nlegs_cc++;
     current_leg_nr = 0;
     hal.console->printf_P(PSTR("done\n"));
@@ -55,28 +55,20 @@ void Kite_neutral_ctrl(){
   hal.rcout->write(CH_8,1500);
 }
 //---------------------------------------------------------------------------
-void Kite_craft_setup(){
+void kite_craft_setup(){
   hal.console->printf_P(PSTR("=============================\n"));
   hal.console->printf_P(PSTR("Setting up Kite craft\n"));
   hal.console->printf_P(PSTR("=============================\n"));
   craft_type='K';
 
-  pid_1.kP(800);  
-  pid_1.kI(0.0);   
-  pid_1.kD(0.0);    
-  pid_1.imax(0.0);   
-  pid_1.save_gains();
-  pid_2.kP(800);   
-  pid_2.kI(0.0);   
-  pid_2.kD(0.0);    
-  pid_2.imax(0.0);   
-  pid_2.save_gains();
-  pid_3.kP(500);   
+  pid_1.kP(500);   pid_1.kI(0.0);  pid_1.kD(0.0); pid_1.imax(0.0);   pid_1.save_gains();
+  pid_2.kP(100);    pid_2.kI(0.0);  pid_2.kD(0.0); pid_2.imax(0.0);   pid_2.save_gains();
+  pid_3.kP(00);   
   pid_3.kI(0.0);   
   pid_3.kD(0.0);    
   pid_3.imax(0.0);   
   pid_3.save_gains();
-  pid_4.kP(500);   
+  pid_4.kP(000);   
   pid_4.kI(0.0);   
   pid_4.kD(0.0);    
   pid_4.imax(0.0);   
@@ -103,31 +95,28 @@ void Kite_Control_Laws(){
   if ((time_ms-last_ctrl_ms)>20)  {
     last_ctrl_ms = time_ms;
       
-    int RC_roll_pwm  = (int)(hal.rcin->read(CH_1)); // From RC receiver
-    int RC_pitch_pwm = (int)(hal.rcin->read(CH_2)); // From RC receiver
-    
+    int RC_roll_pwm  = (int)(hal.rcin->read(CH_1))-1500; // From RC receiver
+    int RC_pitch_pwm = (int)(hal.rcin->read(CH_2))-1500; // From RC receiver
+
     //Roll
-    float rollAngle_from_RC = ToRad( (RC_roll_pwm-1500)/7.0); // [rad]
-    err_roll      = roll+ rollAngle_from_RC ;                 // [rad]
-    pwm_roll      = (int) pid_1.get_pid(err_roll);            // Control value from PID-regulator 
+    err_roll      = roll-RC_roll_pwm/500.*1.0 ;                 // [rad]
+    pwm_roll      = (int) (pid_1.get_pid(err_roll));            // Control value from PID-regulator 
      
     //Pitch
-    float thrustAngle_from_RC = ToRad( (RC_pitch_pwm-1500)/7.0); // [rad]
-    err_pitch     = pitch-ToRad(25)-thrustAngle_from_RC;         // [rad]
-    pwm_pitch     = (int) pid_2.get_pid(err_pitch);              // Control value from PID-regulator 
+    err_pitch     = pitch-ToRad(25);         // [rad]
+    pwm_pitch     = (int) (pid_2.get_pid(err_pitch)-RC_pitch_pwm);              // Control value from PID-regulator 
      
     // Mix it all
-    pwm_stbd   = 1000 - pwm_roll - pwm_pitch;       // Mixing law
-    pwm_port   = 2000 - pwm_roll + pwm_pitch;       // Mixing law
-    pwm_stbd   =  min(max(pwm_stbd,1000),2000);     // Limit 
+    pwm_port   = 1900 - pwm_roll + pwm_pitch;       // Mixing law
+    pwm_stbd   = 1100 - pwm_roll - pwm_pitch;       // Mixing law
     pwm_port   =  min(max(pwm_port,1000),2000);     // Limit 
+    pwm_stbd   =  min(max(pwm_stbd,1000),2000);     // Limit 
     hal.rcout->write(CH_1,pwm_stbd);                // send to servo 
     hal.rcout->write(CH_2,pwm_port);                // send to servo 
   }
 }
 //-------------------------------------------------------------------------------
 void Kite(){
-
   if (ctrl_mode=='i')   { 
     Kite_neutral_ctrl(); 
   }          // Idle mode

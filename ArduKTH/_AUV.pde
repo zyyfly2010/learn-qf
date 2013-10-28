@@ -110,7 +110,7 @@ void crash_test(){
    }
    if (gyro.length()>gyro_length_crash_threshold) {
      kill_mission(); 
-     hal.console->printf_P(PSTR("  Gyros detected crash at norm(gyro)=%0.1f !!!!!!!!!!!!!!!\n"),gyro.length());
+     hal.console->printf_P(PSTR("  Gyros detected crash at norm(gyro)=%0.1f !!!!!!!!!!!!!!!\n"),sqrt(gyro.y*gyro.y+gyro.z*gyro.z));
    }
    if (depth>10) {
      kill_mission();

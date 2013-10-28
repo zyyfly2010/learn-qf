@@ -28,6 +28,7 @@
 #include <PID.h>                // ArduPilot Mega RC Library
 #include <memcheck.h>
 #include <AP_BattMonitor.h>
+#include <AP_Menu.h>
 
 const AP_HAL::HAL& hal = AP_HAL_BOARD_DRIVER;
 
@@ -172,7 +173,7 @@ static uint32_t last_telemetry_check;
 static uint32_t last_power_update;
 
 static char      ctrl_mode         = 'i';    // idle mode
-static char      craft_type        = 'A';    // Default craft type
+static char      craft_type        = 'K';    // Default craft type
 static bool      RC_feedthrough    = false;  //
 static bool      continously_send  = false;  // Telemetry
 static float     sog_threshold     = 999;    // [m/s] speed when to switch from Heading=Compass to Heading=SOG 
@@ -211,6 +212,7 @@ void setup(void)
     hal.console->printf_P(PSTR("Starting setup:"));
     g_gps = &g_gps_driver;
     init_GPS();  //wait_ms(5000);update_GPS();print_GPS();
+    setup_menu();
     setup_Flash();
     init_AHRS();
     // lower the rate at which the accelerometers and GPS corrects the
@@ -222,7 +224,7 @@ void setup(void)
     setup_default_GPS_mission();
     AUV_craft_setup();
     print_settings();
-    print_main_menu();
+    //print_main_menu();
     //;
     hal.scheduler->delay(1000);
     hal.console->printf_P("Leaving setup.\n");
@@ -232,6 +234,7 @@ void setup(void)
 //---------------------------------------------------------------------------
 void loop(void)
 {    
+     hal.console->printf_P(PSTR("Main loop is alive :-) \n"));
     // This loop is running for eternity regardless of Craft type etc
     // ---------------------------------------------------------------
     time_ms               = hal.scheduler->millis();       // The official time keeper
@@ -248,7 +251,7 @@ void loop(void)
     if (craft_type=='S')  { Solar();                    }  // We control a Solar powered boat
     if (craft_type=='P')  { Plane();                    }  // We control a Plane
     if (craft_type=='K')  { Kite();                     }  // We control a Kite 
-    if (hal.console->available()) { if (hal.console->read()=='#') {parse_incoming_telemetry(); }}
+    //if (hal.console->available()) { if (hal.console->read()=='#') {parse_incoming_telemetry(); }}
 }
 //-------------------------------------------------------------------------------
 AP_HAL_MAIN();
