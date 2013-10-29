@@ -35,7 +35,7 @@ void APM2SPIDeviceManager::init(void* machtnichts) {
     /* ms5611 cs is on Arduino pin 40, PORTG1 */
     AVRDigitalSource* ms5611_cs = new AVRDigitalSource(_BV(1), PG);
     /* ms5611: run clock at 8MHz */
-    _ms5611 = new AVRSPI0DeviceDriver(ms5611_cs, SPI0_SPCR_8MHz, SPI0_SPCR_8MHz, SPI0_SPSR_8MHz);
+    _ms5611 = new AVRSPI0DeviceDriver(ms5611_cs, SPI0_SPCR_500kHz, SPI0_SPCR_8MHz, SPI0_SPSR_8MHz);
     _ms5611->init();
    
     /* optflow cs is on Arduino pin A3, PORTF3 */
