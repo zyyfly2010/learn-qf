@@ -483,7 +483,7 @@ static const struct LogStructure log_structure[] PROGMEM = {
     { LOG_NTUN_MSG, sizeof(log_Nav_Tuning),         
       "NTUN", "CICCccfI",   "Yaw,WpDist,TargBrg,NavBrg,AltErr,Arspd,Alt,GSpdCM" },
     { LOG_SONAR_MSG, sizeof(log_Sonar),             
-      "SONR", "ffffB",   "Dist,Volt,BaroAlt,GSpd,Thr" },
+      "SONR", "ffffB",   "DistCM,Volt,BaroAlt,GSpd,Thr" },
     { LOG_MODE_MSG, sizeof(log_Mode),             
       "MODE", "MB",         "Mode,ModeNum" },
     { LOG_CURRENT_MSG, sizeof(log_Current),             
