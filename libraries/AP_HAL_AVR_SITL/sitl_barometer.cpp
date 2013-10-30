@@ -43,6 +43,11 @@ void SITL_State::_update_barometer(float altitude)
 	last_update = hal.scheduler->millis();
 
 	_barometer->setHIL(altitude);
+
+        float sonar_voltage = _barometer->get_altitude() / 3.0;
+        if (sonar_voltage > 2.3) sonar_voltage = 2.3;
+        if (sonar_voltage < 0.0) sonar_voltage = 0.0;
+	sonar_pin_value = 1024 * sonar_voltage / 5.0;
 }
 
 #endif
