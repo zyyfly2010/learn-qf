@@ -100,6 +100,12 @@ private:
     Vector3f _omega;                            // Corrected Gyro_Vector data
     Vector3f _last_delta_angle;                 // for coning correction
 
+    // variables to cope with delaying the GA sum to match GPS lag
+    Vector3f ra_delayed(const Vector3f &ra);
+    uint8_t   _ra_delay_length;
+    uint8_t   _ra_delay_next;
+    Vector3f *_ra_delay_buffer;
+
     // P term gain based on spin rate
     float           _P_gain(float spin_rate);
 
