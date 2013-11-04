@@ -92,8 +92,17 @@ AP_AHRS_DCM::matrix_update(float _G_Dt)
     // the _P_gain() calculation, which can lead to a very large P
     // value
     _omega = _gyro_vector + _omega_I;
+    Vector3f delta_angle = (_omega + _omega_P + _omega_yaw_P) * _G_Dt;
 
-    _dcm_matrix.rotate((_omega + _omega_P + _omega_yaw_P) * _G_Dt);
+#if 0
+    // correct first order coning errors. This costs about 175
+    // microseconds on an AVR2560
+    Vector3f corrected_angle = delta_angle + (delta_angle % _last_delta_angle) * 0.0833333f;
+    _last_delta_angle = delta_angle;
+    delta_angle = corrected_angle;
+#endif
+
+    _dcm_matrix.rotate(delta_angle);
 }
 
 

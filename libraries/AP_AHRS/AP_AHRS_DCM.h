@@ -101,6 +101,7 @@ private:
     Vector3f _omega_I_sum;
     float _omega_I_sum_time;
     Vector3f _omega;                            // Corrected Gyro_Vector data
+    Vector3f _last_delta_angle;                 // for coning correction
 
     // P term gain based on spin rate
     float           _P_gain(float spin_rate);
