@@ -51,7 +51,7 @@ AP_InertialSensor_HIL ins;
 AP_Compass_HIL compass;
 #endif
 
-AP_AHRS_DCM  ahrs(&ins, g_gps);
+AP_AHRS_DCM  ahrs(ins, g_gps);
 //---------------------------------------------------------------------------
 #include <DataFlash.h>       // Flash card access
 

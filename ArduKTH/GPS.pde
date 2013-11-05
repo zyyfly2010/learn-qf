@@ -33,7 +33,7 @@ void update_GPS()
           gps.alt         = (float)g_gps->altitude_cm / 100.0;                      // [m]
           gps.cog         = unwrap_2pi(ToRad((float)g_gps->ground_course_cd/100.0)); // [rad]
           gps.sog         = (float)g_gps->ground_speed_cm / 100.0;                  // [m/s]
-          gps.time        = (uint32_t)g_gps->time;                                  // [???]
+          gps.time        = (uint32_t)g_gps->time_week_ms;                          // [???]
           gps.nsats       = (int)g_gps->num_sats;                                   // [-]
           gps.status      = (char)g_gps->status();
           last_GPS_fix    = time_ms;
