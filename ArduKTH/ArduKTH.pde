@@ -234,7 +234,6 @@ void setup(void)
 //---------------------------------------------------------------------------
 void loop(void)
 {    
-     hal.console->printf_P(PSTR("Main loop is alive :-) \n"));
     // This loop is running for eternity regardless of Craft type etc
     // ---------------------------------------------------------------
     time_ms               = hal.scheduler->millis();       // The official time keeper
