@@ -212,7 +212,7 @@ void setup(void)
     hal.console->printf_P(PSTR("Starting setup:"));
     g_gps = &g_gps_driver;
     init_GPS();  //wait_ms(5000);update_GPS();print_GPS();
-    setup_menu();
+    setup_Menu();
     setup_Flash();
     init_AHRS();
     // lower the rate at which the accelerometers and GPS corrects the
@@ -252,6 +252,8 @@ void loop(void)
     if (craft_type=='P')  { Plane();                    }  // We control a Plane
     if (craft_type=='K')  { Kite();                     }  // We control a Kite 
     //if (hal.console->available()) { if (hal.console->read()=='#') {parse_incoming_telemetry(); }}
+
+    menu_check_input();
 }
 //-------------------------------------------------------------------------------
 AP_HAL_MAIN();

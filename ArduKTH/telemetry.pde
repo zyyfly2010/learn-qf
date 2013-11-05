@@ -172,10 +172,16 @@ const struct Menu::command top_menu_commands[] PROGMEM = {
 };
 //-------------------------------------------------------------------------------
 MENU(top, "menu", top_menu_commands);
+
 //-------------------------------------------------------------------------------
-void setup_menu()
+static void menu_check_input()
 {
-      top.run();
+    top.run();
 }
 //-------------------------------------------------------------------------------
 
+// setup menu limits
+static void setup_Menu(void)
+{
+    top.set_limits(64, 6);
+}
