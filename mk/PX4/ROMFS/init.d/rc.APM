@@ -213,6 +213,8 @@ else
     else
        sh /etc/init.d/rc.error
     fi
+    # enable logging
+    lsm303d logging
 fi
 
 # optional ETS airspeed sensor
