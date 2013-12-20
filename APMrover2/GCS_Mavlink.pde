@@ -1868,6 +1868,10 @@ void GCS_MAVLINK::handleMessage(mavlink_message_t* msg)
         }
         break;
 
+    case MAVLINK_MSG_ID_GPS_INJECT_DATA:
+        handle_gps_inject(msg, g_gps);
+        break;
+
     default:
         // forward unknown messages to the other link if there is one
         for (uint8_t i=0; i<num_gcs; i++) {
