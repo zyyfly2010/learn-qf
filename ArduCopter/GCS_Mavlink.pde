@@ -1989,6 +1989,10 @@ mission_failed:
         }
         break;    
 
+    case MAVLINK_MSG_ID_GPS_INJECT_DATA:
+        handle_gps_inject(msg, g_gps);
+        break;
+
 /* To-Do: add back support for polygon type fence
 #if AC_FENCE == ENABLED
     // receive an AP_Limits fence point from GCS and store in EEPROM
