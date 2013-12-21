@@ -138,3 +138,14 @@ GCS_MAVLINK::queued_waypoint_send()
 void GCS_MAVLINK::reset_cli_timeout() {
       _cli_timeout = hal.scheduler->millis();
 }
+
+void GCS_MAVLINK::handle_gps_inject(const mavlink_message_t *msg, GPS *gps)
+{
+    mavlink_gps_inject_data_t packet;
+    mavlink_msg_gps_inject_data_decode(msg, &packet);
+    if (mavlink_check_target(packet.target_system, packet.target_component))
+        return;
+    if (gps != NULL) {
+        gps->inject_data(packet.data, packet.len, _port);
+    }    
+}

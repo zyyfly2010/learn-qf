@@ -274,6 +274,8 @@ private:
     void handle_log_send(DataFlash_Class &dataflash);
     void handle_log_send_listing(DataFlash_Class &dataflash);
     void handle_log_send_data(DataFlash_Class &dataflash);
+    void handle_gps_inject(const mavlink_message_t *msg, GPS *gps);
+    
 
 };
 
