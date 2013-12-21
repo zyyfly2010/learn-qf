@@ -864,6 +864,7 @@ static void update_current_mode(void)
     case AUTO:
     case RTL:
     case GUIDED:
+        set_reverse(false);
         calc_lateral_acceleration();
         calc_nav_steer();
         calc_throttle(g.speed_cruise);
@@ -918,6 +919,7 @@ static void update_current_mode(void)
         // hold position - stop motors and center steering
         channel_throttle->servo_out = 0;
         channel_steer->servo_out = 0;
+        set_reverse(false);
         break;
 
     case INITIALISING:
