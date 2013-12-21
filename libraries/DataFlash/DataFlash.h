@@ -45,6 +45,7 @@ public:
     void Log_Write_Format(const struct LogStructure *structure);
     void Log_Write_Parameter(const char *name, float value);
     void Log_Write_GPS(const GPS *gps, int32_t relative_alt);
+    void Log_Write_GPS2(const GPS *gps);
     void Log_Write_IMU(const AP_InertialSensor &ins);
     void Log_Write_RCIN(void);
     void Log_Write_RCOUT(void);
@@ -158,6 +159,24 @@ struct PACKED log_GPS {
     uint32_t apm_time;
 };
 
+struct PACKED log_GPS2 {
+    LOG_PACKET_HEADER;
+    uint8_t  status;
+    uint32_t gps_week_ms;
+    uint16_t gps_week;
+    uint8_t  num_sats;
+    int16_t  hdop;
+    int32_t  latitude;
+    int32_t  longitude;
+    int32_t  altitude;
+    uint32_t ground_speed;
+    int32_t  ground_course;
+    float    vel_z;
+    uint32_t apm_time;
+    uint8_t  dgps_numch;
+    uint32_t dgps_age;
+};
+
 struct PACKED log_Message {
     LOG_PACKET_HEADER;
     char msg[64];
@@ -203,6 +222,8 @@ struct PACKED log_RCOUT {
       "PARM", "Nf",        "Name,Value" },    \
     { LOG_GPS_MSG, sizeof(log_GPS), \
       "GPS",  "BIHBcLLeeEefI", "Status,TimeMS,Week,NSats,HDop,Lat,Lng,RelAlt,Alt,Spd,GCrs,VZ,T" }, \
+    { LOG_GPS2_MSG, sizeof(log_GPS2), \
+      "GPS2",  "BIHBcLLeEefIBI", "Status,TimeMS,Week,NSats,HDop,Lat,Lng,Alt,Spd,GCrs,VZ,T,DSc,DAg" }, \
     { LOG_IMU_MSG, sizeof(log_IMU), \
       "IMU",  "Iffffff",     "TimeMS,GyrX,GyrY,GyrZ,AccX,AccY,AccZ" }, \
     { LOG_IMU2_MSG, sizeof(log_IMU), \
@@ -223,6 +244,7 @@ struct PACKED log_RCOUT {
 #define LOG_RCIN_MSG      133
 #define LOG_RCOUT_MSG     134
 #define LOG_IMU2_MSG	  135
+#define LOG_GPS2_MSG	  136
 
 #include "DataFlash_Block.h"
 #include "DataFlash_File.h"
