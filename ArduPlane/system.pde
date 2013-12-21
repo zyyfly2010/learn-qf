@@ -82,6 +82,10 @@ static void init_ardupilot()
     // standard gps running
     hal.uartB->begin(38400, 256, 16);
 
+    if (hal.uartE != NULL) {
+        hal.uartE->begin(38400, 256, 16);
+    }
+
     cliSerial->printf_P(PSTR("\n\nInit " FIRMWARE_STRING
                          "\n\nFree RAM: %u\n"),
                     memcheck_available_memory());
@@ -173,6 +177,11 @@ static void init_ardupilot()
 	g_gps = &g_gps_driver;
     // GPS Initialization
     g_gps->init(hal.uartB, GPS::GPS_ENGINE_AIRBORNE_4G);
+
+    if (hal.uartE != NULL) {
+        g_gps2 = &g_gps2_driver;
+        g_gps2->init(hal.uartE, GPS::GPS_ENGINE_AUTOMOTIVE);
+    }
 
     //mavlink_system.sysid = MAV_SYSTEM_ID;				// Using g.sysid_this_mav
     mavlink_system.compid = 1;          //MAV_COMP_ID_IMU;   // We do not check for comp id

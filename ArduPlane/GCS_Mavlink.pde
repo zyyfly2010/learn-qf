@@ -309,6 +309,25 @@ static void NOINLINE send_gps_raw(mavlink_channel_t chan)
         g_gps->ground_speed_cm,  // cm/s
         g_gps->ground_course_cd, // 1/100 degrees,
         g_gps->num_sats);
+    if (g_gps2 != NULL) {
+        int16_t payload_space = comm_get_txspace(chan) - MAVLINK_NUM_NON_PAYLOAD_BYTES;
+        if (payload_space >= MAVLINK_MSG_ID_GPS2_RAW_LEN) {
+            mavlink_msg_gps2_raw_send(
+                chan,
+                g_gps2->last_fix_time*(uint64_t)1000,
+                g_gps2->status(),
+                g_gps2->latitude,      // in 1E7 degrees
+                g_gps2->longitude,     // in 1E7 degrees
+                g_gps2->altitude_cm * 10, // in mm
+                g_gps2->hdop,
+                65535,
+                g_gps2->ground_speed_cm,  // cm/s
+                g_gps2->ground_course_cd, // 1/100 degrees,
+                g_gps2->num_sats,
+                g_gps2->dgps_chan_count(),
+                g_gps2->dgps_age());
+        }
+    }
 }
 
 static void NOINLINE send_system_time(mavlink_channel_t chan)
@@ -2197,7 +2216,7 @@ mission_failed:
         break;
 
     case MAVLINK_MSG_ID_GPS_INJECT_DATA:
-        handle_gps_inject(msg, g_gps);
+        handle_gps_inject(msg, g_gps2?g_gps2:g_gps);
         break;
 
     default:
