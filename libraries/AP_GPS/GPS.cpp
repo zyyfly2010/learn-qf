@@ -34,6 +34,7 @@ GPS::GPS(void) :
 	fix(FIX_NONE),
 	valid_read(false),
 	last_fix_time(0),
+    _debug_port(NULL),
 	_have_raw_velocity(false),
     _last_gps_time(0),
 	_idleTimer(0),
@@ -41,8 +42,7 @@ GPS::GPS(void) :
 	_last_ground_speed_cm(0),
 	_velocity_north(0),
 	_velocity_east(0),
-	_velocity_down(0),
-    _debug_port(NULL)
+	_velocity_down(0)
 {
 }
 

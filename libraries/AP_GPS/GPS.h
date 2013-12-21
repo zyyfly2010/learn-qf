@@ -108,6 +108,9 @@ public:
     virtual void setHIL(uint64_t time_epoch_ms, float latitude, float longitude, float altitude,
                         float ground_speed, float ground_course, float speed_3d, uint8_t num_sats);
 
+    virtual uint8_t dgps_chan_count(void) const { return 0; }
+    virtual uint32_t dgps_age(void) const { return 0; }
+
     // components of velocity in 2D, in m/s
     float velocity_north(void) const {
         return _status >= GPS_OK_FIX_2D ? _velocity_north : 0;

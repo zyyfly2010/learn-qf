@@ -55,7 +55,9 @@ public:
 		_disable_counter(0),
 		next_fix(GPS::FIX_NONE),
         need_rate_update(false),
-        rate_update_step(0)
+        rate_update_step(0),
+        _dgps_chan_count(0),
+        _dgps_age(0)
 		{}
 
     // Methods
@@ -67,6 +69,9 @@ public:
     static const uint8_t            _ublox_set_binary_size;
 
     float       get_lag() { return 0.5; }   // ublox lag is lower than the default 1second
+
+    uint8_t dgps_chan_count(void) const { return _dgps_chan_count; }
+    uint32_t dgps_age(void) const { return _dgps_age; }
 
 private:
     // u-blox UBX protocol essentials
@@ -163,7 +168,7 @@ private:
     };
     struct PACKED ubx_nav_dgps {
         uint32_t time;
-        int32_t age;
+        uint32_t age;
         uint16_t baseId;
         uint16_t baseHealth;
         uint8_t  numCh;
@@ -245,6 +250,9 @@ private:
     bool need_rate_update;
     uint8_t rate_update_step;
     uint32_t _last_5hz_time;
+
+    uint8_t _dgps_chan_count;
+    uint32_t _dgps_age;
 
     void 	    _configure_navigation_rate(uint16_t rate_ms);
     void        _configure_message_rate(uint8_t msg_class, uint8_t msg_id, uint8_t rate);

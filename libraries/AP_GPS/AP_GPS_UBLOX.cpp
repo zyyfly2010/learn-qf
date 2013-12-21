@@ -362,11 +362,8 @@ AP_GPS_UBLOX::_parse_gps(void)
         break;
     case MSG_DGPS:
         Debug("MSG_DGPS");
-        if (_debug_port) {
-            _debug_port->printf("DGPS age=%d numCh=%u\n", 
-                                (int)_buffer.dgps.age, 
-                                (unsigned)_buffer.dgps.numCh);
-        }
+        _dgps_chan_count = _buffer.dgps.numCh;
+        _dgps_age = _buffer.dgps.age;
         break;
     default:
         Debug("Unexpected NAV message 0x%02x", (unsigned)_msg_id);
