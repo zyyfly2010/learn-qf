@@ -38,7 +38,9 @@
  * modules are configured with all ubx binary messages off, which
  * would mean we would never detect it.
  */
-#define UBLOX_SET_BINARY "\265\142\006\001\003\000\001\006\001\022\117$PUBX,41,1,0003,0001,38400,0*26\r\n"
+#define UBLOX_SET_BINARY "\265\142\006\001\003\000\001\006\001\022\117$PUBX,41,1,0007,0001,38400,0*22\r\n"
+
+#define UBLOX_MAX_DGPS_SATELLITES 10
 
 class AP_GPS_UBLOX : public GPS
 {
@@ -152,12 +154,30 @@ private:
         uint32_t speed_accuracy;
         uint32_t heading_accuracy;
     };
+    struct PACKED ubx_nav_dgps_data {
+        uint8_t svid;
+        uint8_t flags;
+        uint16_t ageC;
+        float prc;
+        float prcc;
+    };
+    struct PACKED ubx_nav_dgps {
+        uint32_t time;
+        int32_t age;
+        uint16_t baseId;
+        uint16_t baseHealth;
+        uint8_t  numCh;
+        uint8_t  status;
+        uint16_t reserved1;
+        struct ubx_nav_dgps_data data[UBLOX_MAX_DGPS_SATELLITES];
+    };
     // Receive buffer
     union PACKED {
         ubx_nav_posllh posllh;
         ubx_nav_status status;
         ubx_nav_solution solution;
         ubx_nav_velned velned;
+        ubx_nav_dgps dgps;
         ubx_cfg_nav_settings nav_settings;
         uint8_t bytes[];
     } _buffer;
@@ -177,7 +197,8 @@ private:
         MSG_CFG_PRT = 0x00,
         MSG_CFG_RATE = 0x08,
         MSG_CFG_SET_RATE = 0x01,
-        MSG_CFG_NAV_SETTINGS = 0x24
+        MSG_CFG_NAV_SETTINGS = 0x24,
+        MSG_DGPS = 0x31,
     };
     enum ubs_nav_fix_type {
         FIX_NONE = 0,

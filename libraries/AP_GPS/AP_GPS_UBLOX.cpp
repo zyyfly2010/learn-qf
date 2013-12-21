@@ -95,9 +95,12 @@ AP_GPS_UBLOX::send_next_rate_update(void)
     case 4:
         _configure_message_rate(CLASS_NAV, MSG_VELNED, 1);
         break;
+    case 5:
+        _configure_message_rate(CLASS_NAV, MSG_DGPS, 5);
+        break;
     }
     rate_update_step++;
-    if (rate_update_step > 4) {
+    if (rate_update_step > 5) {
         need_rate_update = false;
         rate_update_step = 0;
     }
@@ -356,6 +359,14 @@ AP_GPS_UBLOX::_parse_gps(void)
         _vel_east   = _buffer.velned.ned_east;
         _vel_down   = _buffer.velned.ned_down;
         _new_speed = true;
+        break;
+    case MSG_DGPS:
+        Debug("MSG_DGPS");
+        if (_debug_port) {
+            _debug_port->printf("DGPS age=%d numCh=%u\n", 
+                                (int)_buffer.dgps.age, 
+                                (unsigned)_buffer.dgps.numCh);
+        }
         break;
     default:
         Debug("Unexpected NAV message 0x%02x", (unsigned)_msg_id);

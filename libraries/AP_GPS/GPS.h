@@ -142,11 +142,13 @@ public:
     // return last fix time since the 1/1/1970 in microseconds
     uint64_t time_epoch_usec(void);
 
-	// return true if the GPS supports raw velocity values
-
+    // inject data into the serial stream. It will discard the data unless
+    // the UART buffer has sufficient room to take all the data
+    void inject_data(const uint8_t *data, uint8_t len, AP_HAL::UARTDriver *_port);
 
 protected:
     AP_HAL::UARTDriver *_port;   ///< port the GPS is attached to
+    AP_HAL::UARTDriver *_debug_port;
 
     /// read from the GPS stream and update properties
     ///

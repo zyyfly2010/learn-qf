@@ -41,7 +41,8 @@ GPS::GPS(void) :
 	_last_ground_speed_cm(0),
 	_velocity_north(0),
 	_velocity_east(0),
-	_velocity_down(0)
+	_velocity_down(0),
+    _debug_port(NULL)
 {
 }
 
@@ -283,4 +284,19 @@ void GPS::_make_gps_time(uint32_t bcd_date, uint32_t bcd_milliseconds)
     time_week = ret / (7*86400UL);
     time_week_ms = (ret % (7*86400UL)) * 1000;
     time_week_ms += msec;
+}
+
+/**
+   inject data into the serial stream. It will discard the data unless
+   the UART buffer has sufficient room to take all the data
+ */
+void GPS::inject_data(const uint8_t *data, uint8_t len, AP_HAL::UARTDriver *dport)
+{
+    _debug_port = dport;
+    if (_port->txspace() >= len+2) {
+        _port->write(data, len);
+        _port->write((const uint8_t *)"\r\n", 2);
+    } else {
+        dport->printf("no space %u\n", len);
+    }
 }
