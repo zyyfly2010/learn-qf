@@ -686,6 +686,26 @@ void DataFlash_Class::Log_Write_RCIN(void)
         chan8         : hal.rcin->read(7)
     };
     WriteBlock(&pkt, sizeof(pkt));
+    
+    // hack to log FMU RCIN
+    extern uint16_t ppm_buffer[];
+    extern unsigned ppm_decoded_channels;
+    extern uint64_t ppm_last_valid_decode;
+
+    struct log_RCI2 pkt2 = {
+        LOG_PACKET_HEADER_INIT(LOG_RCI2_MSG),
+        timestamp     : hal.scheduler->millis(),
+        nchannels     : (uint8_t)ppm_decoded_channels,
+        chan1         : ppm_buffer[0],
+        chan2         : ppm_buffer[1],
+        chan3         : ppm_buffer[2],
+        chan4         : ppm_buffer[3],
+        chan5         : ppm_buffer[4],
+        chan6         : ppm_buffer[5],
+        chan7         : ppm_buffer[6],
+        chan8         : ppm_buffer[7]
+    };
+    WriteBlock(&pkt2, sizeof(pkt2));
 }
 
 // Write an SERVO packet

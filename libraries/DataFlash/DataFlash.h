@@ -183,6 +183,20 @@ struct PACKED log_RCIN {
     uint16_t chan8;
 };
 
+struct PACKED log_RCI2 {
+    LOG_PACKET_HEADER;
+    uint32_t timestamp;
+    uint8_t  nchannels;
+    uint16_t chan1;
+    uint16_t chan2;
+    uint16_t chan3;
+    uint16_t chan4;
+    uint16_t chan5;
+    uint16_t chan6;
+    uint16_t chan7;
+    uint16_t chan8;
+};
+
 struct PACKED log_RCOUT {
     LOG_PACKET_HEADER;
     uint32_t timestamp;
@@ -211,6 +225,8 @@ struct PACKED log_RCOUT {
       "MSG",  "Z",     "Message"}, \
     { LOG_RCIN_MSG, sizeof(log_RCIN), \
       "RCIN",  "Ihhhhhhhh",     "TimeMS,Chan1,Chan2,Chan3,Chan4,Chan5,Chan6,Chan7,Chan8" }, \
+    { LOG_RCI2_MSG, sizeof(log_RCI2), \
+      "RCI2",  "IBhhhhhhhh",     "TimeMS,NChan,Chan1,Chan2,Chan3,Chan4,Chan5,Chan6,Chan7,Chan8" }, \
     { LOG_RCOUT_MSG, sizeof(log_RCOUT), \
       "RCOU",  "Ihhhhhhhh",     "TimeMS,Chan1,Chan2,Chan3,Chan4,Chan5,Chan6,Chan7,Chan8" }
 
@@ -223,6 +239,7 @@ struct PACKED log_RCOUT {
 #define LOG_RCIN_MSG      133
 #define LOG_RCOUT_MSG     134
 #define LOG_IMU2_MSG	  135
+#define LOG_RCI2_MSG      136
 
 #include "DataFlash_Block.h"
 #include "DataFlash_File.h"
