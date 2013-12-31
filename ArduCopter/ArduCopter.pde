@@ -865,6 +865,7 @@ static const AP_Scheduler::Task scheduler_tasks[] PROGMEM = {
     { read_aux_switches,    10,      50 },
     { arm_motors_check,     10,      10 },
     { auto_trim,            10,     140 },
+    { fifty_hz_logging_loop, 1,     220 },
     { update_altitude,      10,    1000 },
     { run_nav_updates,      10,     800 },
     { three_hz_loop,        33,      90 },
@@ -882,7 +883,6 @@ static const AP_Scheduler::Task scheduler_tasks[] PROGMEM = {
     { gcs_data_stream_send,  2,     950 },
     { update_mount,          2,     450 },
     { ten_hz_logging_loop,  10,     300 },
-    { fifty_hz_logging_loop, 2,     220 },
     { perf_update,        1000,     200 },
     { read_receiver_rssi,   10,      50 },
 #ifdef USERHOOK_FASTLOOP
@@ -1117,9 +1117,6 @@ static void ten_hz_logging_loop()
         if (g.log_bitmask & MASK_LOG_ATTITUDE_MED) {
             Log_Write_Attitude();
         }
-        if (g.log_bitmask & MASK_LOG_RCIN) {
-            DataFlash.Log_Write_RCIN();
-        }
         if (g.log_bitmask & MASK_LOG_RCOUT) {
             DataFlash.Log_Write_RCOUT();
         }
@@ -1143,6 +1140,9 @@ static void fifty_hz_logging_loop()
     if (g.log_bitmask & MASK_LOG_IMU && motors.armed())
         DataFlash.Log_Write_IMU(ins);
 #endif
+    if (g.log_bitmask & MASK_LOG_RCIN) {
+        DataFlash.Log_Write_RCIN();
+    }
 }
 
 // three_hz_loop - 3.3hz loop
