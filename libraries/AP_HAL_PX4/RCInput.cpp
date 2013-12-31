@@ -4,6 +4,7 @@
 #include "RCInput.h"
 #include <drivers/drv_hrt.h>
 #include <uORB/uORB.h>
+#include <stdio.h>
 
 using namespace PX4;
 
@@ -97,8 +98,30 @@ void PX4RCInput::_timer_tick(void)
 	perf_begin(_perf_rcin);
 	bool rc_updated = false;
 	if (orb_check(_rc_sub, &rc_updated) == 0 && rc_updated) {
+            struct rc_input_values _rcin_tmp;
+            orb_copy(ORB_ID(input_rc), _rc_sub, &_rcin_tmp);
+            bool glitch = false;
+            for (uint8_t i=0; i<8; i++) {
+                int16_t diff = _rcin.values[i] - _rcin_tmp.values[i];
+                if (diff < 0) diff = -diff;
+                if (diff > 10) {
+                    glitch = true;
+                }
+            }
+            if (glitch) {
+                ::printf("%u 1:%u 2:%u 3:%u 4:%u 5:%u 6:%u 7:%u 8:%u\n",
+                         _rcin_tmp.channel_count,
+                         _rcin_tmp.values[0],
+                         _rcin_tmp.values[1],
+                         _rcin_tmp.values[2],
+                         _rcin_tmp.values[3],
+                         _rcin_tmp.values[4],
+                         _rcin_tmp.values[5],
+                         _rcin_tmp.values[6],
+                         _rcin_tmp.values[7]);
+            }
             pthread_mutex_lock(&rcin_mutex);
-            orb_copy(ORB_ID(input_rc), _rc_sub, &_rcin);
+            _rcin = _rcin_tmp;
             pthread_mutex_unlock(&rcin_mutex);
 	}
         // note, we rely on the vehicle code checking valid_channels() 
