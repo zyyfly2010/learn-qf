@@ -19,7 +19,7 @@ const AP_HAL::HAL& hal = AP_HAL_BOARD_DRIVER;
 AP_Relay relay;
 
 // Parachute
-AP_Parachute parachute(&relay);
+AP_Parachute parachute(relay);
 
 void setup()
 {
