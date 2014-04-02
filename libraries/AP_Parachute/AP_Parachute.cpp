@@ -18,11 +18,11 @@ const AP_Param::GroupInfo AP_Parachute::var_info[] PROGMEM = {
     AP_GROUPINFO("ENABLED", 0, AP_Parachute, _enabled, 0),
 
     // @Param: TYPE
-    // @DisplayName: Parachute release mechanism type (either servo or relay)
-    // @Description: Parachute release mechanism type (either servo or relay)
-    // @Values: 0:Servo,1:Relay
+    // @DisplayName: Parachute release mechanism type (relay or servo)
+    // @Description: Parachute release mechanism type (relay or servo)
+    // @Values: 0:Relay 0,1:Relay 1,2:Relay 2,3:Relay 3,10:Servo
     // @User: Standard
-    AP_GROUPINFO("TYPE", 1, AP_Parachute, _release_type, AP_PARACHUTE_TRIGGER_DEFAULT_TRIGGER_TYPE),
+    AP_GROUPINFO("TYPE", 1, AP_Parachute, _release_type, AP_PARACHUTE_TRIGGER_TYPE_RELAY_0),
 
     // @Param: SERVO_ON
     // @DisplayName: Parachute Servo ON PWM value
@@ -53,8 +53,8 @@ void AP_Parachute::release()
     // trigger the servo or relay
     if (_release_type == AP_PARACHUTE_TRIGGER_TYPE_SERVO) {
 	    RC_Channel_aux::set_radio(RC_Channel_aux::k_parachute_release, _servo_on_pwm);
-    }else if (_release_type == AP_PARACHUTE_TRIGGER_TYPE_RELAY) {
-        _apm_relay->on(1);
+    }else if (_release_type <= AP_PARACHUTE_TRIGGER_TYPE_RELAY_3) {
+        _relay.on(_release_type);
     }
 
 	// leave a message that it should be active for this many loops (assumes 50hz loops)
@@ -75,9 +75,9 @@ void AP_Parachute::update()
         if (_release_type == AP_PARACHUTE_TRIGGER_TYPE_SERVO) {
             // move servo back to off position
             RC_Channel_aux::set_radio(RC_Channel_aux::k_parachute_release, _servo_off_pwm);
-        }else if (_release_type == AP_PARACHUTE_TRIGGER_TYPE_RELAY) {
+        }else if (_release_type <= AP_PARACHUTE_TRIGGER_TYPE_RELAY_3) {
             // set relay back to zero volts
-            _apm_relay->on(0);
+            _relay.on(_release_type);
         }
 
         // reset release_time
