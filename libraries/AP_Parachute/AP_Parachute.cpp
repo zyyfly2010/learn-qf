@@ -28,6 +28,8 @@ const AP_Param::GroupInfo AP_Parachute::var_info[] PROGMEM = {
     // @DisplayName: Parachute Servo ON PWM value
     // @Description: Parachute Servo PWM value when parachute is released
     // @Range: 1000 2000
+    // @Units: pwm
+    // @Increment: 1
     // @User: Standard
     AP_GROUPINFO("SERVO_ON", 2, AP_Parachute, _servo_on_pwm, AP_PARACHUTE_SERVO_ON_PWM_DEFAULT),
 
@@ -35,8 +37,19 @@ const AP_Param::GroupInfo AP_Parachute::var_info[] PROGMEM = {
     // @DisplayName: Servo OFF PWM value
     // @Description: Parachute Servo PWM value when parachute is not released
     // @Range: 1000 2000
+    // @Units: pwm
+    // @Increment: 1
     // @User: Standard
     AP_GROUPINFO("SERVO_OFF", 3, AP_Parachute, _servo_off_pwm, AP_PARACHUTE_SERVO_OFF_PWM_DEFAULT),
+
+    // @Param: ALT_MIN
+    // @DisplayName: Parachute min altitude in cm above home
+    // @Description: Parachute min altitude above home.  When vehicle is below this alt parachute cannot be released
+    // @Range: 0 10000
+    // @Units: Centimeters
+    // @Increment: 100
+    // @User: Standard
+    AP_GROUPINFO("ALT_MIN", 4, AP_Parachute, _alt_min_cm, AP_PARACHUTE_ALT_MIN_DEFAULT),
 
     AP_GROUPEND
 };
