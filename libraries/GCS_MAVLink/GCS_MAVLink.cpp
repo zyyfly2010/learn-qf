@@ -38,6 +38,9 @@ AP_HAL::BetterStream	*mavlink_comm_2_port;
 
 mavlink_system_t mavlink_system = {7,1,0,0};
 
+// mask of serial ports disabled to allow for SERIAL_CONTROL
+uint8_t mavlink_disable_mask = 0;
+
 uint8_t mavlink_check_target(uint8_t sysid, uint8_t compid)
 {
     if (sysid != mavlink_system.sysid)
@@ -72,7 +75,6 @@ uint8_t mav_var_type(enum ap_var_type t)
 uint8_t comm_receive_ch(mavlink_channel_t chan)
 {
     uint8_t data = 0;
-
     switch(chan) {
 	case MAVLINK_COMM_0:
 		data = mavlink_comm_0_port->read();
@@ -97,6 +99,9 @@ uint8_t comm_receive_ch(mavlink_channel_t chan)
 /// @returns		Number of bytes available
 uint16_t comm_get_txspace(mavlink_channel_t chan)
 {
+    if ((1U<<chan) & mavlink_disable_mask) {
+        return 0;
+    }
 	int16_t ret = 0;
     switch(chan) {
 	case MAVLINK_COMM_0:
@@ -125,6 +130,9 @@ uint16_t comm_get_txspace(mavlink_channel_t chan)
 /// @returns		Number of bytes available
 uint16_t comm_get_available(mavlink_channel_t chan)
 {
+    if ((1U<<chan) & mavlink_disable_mask) {
+        return 0;
+    }
     int16_t bytes = 0;
     switch(chan) {
 	case MAVLINK_COMM_0:
