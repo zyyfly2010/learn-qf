@@ -147,7 +147,7 @@ void AP_AutoTune::update(float desired_rate, float achieved_rate, float servo_ou
     float abs_desired_rate = fabsf(desired_rate);
     uint32_t now = hal.scheduler->millis();
 
-    if (fabsf(servo_out) >= 4500) {
+    if (fabsf(servo_out) >= 45) {
         // we have saturated the servo demand (not including
         // integrator), we cannot get any information that would allow
         // us to increase the gain
@@ -263,7 +263,7 @@ struct PACKED log_ATRP {
 
 static const struct LogStructure at_log_structures[] PROGMEM = {
     { LOG_MSG_ATRP, sizeof(log_ATRP),
-      "ATRP", "IBBhfff",  "TimeMS,Type,State,Servo,Demanded,Achieved,P" },
+      "ATRP", "IBBcfff",  "TimeMS,Type,State,Servo,Demanded,Achieved,P" },
 };
 
 void AP_AutoTune::write_log_headers(void)
@@ -274,7 +274,7 @@ void AP_AutoTune::write_log_headers(void)
     }
 }
 
-void AP_AutoTune::write_log(int16_t servo, float demanded, float achieved)
+void AP_AutoTune::write_log(float servo, float demanded, float achieved)
 {
     if (!dataflash.logging_started()) {
         return;
@@ -287,7 +287,7 @@ void AP_AutoTune::write_log(int16_t servo, float demanded, float achieved)
         timestamp  : hal.scheduler->millis(),
         type       : type,
     	state      : (uint8_t)state,
-        servo      : servo,
+        servo      : (int16_t)(servo*100),
         demanded   : demanded,
         achieved   : achieved,
         P          : current.P.get()
