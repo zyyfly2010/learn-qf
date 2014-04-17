@@ -126,6 +126,10 @@ ifneq ($(findstring linux, $(MAKECMDGOALS)),)
 HAL_BOARD = HAL_BOARD_LINUX
 endif
 
+ifneq ($(findstring erle, $(MAKECMDGOALS)),)
+HAL_BOARD = HAL_BOARD_ERLE
+endif
+
 ifneq ($(findstring vrbrain, $(MAKECMDGOALS)),)
 HAL_BOARD = HAL_BOARD_VRBRAIN
 endif
