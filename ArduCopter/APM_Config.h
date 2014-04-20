@@ -19,9 +19,7 @@
  */
 
 // uncomment the lines below to save on flash space if compiling for the APM using Arduino IDE.  Top items save the most flash space
-#if (CONFIG_HAL_BOARD == HAL_BOARD_APM2 || CONFIG_HAL_BOARD == HAL_BOARD_APM1)
- # define CLI_ENABLED           DISABLED            // disable the CLI (command-line-interface) to save 21K of flash space
-#endif
+#define CLI_ENABLED           ENABLED            // disable the CLI (command-line-interface) to save 21K of flash space
 //#define LOGGING_ENABLED       DISABLED            // disable dataflash logging to save 11K of flash space
 //#define MOUNT                 DISABLED            // disable the camera gimbal to save 8K of flash space
 //#define AUTOTUNE_ENABLED      DISABLED            // disable the auto tune functionality to save 7k of flash
