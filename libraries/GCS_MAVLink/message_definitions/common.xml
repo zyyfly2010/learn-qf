@@ -762,6 +762,7 @@
                     <param index="6">Empty</param>
                     <param index="7">Empty</param>
                </entry>
+
                <entry value="185" name="MAV_CMD_DO_FLIGHTTERMINATION">
                     <description>Terminate flight immediately</description>
                     <param index="1">Flight termination activated if > 0.5</param>
@@ -772,6 +773,7 @@
                     <param index="6">Empty</param>
                     <param index="7">Empty</param>
                </entry>
+
                 <entry value="190" name="MAV_CMD_DO_RALLY_LAND">
                     <description>Mission command to perform a landing from a rally point.</description>
                     <param index="1">Break altitude (meters)</param>
