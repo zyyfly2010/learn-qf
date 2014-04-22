@@ -45,15 +45,19 @@ public:
     bool get_rally_point_with_index(uint8_t i, RallyLocation &ret) const;
     bool set_rally_point_with_index(uint8_t i, const RallyLocation &rallyLoc);
     uint8_t get_rally_total() const { return _rally_point_total_count; }
-
+    //set to -1 to clear current rally point:
+    bool set_current_rally_point(const int8_t i, const RallyLocation &ral_loc);
+    const RallyLocation& get_current_rally_point() const;
+    bool current_rally_point_exists() const;
+    
     float get_rally_limit_km() const { return _rally_limit_km; }
     
     Location rally_location_to_location(const RallyLocation &ret) const;
 
     // logic handling
-    Location calc_best_rally_or_home_location(const Location &current_loc, float rtl_home_alt) const;
-    bool find_nearest_rally_point(const Location &myloc, RallyLocation &ret) const;
-
+    Location calc_best_rally_or_home_location(const Location &current_loc, float rtl_home_alt, bool set_as_current = false);
+    bool find_nearest_rally_point(const Location &myloc, RallyLocation &ret, bool set_as_current = false);
+    
     // parameter block
     static const struct AP_Param::GroupInfo var_info[];
 
@@ -62,6 +66,9 @@ private:
     const AP_AHRS& _ahrs; // used only for home position
     uint16_t _max_rally_points;
     const uint16_t _rally_start_byte;
+
+    RallyLocation _current_rally_location;
+    int8_t _current_rally_index; //-1 if no current rally index selected
 
     // parameters
     AP_Int8  _rally_point_total_count;
