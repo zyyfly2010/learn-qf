@@ -127,6 +127,7 @@ public:
         k_param_land_flap_percent,
         k_param_takeoff_flap_percent,
         k_param_flap_slewrate,
+        k_param_lander,
 
         // 100: Arming parameters
         k_param_arming = 100,

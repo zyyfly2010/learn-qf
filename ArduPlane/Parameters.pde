@@ -1130,6 +1130,10 @@ const AP_Param::Info var_info[] PROGMEM = {
     // @Path: ../libraries/AP_Rally/AP_Rally.cpp
     GOBJECT(rally,  "RALLY_",       AP_Rally),
 
+    // @Group: LAND_
+    // @Path: ../libraries/AP_Land/AP_Land.cpp
+    GOBJECT(lander,   "LAND_",        AP_Land),
+
     AP_VAREND
 };
 
