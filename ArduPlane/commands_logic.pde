@@ -252,7 +252,7 @@ static void do_RTL(void)
 {
     control_mode    = RTL;
     prev_WP_loc = current_loc;
-    next_WP_loc = rally.calc_best_rally_or_home_location(current_loc, get_RTL_altitude());
+    next_WP_loc = rally.calc_best_rally_or_home_location(current_loc, get_RTL_altitude(), true);
     setup_terrain_target_alt(next_WP_loc);
 
     if (g.loiter_radius < 0) {
@@ -372,12 +372,12 @@ static bool verify_land()
 
     // Set land_complete if we are within 2 seconds distance or within
     // 3 meters altitude of the landing point
-    if ((wp_distance <= (g.land_flare_sec * gps.ground_speed()))
-        || (adjusted_altitude_cm() <= next_WP_loc.alt + g.land_flare_alt*100)) {
+    if ( ! lander.aborting_landing() && 
+        (wp_distance <= (g.land_flare_sec * gps.ground_speed()) ||
+         adjusted_altitude_cm() <= (next_WP_loc.alt + g.land_flare_alt*100))) {
 
-        auto_state.land_complete = true;
-
-        if (steer_state.hold_course_cd == -1) {
+        if (lander.get_land_wings_level() == 1 
+                && steer_state.hold_course_cd == -1) {
             // we have just reached the threshold of to flare for landing.
             // We now don't want to do any radical
             // turns, as rolling could put the wings into the runway.
@@ -388,8 +388,12 @@ static bool verify_land()
             // sudden large roll correction which is very nasty at
             // this point in the landing.
             steer_state.hold_course_cd = ahrs.yaw_sensor;
-            gcs_send_text_fmt(PSTR("Land Complete - Hold course %ld"), steer_state.hold_course_cd);
+            gcs_send_text_fmt(PSTR("Land Complete - Hold wings level %ld"), steer_state.hold_course_cd);
+        } else if (lander.get_land_wings_level() == 0 && !auto_state.land_complete) {
+            gcs_send_text_fmt(PSTR("Land Complete"));
         }
+        
+        auto_state.land_complete = true;
 
         if (gps.ground_speed() < 3) {
             // reload any airspeed or groundspeed parameters that may have
@@ -406,7 +410,11 @@ static bool verify_land()
         // recalc bearing error with hold_course;
         nav_controller->update_heading_hold(steer_state.hold_course_cd);
     } else {
-        nav_controller->update_waypoint(prev_WP_loc, next_WP_loc);
+        // Always look 1km ahead for nav wp so we don't pass it.
+        // (Don't want nav controller do a 180 degree turn if we pass 
+        //  the indended landing location by a little)
+        nav_controller->update_waypoint(lander.get_break_point(), 
+                                        lander.get_location_1km_beyond_land());
     }
     return false;
 }
@@ -640,7 +648,7 @@ static void exit_mission_callback()
         gcs_send_text_fmt(PSTR("Returning to Home"));
         memset(&auto_rtl_command, 0, sizeof(auto_rtl_command));
         auto_rtl_command.content.location = 
-            rally.calc_best_rally_or_home_location(current_loc, get_RTL_altitude());
+            rally.calc_best_rally_or_home_location(current_loc, get_RTL_altitude(), true);
         auto_rtl_command.id = MAV_CMD_NAV_LOITER_UNLIM;
         setup_terrain_target_alt(auto_rtl_command.content.location);
         setup_glide_slope();

@@ -118,6 +118,7 @@ public:
         k_param_sonar,
         k_param_terrain,
         k_param_terrain_follow,
+        k_param_lander,
 
         // 100: Arming parameters
         k_param_arming = 100,
