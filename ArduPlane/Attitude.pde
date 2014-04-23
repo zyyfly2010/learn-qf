@@ -655,6 +655,12 @@ static void set_servos(void)
 {
     int16_t last_throttle = channel_throttle->radio_out;
 
+    if (control_mode == AUTO && auto_state.idle_mode) {
+        // special handling for balloon launch
+        RC_Channel::output_trim_all();
+        return;
+    }
+
     /*
       see if we are doing ground steering.
      */

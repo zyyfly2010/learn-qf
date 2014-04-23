@@ -7,11 +7,13 @@ static void do_land(const AP_Mission::Mission_Command& cmd);
 static void do_loiter_unlimited(const AP_Mission::Mission_Command& cmd);
 static void do_loiter_turns(const AP_Mission::Mission_Command& cmd);
 static void do_loiter_time(const AP_Mission::Mission_Command& cmd);
+static void do_altitude_wait(const AP_Mission::Mission_Command& cmd);
 static void do_wait_delay(const AP_Mission::Mission_Command& cmd);
 static void do_within_distance(const AP_Mission::Mission_Command& cmd);
 static void do_change_alt(const AP_Mission::Mission_Command& cmd);
 static void do_change_speed(const AP_Mission::Mission_Command& cmd);
 static void do_set_home(const AP_Mission::Mission_Command& cmd);
+static bool verify_altitude_wait(const AP_Mission::Mission_Command &cmd);
 
 /********************************************************************************/
 // Command Event Handlers
@@ -37,6 +39,9 @@ start_command(const AP_Mission::Mission_Command& cmd)
         // set takeoff_complete to true so we don't add extra evevator
         // except in a takeoff
         auto_state.takeoff_complete = true;
+        
+        // start non-idle
+        auto_state.idle_mode = false;
         
         gcs_send_text_fmt(PSTR("Executing nav command ID #%i"),cmd.id);
     } else {
@@ -71,6 +76,10 @@ start_command(const AP_Mission::Mission_Command& cmd)
 
     case MAV_CMD_NAV_RETURN_TO_LAUNCH:
         set_mode(RTL);
+        break;
+
+    case MAV_CMD_NAV_ALTITUDE_WAIT:
+        do_altitude_wait(cmd);
         break;
 
     // Conditional commands
@@ -202,6 +211,9 @@ static bool verify_command(const AP_Mission::Mission_Command& cmd)        // Ret
     case MAV_CMD_NAV_RETURN_TO_LAUNCH:
         return verify_RTL();
 
+    case MAV_CMD_NAV_ALTITUDE_WAIT:
+        return verify_altitude_wait(cmd);
+
     // Conditional commands
 
     case MAV_CMD_CONDITION_DELAY:
@@ -323,6 +335,12 @@ static void do_loiter_time(const AP_Mission::Mission_Command& cmd)
     loiter.start_time_ms = 0;
     loiter.time_max_ms = cmd.p1 * (uint32_t)1000;     // units are seconds
     loiter_set_direction_wp(cmd);
+}
+
+static void do_altitude_wait(const AP_Mission::Mission_Command& cmd)
+{
+    // set all servos to trim until we reach altitude or descent speed
+    auto_state.idle_mode = true;
 }
 
 /********************************************************************************/
@@ -454,6 +472,22 @@ static bool verify_RTL()
     } else {
         return false;
 	}
+}
+
+/*
+  see if we have reached altitude or descent speed
+ */
+static bool verify_altitude_wait(const AP_Mission::Mission_Command &cmd)
+{
+    if (current_loc.alt > cmd.content.altitude_wait.altitude*100.0f) {
+        gcs_send_text_P(SEVERITY_LOW,PSTR("Reached altitude"));
+        return true;
+    }
+    if (barometer.get_climb_rate() < -cmd.content.altitude_wait.descent_rate) {
+        gcs_send_text_P(SEVERITY_LOW,PSTR("Reached descent rate"));
+        return true;        
+    }
+    return false;
 }
 
 /********************************************************************************/

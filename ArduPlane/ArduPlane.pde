@@ -532,6 +532,10 @@ static struct {
     bool no_crosstrack:1;
 
     // Altitude threshold to complete a takeoff command in autonomous modes.  Centimeters
+    // are we in idle mode? used for balloon launch to stop servo
+    // movement until altitude is reached
+    bool idle_mode:1;
+
     int32_t takeoff_altitude_cm;
 
     // Minimum pitch to hold during takeoff command execution.  Hundredths of a degree
@@ -555,6 +559,7 @@ static struct {
     inverted_flight  : false,
     next_wp_no_crosstrack : true,
     no_crosstrack : true,
+    idle_mode           : false,
     takeoff_altitude_cm : 0,
     takeoff_pitch_cd : 0,
     highest_airspeed : 0,
