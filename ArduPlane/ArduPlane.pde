@@ -521,7 +521,12 @@ static struct {
     // Flag to indicate if we have landed.
     // Set land_complete if we are within 2 seconds distance or within 3 meters altitude of touchdown
     bool land_complete;
+
     // Altitude threshold to complete a takeoff command in autonomous modes.  Centimeters
+    // are we in idle mode? used for balloon launch to stop servo
+    // movement until altitude is reached
+    bool idle_mode;
+
     int32_t takeoff_altitude_cm;
 
     // Minimum pitch to hold during takeoff command execution.  Hundredths of a degree
@@ -540,8 +545,9 @@ static struct {
     // should we fly inverted?
     bool inverted_flight;
 } auto_state = {
-    takeoff_complete : true,
-    land_complete : false,
+    takeoff_complete    : true,
+    land_complete       : false,
+    idle_mode           : false,
     takeoff_altitude_cm : 0,
     takeoff_pitch_cd : 0,
     highest_airspeed : 0,
