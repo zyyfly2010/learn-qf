@@ -121,6 +121,12 @@ public:
         float meters;           // distance
     };
 
+    // high altitude balloon altitude wait
+    struct PACKED Altitude_Wait {
+        float altitude; // meters
+        float descent_rate; // m/s
+    };
+
     union PACKED Content {
         // Nav_Guided_Command
         Nav_Guided_Command nav_guided;
@@ -157,6 +163,9 @@ public:
 
         // cam trigg distance
         Cam_Trigg_Distance cam_trigg_dist;
+
+        // cam trigg distance
+        Altitude_Wait altitude_wait;
 
         // location
         Location location;      // Waypoint location
