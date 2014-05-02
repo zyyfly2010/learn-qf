@@ -820,7 +820,7 @@ const AP_Param::Info var_info[] PROGMEM = {
 
     // @Group: SONAR_
     // @Path: ../libraries/AP_RangeFinder/AP_RangeFinder_analog.cpp
-    GOBJECT(sonar,                  "SONAR_", AP_RangeFinder_analog),
+//    GOBJECT(sonar,                  "SONAR_", AP_RangeFinder_analog),
 
     // RC channel
     //-----------

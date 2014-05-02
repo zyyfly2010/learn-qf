@@ -13,18 +13,18 @@ static void init_sonar(void)
 #if CONFIG_HAL_BOARD == HAL_BOARD_APM1
     sonar.Init(&apm1_adc);
 #else
-    sonar.Init(NULL);
+    sonar.init();
 #endif
 }
 
 // read the sonars
 static void read_sonars(void)
 {
-    if (!sonar.enabled()) {
+    sonar.read();
+    if (!sonar.healthy()) {
         // this makes it possible to disable sonar at runtime
         return;
     }
-
     if (should_log(MASK_LOG_SONAR))
         Log_Write_Sonar();
 }

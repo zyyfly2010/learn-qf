@@ -392,8 +392,8 @@ static void Log_Write_Sonar()
     struct log_Sonar pkt = {
         LOG_PACKET_HEADER_INIT(LOG_SONAR_MSG),
         timestamp   : hal.scheduler->millis(),
-        distance    : sonar.distance_cm(),
-        voltage     : sonar.voltage(),
+        distance    : (float)sonar.get_distance(),
+        voltage     : 0,
         baro_alt    : barometer.get_altitude(),
         groundspeed : gps.ground_speed(),
         throttle    : (uint8_t)(100 * channel_throttle->norm_output())
