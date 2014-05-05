@@ -56,4 +56,6 @@
 
  // Erle Robot configurations
  # define CONFIG_IMU_TYPE CONFIG_IMU_MPU9150
+ # define CONFIG_BARO AP_BARO_MS5611
+ # define CONFIG_MS5611_SERIAL AP_BARO_MS5611_I2C
 
