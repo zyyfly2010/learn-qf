@@ -353,6 +353,8 @@ NavEKF::NavEKF(const AP_AHRS *ahrs, AP_Baro &baro) :
     mag_state.q0 = 1;
     mag_state.DCM.identity();
     IMU1_weighting = 0.5f;
+    lastDivergeTime_ms = 0;
+    filterDiverged = false;
 }
 
 // Check basic filter health metrics and return a consolidated health status
@@ -564,6 +566,13 @@ void NavEKF::UpdateFilter()
 
     // read IMU data and convert to delta angles and velocities
     readIMUData();
+
+    // detect if filter has diverged and do a dynamic reset using the DCM solution
+    checkDivergence();
+    if (filterDiverged) {
+        InitialiseFilterDynamic();
+        return;
+    }
 
     // detect if the filter update has been delayed for too long
     if (dtIMU > 0.2f) {
@@ -3274,10 +3283,10 @@ void NavEKF::ZeroVariables()
     velTimeout = false;
     posTimeout = false;
     hgtTimeout = false;
+    filterDiverged = false;
     lastStateStoreTime_ms = 0;
     lastFixTime_ms = 0;
     secondLastFixTime_ms = 0;
-    lastDivergeTime_ms = 0;
     lastMagUpdate = 0;
     lastAirspeedUpdate = 0;
     velFailTime = 0;
@@ -3295,6 +3304,7 @@ void NavEKF::ZeroVariables()
     dt = 0;
     hgtMea = 0;
     storeIndex = 0;
+    lastGyroBias.zero();
 	prevDelAng.zero();
     lastAngRate.zero();
     lastAccel1.zero();
@@ -3367,15 +3377,18 @@ bool NavEKF::assume_zero_sideslip(void) const
 // Check for filter divergence
 void NavEKF::checkDivergence()
 {
-    // If position, velocity and magnetometer measurements have all diverged, then fail for 10 seconds
-    // This is designed to catch a filter divergence and persist for long enough to prevent a badly oscillating solution from being periodically declared healthy
-    bool divergenceDetected = ((posTestRatio > 1.0f) && (velTestRatio > 1.0f) && (magTestRatio.x > 1.0f) && (magTestRatio.y > 1.0f) && (magTestRatio.z > 1.0f));
+    // If filter is diverging, then fail for 10 seconds
+    // filter divergence is detected by looking for rapid changes in gyro bias
+    Vector3f tempVec = state.gyro_bias - lastGyroBias;
+    bool divergenceDetected = (tempVec.length()/dtIMU > 1e-4f);
+    lastGyroBias = state.gyro_bias;
     if (divergenceDetected) {
         filterDiverged = true;
         lastDivergeTime_ms = hal.scheduler->millis();        
     } else if (hal.scheduler->millis() - lastDivergeTime_ms > 10000) {
         filterDiverged = false;
     }
+
 }
 
 #endif // HAL_CPU_CLASS
