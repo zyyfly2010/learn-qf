@@ -150,6 +150,7 @@ void Copter::heli_update_rotor_speed_targets()
                 motors.set_desired_rotor_speed(rsc_control_deglitched);
                 break;
             case AP_MOTORS_HELI_RSC_MODE_SETPOINT:
+            case AP_MOTORS_HELI_RSC_MODE_THROTTLE_CURVE:
                 // pass setpoint through as desired rotor speed
                 if (rsc_control_deglitched > 0) {
                     motors.set_desired_rotor_speed(motors.get_rsc_setpoint());
