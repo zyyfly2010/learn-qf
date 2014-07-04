@@ -255,6 +255,9 @@ private:
 
     // write_rsc_range - outputs pwm onto output rsc channel (ch8).  servo_out parameter is of the range 0 ~ 1000
     void write_rsc_range(int16_t servo_out);
+    
+    // write_rsc_pwm - outputs pwm onto output rsc channel (ch8).  direct pass-through of pwm range 1000-2000
+    void write_rsc_pwm(int16_t pwm_out);
 
     // write_aux - outputs pwm onto output aux channel (ch7). servo_out parameter is of the range 0 ~ 1000
     void write_aux(int16_t servo_out);
@@ -320,6 +323,8 @@ private:
     int16_t         _pitch_radio_passthrough;   // pitch control PWM direct from radio, used for manual control
     int16_t         _throttle_radio_passthrough;// throttle control PWM direct from radio, used for manual control
     int16_t         _yaw_radio_passthrough;     // yaw control PWM direct from radio, used for manual control
+    int16_t         _throttle_range;            // range of throttle movement
+    int16_t         _collective_range;          // range of collective movement
 };
 
 #endif  // AP_MOTORSHELI
