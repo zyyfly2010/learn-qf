@@ -1385,6 +1385,13 @@ static void update_navigation()
             } 
         //did a landing abort get called for while still in RTL mode?
         } else if (control_mode == RTL && lander.aborting_landing()) {
+#if GEOFENCE_ENABLED == ENABLED
+            //turn the fence back on if fence is auto-enabled
+                if (g.fence_autoenable == 1) {
+                    geofence_set_enabled(true, AUTO_TOGGLED); 
+                }
+#endif //GEOFENCE_ENABLED
+            
             do_RTL();
         } 
 
@@ -1454,6 +1461,13 @@ static void update_alt()
                     } else {
                         //finished reocvering altitude in wave-off -- RTL
                         update_flight_stage(AP_SpdHgtControl::FLIGHT_NORMAL);
+
+#if GEOFENCE_ENABLED == ENABLED
+                        //turn the fence back on if fence is auto-enabled
+                        if (g.fence_autoenable == 1) {
+                            geofence_set_enabled(true, AUTO_TOGGLED); 
+                        }
+#endif //GEOFENCE_ENABLED
 
                         set_mode(RTL);
                     }                    
