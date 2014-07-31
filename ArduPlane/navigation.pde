@@ -123,9 +123,17 @@ static void calc_gndspeed_undershoot()
     }
 }
 
-static void update_loiter()
+/*
+  call navigation controller for a loiter (or RTL). Use supplied
+  loiter radius in meters, or g.loiter_radius if it is larger
+ */
+static void update_loiter(uint16_t radius)
 {
-    nav_controller->update_loiter(next_WP_loc, abs(g.loiter_radius), loiter.direction);
+    // use maximum of supplied radius and configured radius
+    if (radius < abs(g.loiter_radius)) {
+        radius = abs(g.loiter_radius);
+    }
+    nav_controller->update_loiter(next_WP_loc, radius, loiter.direction);
 }
 
 /*

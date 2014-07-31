@@ -7,6 +7,7 @@ static void do_land(const AP_Mission::Mission_Command& cmd);
 static void do_loiter_unlimited(const AP_Mission::Mission_Command& cmd);
 static void do_loiter_turns(const AP_Mission::Mission_Command& cmd);
 static void do_loiter_time(const AP_Mission::Mission_Command& cmd);
+static void do_loiter_descend(const AP_Mission::Mission_Command& cmd);
 static void do_altitude_wait(const AP_Mission::Mission_Command& cmd);
 static void do_wait_delay(const AP_Mission::Mission_Command& cmd);
 static void do_within_distance(const AP_Mission::Mission_Command& cmd);
@@ -14,6 +15,7 @@ static void do_change_alt(const AP_Mission::Mission_Command& cmd);
 static void do_change_speed(const AP_Mission::Mission_Command& cmd);
 static void do_set_home(const AP_Mission::Mission_Command& cmd);
 static bool verify_altitude_wait(const AP_Mission::Mission_Command &cmd);
+static bool verify_loiter_descend(const AP_Mission::Mission_Command &cmd);
 
 /********************************************************************************/
 // Command Event Handlers
@@ -72,6 +74,10 @@ start_command(const AP_Mission::Mission_Command& cmd)
 
     case MAV_CMD_NAV_LOITER_TIME:
         do_loiter_time(cmd);
+        break;
+
+    case MAV_CMD_NAV_LOITER_DESCEND:
+        do_loiter_descend(cmd);
         break;
 
     case MAV_CMD_NAV_RETURN_TO_LAUNCH:
@@ -208,6 +214,9 @@ static bool verify_command(const AP_Mission::Mission_Command& cmd)        // Ret
     case MAV_CMD_NAV_LOITER_TIME:
         return verify_loiter_time();
 
+    case MAV_CMD_NAV_LOITER_DESCEND:
+        return verify_loiter_descend(cmd);
+
     case MAV_CMD_NAV_RETURN_TO_LAUNCH:
         return verify_RTL();
 
@@ -328,6 +337,12 @@ static void do_loiter_turns(const AP_Mission::Mission_Command& cmd)
     loiter_set_direction_wp(cmd);
 }
 
+static void do_loiter_descend(const AP_Mission::Mission_Command& cmd)
+{
+    set_next_WP(cmd.content.location);
+    loiter_set_direction_wp(cmd);
+}
+
 static void do_loiter_time(const AP_Mission::Mission_Command& cmd)
 {
     set_next_WP(cmd.content.location);
@@ -431,13 +446,13 @@ static bool verify_nav_wp()
 
 static bool verify_loiter_unlim()
 {
-    update_loiter();
+    update_loiter(0);
     return false;
 }
 
 static bool verify_loiter_time()
 {
-    update_loiter();
+    update_loiter(0);
     if (loiter.start_time_ms == 0) {
         if (nav_controller->reached_loiter_target()) {
             // we've reached the target, start the timer
@@ -452,7 +467,7 @@ static bool verify_loiter_time()
 
 static bool verify_loiter_turns()
 {
-    update_loiter();
+    update_loiter(0);
     if (loiter.sum_cd > loiter.total_cd) {
         loiter.total_cd = 0;
         gcs_send_text_P(SEVERITY_LOW,PSTR("verify_nav: LOITER orbits complete"));
@@ -462,9 +477,32 @@ static bool verify_loiter_turns()
     return false;
 }
 
+/*
+  descending loiter, stopping at given altitude
+ */
+static bool verify_loiter_descend(const AP_Mission::Mission_Command &cmd)
+{
+    update_loiter(cmd.p1);
+    if (relative_altitude() < cmd.content.location.alt*0.01f) {
+        return true;
+    }
+
+    // set the target waypoint constantly 10 meters above the current
+    // altitude. That will make TECS try to keep the plane in the air
+    // for as long as it can, while keeping up airspeed. This is meant
+    // for gliders 
+    next_WP_loc.alt = (relative_altitude() + 10) * 100;
+    next_WP_loc.flags.relative_alt = 1;
+    next_WP_loc.flags.terrain_alt  = 0;
+    set_target_altitude_location(next_WP_loc);
+    reset_offset_altitude();
+
+    return false;
+}
+
 static bool verify_RTL()
 {
-    update_loiter();
+    update_loiter(0);
 	if (wp_distance <= (uint32_t)max(g.waypoint_radius,0) || 
         nav_controller->reached_loiter_target()) {
 			gcs_send_text_P(SEVERITY_LOW,PSTR("Reached home"));

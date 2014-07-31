@@ -1394,7 +1394,7 @@ static void update_navigation()
         } else {
             loiter.direction = 1;
         }
-        update_loiter();
+        update_loiter(0);
         break;
 
     case CRUISE:
