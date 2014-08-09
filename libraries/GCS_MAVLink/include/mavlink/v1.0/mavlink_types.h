@@ -58,7 +58,7 @@ typedef struct param_union {
 	uint8_t type;
 } mavlink_param_union_t;
 
-
+#if 0
 /**
  * New-style 8 byte param union
  * mavlink_param_union_double_t will be 8 bytes long, and treated as needing 8 byte alignment for the purposes of MAVLink 1.0 field ordering.
@@ -90,6 +90,8 @@ typedef union {
     };
     uint8_t data[8];
 } mavlink_param_union_double_t;
+#endif
+
 
 typedef struct __mavlink_system {
     uint8_t sysid;   ///< Used by the MAVLink message_xx_send() convenience function
