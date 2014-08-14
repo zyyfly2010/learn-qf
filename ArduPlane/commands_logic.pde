@@ -525,6 +525,20 @@ static bool verify_altitude_wait(const AP_Mission::Mission_Command &cmd)
         gcs_send_text_P(SEVERITY_LOW,PSTR("Reached descent rate"));
         return true;        
     }
+
+    // if requested, wiggle servos
+    if (cmd.content.altitude_wait.wiggle_time != 0) {
+        static uint32_t last_wiggle_ms;
+        static uint8_t wiggle_stage;
+        if (wiggle_stage == 0 &&
+            hal.scheduler->millis() - last_wiggle_ms > cmd.content.altitude_wait.wiggle_time*1000) {
+            wiggle_stage = 1;
+        }
+        if (wiggle_stage != 0) {
+            
+        }
+    }
+
     return false;
 }
 

@@ -172,6 +172,10 @@ static bool in_log_download;
 static int32_t roll_limit_cd;
 static int32_t pitch_limit_min_cd;
 
+// this is set to true during startup when wiggling servos, so
+// the failsafe code knows not to override
+static bool demoing_servos;
+
 ////////////////////////////////////////////////////////////////////////////////
 // Sensors
 ////////////////////////////////////////////////////////////////////////////////
@@ -536,6 +540,10 @@ static struct {
     // movement until altitude is reached
     bool idle_mode:1;
 
+    // used to 'wiggle' servos in idle mode to prevent them freezing
+    // at high altitudes
+    uint8_t idle_wiggle_stage;
+
     int32_t takeoff_altitude_cm;
 
     // Minimum pitch to hold during takeoff command execution.  Hundredths of a degree
@@ -560,6 +568,7 @@ static struct {
     next_wp_no_crosstrack : true,
     no_crosstrack : true,
     idle_mode           : false,
+    idle_wiggle_stage   : 0,
     takeoff_altitude_cm : 0,
     takeoff_pitch_cd : 0,
     highest_airspeed : 0,
