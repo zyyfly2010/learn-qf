@@ -98,6 +98,18 @@ static void autotune_restore(void)
 }
 
 /*
+  enable/disable autotune for AUTO modes
+ */
+static void autotune_enable(bool enable)
+{
+    if (enable) {
+        autotune_start();
+    } else {
+        autotune_restore();
+    }
+}
+
+/*
   are we flying inverted?
  */
 static bool fly_inverted(void)
