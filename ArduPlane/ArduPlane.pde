@@ -561,6 +561,9 @@ static struct {
 
     // sink rate for landing and altitude_wait
     float sink_rate;
+
+    // time we started a accel_zero event
+    uint32_t accel_hold_start_ms;
 } auto_state = {
     takeoff_complete : true,
     land_complete : false,
@@ -574,7 +577,8 @@ static struct {
     highest_airspeed : 0,
     initial_pitch_cd : 0,
     next_turn_angle  : 90.0f,
-    sink_rate   : 0
+    sink_rate   : 0,
+    accel_hold_start_ms : 0
 };
 
 // true if we are in an auto-throttle mode, which means

@@ -131,12 +131,50 @@ static void set_servos_idle(void)
     channel_throttle->output_trim();
 }
 
+
+/*
+  see if we should trim all servos due to a massive acceleration
+  event. This is used to hold servos still during a rocket assisted
+  stage of flight
+ */
+static bool accel_hold_check(void)
+{
+    if (g.accel_hold_threshold <= 0 || g.accel_hold_time <= 0) {
+        // not enabled
+        return false;
+    }
+    float accel_x = ins.get_accel().x;
+    if (auto_state.accel_hold_start_ms == 0 && accel_x > g.accel_hold_threshold) {
+        // rocket has fired
+        auto_state.accel_hold_start_ms = hal.scheduler->millis();
+        gcs_send_text_fmt(PSTR("Accel hold %.2f m/s/s"), accel_x);
+    }
+    if (auto_state.accel_hold_start_ms != 0) {
+        // we're in a period of acceleration
+        if (hal.scheduler->millis() - auto_state.accel_hold_start_ms > g.accel_hold_time*1000UL) {
+            auto_state.accel_hold_start_ms = 0;
+            // timed out - return to normal flight
+            return false;
+        }
+        // force all outputs to trim
+        RC_Channel::output_trim_all();
+        return true;        
+    }
+    // normal flight
+    return false;
+}
+
+
 /*****************************************
 * Set the flight control servos based on the current calculated values
 *****************************************/
 static void set_servos(void)
 {
     int16_t last_throttle = channel_throttle->radio_out;
+
+    if (control_mode == AUTO && accel_hold_check()) {
+        return;
+    }
 
     if (control_mode == AUTO && auto_state.idle_mode) {
         set_servos_idle();

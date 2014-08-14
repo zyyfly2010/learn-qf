@@ -122,6 +122,24 @@ const AP_Param::Info var_info[] PROGMEM = {
     // @User: Advanced
     GSCALAR(glide_slope_threshold, "GLIDE_SLOPE_MIN", 15),
 
+    // @Param: ACC_HOLD_THRESH
+    // @DisplayName: Acceleration hold threshold
+    // @Description: This controls a forward acceleration threshold (in meters/second/second) at which the servos will be held at the trim value for ACC_HOLD_TIME seconds. This is meant for aircraft with rocket propulsion to detect the rocket firing and hold the servos still during the rocket assisted stage of the flight. A value of zero means disable this feature. This parameter is only active in AUTO mode.
+    // @Range: 0 80
+    // @Increment: 1
+    // @Units: m/s/s
+    // @User: Advanced
+    GSCALAR(accel_hold_threshold, "ACC_HOLD_THRESH", 0),
+
+    // @Param: ACC_HOLD_TIME
+    // @DisplayName: Acceleration hold time
+    // @Description: This controls how many seconds to hold the servos at trim values after a ACC_HOLD_THRESH event is detected.
+    // @Range: 0 30
+    // @Increment: 1
+    // @Units: seconds
+    // @User: Advanced
+    GSCALAR(accel_hold_time,     "ACC_HOLD_TIME", 0),
+
     // @Param: STICK_MIXING
     // @DisplayName: Stick Mixing
     // @Description: When enabled, this adds user stick input to the control surfaces in auto modes, allowing the user to have some degree of flight control without changing modes.  There are two types of stick mixing available. If you set STICK_MIXING to 1 then it will use "fly by wire" mixing, which controls the roll and pitch in the same way that the FBWA mode does. This is the safest option if you usually fly ArduPlane in FBWA or FBWB mode. If you set STICK_MIXING to 2 then it will enable direct mixing mode, which is what the STABILIZE mode uses. That will allow for much more extreme maneuvers while in AUTO mode.

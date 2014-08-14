@@ -122,6 +122,8 @@ public:
         k_param_glide_slope_threshold,
         k_param_stab_pitch_down,
         k_param_terrain_lookahead,
+        k_param_accel_hold_threshold,
+        k_param_accel_hold_time,
 
         // 100: Arming parameters
         k_param_arming = 100,
@@ -457,6 +459,9 @@ public:
     AP_Int16 terrain_lookahead;
 #endif
     AP_Int16 glide_slope_threshold;
+
+    AP_Int8 accel_hold_threshold;
+    AP_Int8 accel_hold_time;
 
     // RC channels
     RC_Channel rc_1;
