@@ -125,6 +125,7 @@ public:
     struct PACKED Altitude_Wait {
         float altitude; // meters
         float descent_rate; // m/s
+        uint8_t wiggle_time; // seconds
     };
 
     union PACKED Content {

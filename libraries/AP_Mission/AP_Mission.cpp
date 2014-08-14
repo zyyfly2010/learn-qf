@@ -617,6 +617,7 @@ bool AP_Mission::mavlink_to_mission_cmd(const mavlink_mission_item_t& packet, AP
     case MAV_CMD_NAV_ALTITUDE_WAIT:                     // MAV ID: 83
         cmd.content.altitude_wait.altitude = packet.param1;
         cmd.content.altitude_wait.descent_rate = packet.param2;
+        cmd.content.altitude_wait.wiggle_time = packet.param3;
         break;
 
     default:
@@ -887,6 +888,7 @@ bool AP_Mission::mission_cmd_to_mavlink(const AP_Mission::Mission_Command& cmd, 
     case MAV_CMD_NAV_ALTITUDE_WAIT:                     // MAV ID: 83
         packet.param1 = cmd.content.altitude_wait.altitude;
         packet.param2 = cmd.content.altitude_wait.descent_rate;
+        packet.param3 = cmd.content.altitude_wait.wiggle_time;
         break;
 
     default:
