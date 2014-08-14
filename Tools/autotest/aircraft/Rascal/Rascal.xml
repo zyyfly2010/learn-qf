@@ -138,6 +138,19 @@
     </propulsion>
 
     <flight_control name="FCS: rascal">
+
+      <channel name="Burst">
+        <switch name="buoyant_forces/gas-cell/burst">
+          <default value="0.0"/>
+          <test logic="OR" value="1.0">
+            simulation/sim-time-sec ge 90
+            buoyant_forces/gas-cell/volume-ft3 ge buoyant_forces/gas-cell/max_volume-ft3
+            buoyant_forces/gas-cell/burst ge 0.5
+          </test>
+          <output>buoyant_forces/gas-cell/valve_open</output>
+        </switch>
+      </channel>
+
      <channel name="All">
 
         <summer name="Pitch Trim Sum">
@@ -518,5 +531,88 @@
                 </product>
             </function>
         </axis>
+
+        <function name="metrics/radius-ft">
+          <description>Radius of balloon</description>
+          <pow>
+            <product>
+              <value>0.23873241</value>
+              <property>buoyant_forces/gas-cell/volume-ft3</property>
+            </product>
+            <value>0.33333</value>
+          </pow>
+        </function>
+        <function name="metrics/diameter-ft">
+          <description>Diameter of balloon</description>
+          <product>
+            <value>2.0</value>
+            <property>metrics/radius-ft</property>
+          </product>
+        </function>
+        <function name="metrics/Sref-sqft">
+          <description>Profile area of balloon</description>
+          <product>
+            <property>metrics/radius-ft</property>
+            <property>metrics/radius-ft</property>
+            <value>3.14159</value>
+          </product>
+        </function>
+        <function name="metrics/surface-sqft">
+          <description>surface area of balloon</description>
+          <product>
+            <property>metrics/radius-ft</property>
+            <property>metrics/radius-ft</property>
+            <value>3.14159</value>
+            <value>4.0</value>
+          </product>
+        </function>
     </aerodynamics>
+
+    <buoyant_forces>
+      <gas_cell type="HYDROGEN">
+        <location unit="IN">
+          <x> 0.0 </x>
+          <y> 0.0 </y>
+          <z> 0.0 </z>
+        </location>
+        <x_radius unit="IN"> 133.0 </x_radius>
+        <y_radius unit="IN"> 133.0 </y_radius>
+        <z_radius unit="IN"> 133.0 </z_radius>
+        <fullness> 0.1 </fullness>
+        <max_overpressure unit="LBS/FT2"> 3000.0 </max_overpressure><!-- WAG -->
+        <heat>
+          <!-- Heat transfer due to temperature difference. -->
+          <function name="buoyant_forces/gas-cell/dU_conduction">
+            <product>
+              <value> 3000 </value>
+              <value> 0.0001 </value> <!-- Conductivity [lb / (K ft sec)] (Guess) -->
+              <difference>
+                <property> atmosphere/T-R </property>
+                <property> buoyant_forces/gas-cell/temp-R </property>
+              </difference>
+            </product>
+          </function>
+          <function name="buoyant_forces/gas-cell/dU_radiation">
+            <product>
+              <value> 0.1714e-8 </value> <!-- Stefan-Boltzmann's constant
+              [Btu / (h ft^2 R^4)] -->
+              <value> 0.0001 </value> <!-- Emissivity [0,1] (Guess) -->
+              <value> 3000 </value>
+              <difference>
+                <pow>
+                  <property> atmosphere/T-R </property>
+                  <value> 4.0 </value>
+                </pow>
+                <pow>
+                  <property> buoyant_forces/gas-cell/temp-R </property>
+                  <value> 4.0 </value>
+                </pow>
+              </difference>
+            </product>
+          </function>
+        </heat>
+        <valve_coefficient unit="FT4*SEC/SLUG"> 100000 </valve_coefficient> <!-- just a big number so the hydrogen disappears when the balloon bursts -->
+      </gas_cell>
+    </buoyant_forces>
+
 </fdm_config>
