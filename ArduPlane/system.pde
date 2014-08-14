@@ -213,6 +213,12 @@ static void init_ardupilot()
     // set the correct flight mode
     // ---------------------------
     reset_control_switch();
+
+    // setup initial mode if asked for
+    if (g.initial_mode != 0) {
+        oldSwitchPosition = readSwitch();
+        set_mode((enum FlightMode)g.initial_mode.get());
+    }
 }
 
 //********************************************************************************
