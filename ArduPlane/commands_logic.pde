@@ -36,7 +36,6 @@ start_command(const AP_Mission::Mission_Command& cmd)
     if (AP_Mission::is_nav_cmd(cmd)) {
         // set land_complete to false to stop us zeroing the throttle
         auto_state.land_complete = false;
-        auto_state.land_sink_rate = 0;
 
         // set takeoff_complete to true so we don't add extra evevator
         // except in a takeoff
@@ -521,22 +520,20 @@ static bool verify_altitude_wait(const AP_Mission::Mission_Command &cmd)
         gcs_send_text_P(SEVERITY_LOW,PSTR("Reached altitude"));
         return true;
     }
-    if (barometer.get_climb_rate() < -cmd.content.altitude_wait.descent_rate) {
-        gcs_send_text_P(SEVERITY_LOW,PSTR("Reached descent rate"));
+    if (auto_state.sink_rate > cmd.content.altitude_wait.descent_rate) {
+        gcs_send_text_fmt(PSTR("Reached descent rate %.1f m/s"), auto_state.sink_rate);
         return true;        
     }
 
     // if requested, wiggle servos
     if (cmd.content.altitude_wait.wiggle_time != 0) {
         static uint32_t last_wiggle_ms;
-        static uint8_t wiggle_stage;
-        if (wiggle_stage == 0 &&
+        if (auto_state.idle_wiggle_stage == 0 &&
             hal.scheduler->millis() - last_wiggle_ms > cmd.content.altitude_wait.wiggle_time*1000) {
-            wiggle_stage = 1;
+            auto_state.idle_wiggle_stage = 1;
+            last_wiggle_ms = hal.scheduler->millis();
         }
-        if (wiggle_stage != 0) {
-            
-        }
+        // idle_wiggle_stage is updated in set_servos_idle()
     }
 
     return false;

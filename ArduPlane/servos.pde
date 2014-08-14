@@ -95,11 +95,40 @@ static void flaperon_update(int8_t flap_percent)
 
 /*
   setup servos for idle mode
+  Idle mode is used during balloon launch to keep servos still, apart
+  from occasional wiggle to prevent freezing up
  */
 static void set_servos_idle(void)
 {
-    // special handling for balloon launch
-    RC_Channel::output_trim_all();
+    if (auto_state.idle_wiggle_stage == 0) {
+        RC_Channel::output_trim_all();
+        return;
+    }
+    int16_t servo_value;
+    // move over full range for 2 seconds
+    auto_state.idle_wiggle_stage += 2;
+    if (auto_state.idle_wiggle_stage < 50) {
+        servo_value = auto_state.idle_wiggle_stage * (4500 / 50);
+    } else if (auto_state.idle_wiggle_stage < 100) {
+        servo_value = (100 - auto_state.idle_wiggle_stage) * (4500 / 50);        
+    } else if (auto_state.idle_wiggle_stage < 150) {
+        servo_value = (100 - auto_state.idle_wiggle_stage) * (4500 / 50);        
+    } else if (auto_state.idle_wiggle_stage < 200) {
+        servo_value = (auto_state.idle_wiggle_stage-200) * (4500 / 50);        
+    } else {
+        auto_state.idle_wiggle_stage = 0;
+    }
+    channel_roll->servo_out = servo_value;
+    channel_pitch->servo_out = servo_value;
+    channel_rudder->servo_out = servo_value;
+    channel_roll->calc_pwm();
+    channel_pitch->calc_pwm();
+    channel_rudder->calc_pwm();
+    channel_roll->output();
+    channel_pitch->output();
+    channel_throttle->output();
+    channel_rudder->output();
+    channel_throttle->output_trim();
 }
 
 /*****************************************

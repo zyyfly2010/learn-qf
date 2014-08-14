@@ -559,8 +559,8 @@ static struct {
     // turn angle for next leg of mission
     float next_turn_angle;
 
-    // filtered sink rate for landing
-    float land_sink_rate;
+    // sink rate for landing and altitude_wait
+    float sink_rate;
 } auto_state = {
     takeoff_complete : true,
     land_complete : false,
@@ -574,7 +574,7 @@ static struct {
     highest_airspeed : 0,
     initial_pitch_cd : 0,
     next_turn_angle  : 90.0f,
-    land_sink_rate   : 0
+    sink_rate   : 0
 };
 
 // true if we are in an auto-throttle mode, which means
@@ -1218,7 +1218,6 @@ static void handle_auto_mode(void)
         // are for takeoff and landing
         steer_state.hold_course_cd = -1;
         auto_state.land_complete = false;
-        auto_state.land_sink_rate = 0;
         calc_nav_roll();
         calc_nav_pitch();
         calc_throttle();
@@ -1447,12 +1446,29 @@ static void set_flight_stage(AP_SpdHgtControl::FlightStage fs)
     flight_stage = fs;
 }
 
+/*
+  update altitude from barometer
+ */
 static void update_alt()
 {
     barometer.read();
     if (should_log(MASK_LOG_IMU)) {
         Log_Write_Baro();
     }
+
+    // update the sink rate.
+    float sink_rate;
+    Vector3f vel;
+    if (ahrs.get_velocity_NED(vel)) {
+        sink_rate = vel.z;
+    } else if (gps.status() >= AP_GPS::GPS_OK_FIX_3D && gps.have_vertical_velocity()) {
+        sink_rate = gps.velocity().z;
+    } else {
+        sink_rate = -barometer.get_climb_rate();        
+    }
+
+    // low pass the sink rate to take some of the noise out
+    auto_state.sink_rate = 0.8f * auto_state.sink_rate + 0.2f*sink_rate;
 
     geofence_check(true);
 

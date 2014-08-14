@@ -16,31 +16,17 @@ static bool verify_land()
 
     float height = height_above_target();
 
-    // calculate the sink rate.
-    float sink_rate;
-    Vector3f vel;
-    if (ahrs.get_velocity_NED(vel)) {
-        sink_rate = vel.z;
-    } else if (gps.status() >= AP_GPS::GPS_OK_FIX_3D && gps.have_vertical_velocity()) {
-        sink_rate = gps.velocity().z;
-    } else {
-        sink_rate = -barometer.get_climb_rate();        
-    }
-
-    // low pass the sink rate to take some of the noise out
-    auto_state.land_sink_rate = 0.8f * auto_state.land_sink_rate + 0.2f*sink_rate;
-    
     /* Set land_complete (which starts the flare) under 2 conditions:
        1) we are within LAND_FLARE_ALT meters of the landing altitude
        2) we are within LAND_FLARE_SEC of the landing point vertically
           by the calculated sink rate
     */
     if (height <= g.land_flare_alt ||
-        height <= -auto_state.land_sink_rate * g.land_flare_sec) {
+        height <= -auto_state.sink_rate * g.land_flare_sec) {
 
         if (!auto_state.land_complete) {
             gcs_send_text_fmt(PSTR("Flare %.1fm sink=%.2f speed=%.1f"), 
-                              height, auto_state.land_sink_rate, gps.ground_speed());
+                              height, auto_state.sink_rate, gps.ground_speed());
         }
         auto_state.land_complete = true;
 
