@@ -614,6 +614,10 @@ bool AP_Mission::mavlink_to_mission_cmd(const mavlink_mission_item_t& packet, AP
         cmd.p1 = packet.param1;                         // normal=0 inverted=1
         break;
 
+    case MAV_CMD_DO_AUTOTUNE_ENABLE:                    // MAV ID: 211
+        cmd.p1 = packet.param1;                         // disable=0 enable=1
+        break;
+
     case MAV_CMD_NAV_ALTITUDE_WAIT:                     // MAV ID: 83
         cmd.content.altitude_wait.altitude = packet.param1;
         cmd.content.altitude_wait.descent_rate = packet.param2;
@@ -883,6 +887,10 @@ bool AP_Mission::mission_cmd_to_mavlink(const AP_Mission::Mission_Command& cmd, 
 
     case MAV_CMD_DO_INVERTED_FLIGHT:                    // MAV ID: 210
         packet.param1 = cmd.p1;                         // normal=0 inverted=1
+        break;
+
+    case MAV_CMD_DO_AUTOTUNE_ENABLE:                    // MAV ID: 211
+        packet.param1 = cmd.p1;                         // disable=0 enable=1
         break;
 
     case MAV_CMD_NAV_ALTITUDE_WAIT:                     // MAV ID: 83
