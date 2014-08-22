@@ -68,6 +68,9 @@ public:
     // end of a run()
     float load_average(uint32_t tick_time_usec) const;
 
+    // set the tick shift
+    void set_tick_shift(uint8_t shift) { _tick_shift = shift; }
+
 	static const struct AP_Param::GroupInfo var_info[];
 
     // current running task, or -1 if none. Used to debug stuck tasks
@@ -101,6 +104,9 @@ private:
 
     // number of ticks that _spare_micros is counted over
     uint8_t _spare_ticks;
+
+    // a tick shift to convert a task table between rates
+    uint8_t _tick_shift;
 };
 
 #endif // AP_SCHEDULER_H

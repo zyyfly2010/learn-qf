@@ -46,6 +46,7 @@ void AP_Scheduler::init(const AP_Scheduler::Task *tasks, uint8_t num_tasks)
     _last_run = new uint16_t[_num_tasks];
     memset(_last_run, 0, sizeof(_last_run[0]) * _num_tasks);
     _tick_counter = 0;
+    _tick_shift = 0;
 }
 
 // one tick has passed
@@ -65,7 +66,7 @@ void AP_Scheduler::run(uint16_t time_available)
 
     for (uint8_t i=0; i<_num_tasks; i++) {
         uint16_t dt = _tick_counter - _last_run[i];
-        uint16_t interval_ticks = pgm_read_word(&_tasks[i].interval_ticks);
+        uint16_t interval_ticks = pgm_read_word(&_tasks[i].interval_ticks) >> _tick_shift;
         if (dt >= interval_ticks) {
             // this task is due to run. Do we have enough time to run it?
             _task_time_allowed = pgm_read_word(&_tasks[i].max_time_micros);
