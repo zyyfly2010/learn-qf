@@ -8,6 +8,7 @@
 #if CONFIG_HAL_BOARD == HAL_BOARD_LINUX
 #include <sys/time.h>
 #include <pthread.h>
+#include <sys/timerfd.h>
 
 #define LINUX_SCHEDULER_MAX_TIMER_PROCS 10
 

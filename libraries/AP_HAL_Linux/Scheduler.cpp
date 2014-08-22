@@ -250,20 +250,22 @@ void *LinuxScheduler::_timer_thread(void)
     while (system_initializing()) {
         poll(NULL, 0, 1);        
     }
-    /*
-      this aims to run at an average of 1kHz, so that it can be used
-      to drive 1kHz processes without drift
-     */
-    uint64_t next_run_usec = micros64() + 1000;
+    int tfd = timerfd_create(CLOCK_MONOTONIC, 0);
+    struct itimerspec itval;
+    itval.it_interval.tv_sec = 0;
+    itval.it_interval.tv_nsec = 1000*1000; // 1kHz
+    itval.it_value.tv_sec = 0;
+    itval.it_value.tv_nsec = itval.it_interval.tv_nsec;
+    int ret = timerfd_settime(tfd, 0, &itval, NULL);
+    if (ret != 0) {
+        panic("Unable to setup timer interval");
+    }
     while (true) {
-        uint64_t dt = next_run_usec - micros64();
-        if (dt > 2000) {
-            // we've lost sync - restart
-            next_run_usec = micros64();
-        } else {
-            _microsleep(dt);
+        unsigned long long missed = 0;
+        ret = read(tfd, &missed, sizeof(missed));
+        if (missed != 1) {
+            printf("missed timer\n");
         }
-        next_run_usec += 1000;
         // run registered timers
         _run_timers(true);
     }
