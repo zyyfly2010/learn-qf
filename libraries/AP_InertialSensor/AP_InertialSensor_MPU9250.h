@@ -81,6 +81,9 @@ private:
     // default filter frequency when set to zero
     uint8_t _default_filter_hz;
 
+    // file descriptor for kernel periodic timer
+    int tfd;
+
 public:
 
 #if MPU9250_DEBUG

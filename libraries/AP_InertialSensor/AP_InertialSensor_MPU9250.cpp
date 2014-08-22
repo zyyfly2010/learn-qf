@@ -22,6 +22,8 @@
 #include "AP_InertialSensor_MPU9250.h"
 #include "../AP_HAL_Linux/GPIO.h"
 #include <stdio.h>
+#include <unistd.h>
+#include <sys/timerfd.h>
 
 extern const AP_HAL::HAL& hal;
 
@@ -272,19 +274,18 @@ bool AP_InertialSensor_MPU9250::_sample_available()
  */
 bool AP_InertialSensor_MPU9250::wait_for_sample(uint16_t timeout_ms)
 {
-    if (_sample_available()) {
+    if (_have_sample_available) {
         return true;
     }
     uint64_t start = hal.scheduler->millis64();
     while ((hal.scheduler->millis64() - start) < timeout_ms) {
-        uint64_t tnow = hal.scheduler->micros64();
-        uint64_t tdelay = (_last_sample_usec + _sample_time_usec) - tnow;
-        if (tdelay < 100000) {
-            hal.scheduler->delay_microseconds(tdelay);
+        unsigned long long missed = 0;
+        read(tfd, &missed, sizeof(missed));
+        _have_sample_available = true;
+        if (missed != 1) {
+            printf("missed sample\n");
         }
-        if (_sample_available()) {
-            return true;
-        }
+        return true;
     }
     return false;
 }
@@ -502,6 +503,18 @@ bool AP_InertialSensor_MPU9250::_hardware_init(Sample_rate sample_rate)
         _sample_time_usec = 2500;
         break;
     }
+
+    tfd = timerfd_create(CLOCK_MONOTONIC, 0);
+    struct itimerspec itval;
+    itval.it_interval.tv_sec = 0;
+    itval.it_interval.tv_nsec = _sample_time_usec*1000;
+    itval.it_value.tv_sec = 0;
+    itval.it_value.tv_nsec = itval.it_interval.tv_nsec;
+    int ret = timerfd_settime(tfd, 0, &itval, NULL);
+    if (ret != 0) {
+        hal.scheduler->panic("Unable to setup timer interval");
+    }
+
 
     // used a fixed filter of 42Hz on the sensor, then filter using
     // the 2-pole software filter
