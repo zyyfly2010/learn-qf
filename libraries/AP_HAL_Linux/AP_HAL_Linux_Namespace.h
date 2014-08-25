@@ -15,6 +15,7 @@ namespace Linux {
     class LinuxAnalogSource;
     class LinuxAnalogIn;
     class LinuxStorage;
+    class LinuxStorage_FRAM;
     class LinuxGPIO;
     class LinuxDigitalSource;
     class LinuxRCInput;
