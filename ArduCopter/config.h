@@ -91,10 +91,6 @@
  # define MAIN_LOOP_RATE    100
  # define MAIN_LOOP_SECONDS 0.01
  # define MAIN_LOOP_MICROS  10000
-#elif CONFIG_HAL_BOARD == HAL_BOARD_LINUX
- # define MAIN_LOOP_RATE    200
- # define MAIN_LOOP_SECONDS 0.005
- # define MAIN_LOOP_MICROS  5000
 #else
  // high power CPUs (Flymaple, PX4, Pixhawk, VRBrain)
  # define MAIN_LOOP_RATE    400
