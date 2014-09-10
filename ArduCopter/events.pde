@@ -87,6 +87,8 @@ static void failsafe_radio_on_event()
             break;
     }
 
+    failsafe_relay_on();
+
     // log the error to the dataflash
     Log_Write_Error(ERROR_SUBSYSTEM_FAILSAFE_RADIO, ERROR_CODE_FAILSAFE_OCCURRED);
 
@@ -99,6 +101,7 @@ static void failsafe_radio_off_event()
 {
     // no need to do anything except log the error as resolved
     // user can now override roll, pitch, yaw and throttle and even use flight mode switch to restore previous flight mode
+    failsafe_relay_off();
     Log_Write_Error(ERROR_SUBSYSTEM_FAILSAFE_RADIO, ERROR_CODE_FAILSAFE_RESOLVED);
 }
 
@@ -163,6 +166,8 @@ static void failsafe_battery_event(void)
     // set the low battery flag
     set_failsafe_battery(true);
 
+    failsafe_relay_on();
+
     // warn the ground station and log to dataflash
     gcs_send_text_P(SEVERITY_LOW,PSTR("Low Battery!"));
     Log_Write_Error(ERROR_SUBSYSTEM_FAILSAFE_BATT, ERROR_CODE_FAILSAFE_OCCURRED);
@@ -206,6 +211,9 @@ static void failsafe_gps_check()
     // update state, warn the ground station and log to dataflash
     set_failsafe_gps(true);
     gcs_send_text_P(SEVERITY_LOW,PSTR("Lost GPS!"));
+
+    failsafe_relay_on();
+
     Log_Write_Error(ERROR_SUBSYSTEM_FAILSAFE_GPS, ERROR_CODE_FAILSAFE_OCCURRED);
 
     // take action based on flight mode and FS_GPS_ENABLED parameter
@@ -226,6 +234,7 @@ static void failsafe_gps_check()
 // failsafe_gps_off_event - actions to take when GPS contact is restored
 static void failsafe_gps_off_event(void)
 {
+    failsafe_relay_off();
     // log recovery of GPS in logs?
     Log_Write_Error(ERROR_SUBSYSTEM_FAILSAFE_GPS, ERROR_CODE_FAILSAFE_RESOLVED);
 }
@@ -261,6 +270,9 @@ static void failsafe_gcs_check()
     // GCS failsafe event has occured
     // update state, log to dataflash
     set_failsafe_gcs(true);
+
+    failsafe_relay_on();
+
     Log_Write_Error(ERROR_SUBSYSTEM_FAILSAFE_GCS, ERROR_CODE_FAILSAFE_OCCURRED);
 
     // clear overrides so that RC control can be regained with radio.
@@ -315,6 +327,7 @@ static void failsafe_gcs_check()
 // failsafe_gcs_off_event - actions to take when GCS contact is restored
 static void failsafe_gcs_off_event(void)
 {
+    failsafe_relay_off();
     // log recovery of GCS in logs?
     Log_Write_Error(ERROR_SUBSYSTEM_FAILSAFE_GCS, ERROR_CODE_FAILSAFE_RESOLVED);
 }
@@ -324,3 +337,22 @@ static void update_events()
     ServoRelayEvents.update_events();
 }
 
+/*
+  support triggering a relay on failsafe events. 
+ */
+static void failsafe_relay_on(void)
+{
+    if (g.fs_relay > 0) {
+        relay.on(g.fs_relay);
+    }
+}
+
+/*
+  disable relay on failsafe end events
+ */
+static void failsafe_relay_off(void)
+{
+    if (g.fs_relay > 0) {
+        relay.off(g.fs_relay);
+    }
+}

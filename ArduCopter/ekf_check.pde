@@ -115,6 +115,8 @@ static void failsafe_ekf_event()
     failsafe.ekf = true;
     Log_Write_Error(ERROR_SUBSYSTEM_FAILSAFE_EKFINAV, ERROR_CODE_FAILSAFE_OCCURRED);
 
+    failsafe_relay_on();
+
     // take action based on flight mode
     if (mode_requires_GPS(control_mode)) {
         set_mode_land_with_pause();
@@ -133,6 +135,8 @@ static void failsafe_ekf_off_event(void)
     if (!failsafe.ekf) {
         return;
     }
+
+    failsafe_relay_off();
 
     // clear flag and log recovery
     failsafe.ekf = false;

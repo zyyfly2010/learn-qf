@@ -121,6 +121,7 @@ public:
         k_param_terrain,
         k_param_acro_expo,
         k_param_throttle_deadzone,      // 57
+        k_param_fs_relay,
 
         // 65: AP_Limits Library
         k_param_limits = 65,            // deprecated - remove
@@ -333,6 +334,7 @@ public:
     AP_Int8         failsafe_battery_enabled;   // battery failsafe enabled
     AP_Float        fs_batt_voltage;            // battery voltage below which failsafe will be triggered
     AP_Float        fs_batt_mah;                // battery capacity (in mah) below which failsafe will be triggered
+    AP_Int8         fs_relay;                   // relay to trigger on failsafe
 
     AP_Int8         failsafe_gps_enabled;       // gps failsafe enabled
     AP_Int8         failsafe_gcs;               // ground station failsafe behavior

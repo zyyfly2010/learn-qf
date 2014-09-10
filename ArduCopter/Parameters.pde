@@ -149,6 +149,13 @@ const AP_Param::Info var_info[] PROGMEM = {
     // @User: Standard
     GSCALAR(failsafe_gcs, "FS_GCS_ENABLE", FS_GCS_ENABLED_ALWAYS_RTL),
 
+    // @Param: FS_RELAY
+    // @DisplayName: Failsafe relay
+    // @Description: This sets a relay number to trigger high when a failsafe event happens. This can be used to trigger an external alarm when failsafe triggers.
+    // @Values: 0:Disable,1:Relay1,2:Relay2,3:Relay3,4:Relay4
+    // @User: Advanced
+    GSCALAR(fs_relay, "FS_RELAY", 0),
+
     // @Param: GPS_HDOP_GOOD
     // @DisplayName: GPS Hdop Good
     // @Description: GPS Hdop value at or below this value represent a good position.  Used for pre-arm checks
