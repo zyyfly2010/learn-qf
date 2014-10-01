@@ -22,8 +22,7 @@
 
 class AP_Land {
 public:
-    AP_Land(AP_AHRS &ahrs, AP_GPS &gps, Compass &compass, AP_TECS &tecs, AP_Rally &rally,
-            AP_Mission &mission);
+    AP_Land(AP_AHRS &ahrs, AP_TECS &tecs, AP_Rally &rally, AP_Mission &mission);
     
     uint8_t get_land_wings_level() const { return _land_wing_level; }
     uint8_t get_break_path() const { return _break_path; }
@@ -80,8 +79,6 @@ public:
 
 protected:
     const AP_AHRS& _ahrs;
-    const AP_GPS& _gps;
-    const Compass& _compass;
     const AP_TECS& _tecs;
     const AP_Rally& _rally;
     const AP_Mission& _mission;

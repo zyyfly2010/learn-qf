@@ -39,11 +39,8 @@ const AP_Param::GroupInfo AP_Land::var_info[] PROGMEM = {
 };
 
 //constructor
-AP_Land::AP_Land(AP_AHRS &ahrs, AP_GPS &gps, Compass &compass, AP_TECS &tecs,
-                 AP_Rally &rally, AP_Mission &mission)
+AP_Land::AP_Land(AP_AHRS &ahrs, AP_TECS &tecs, AP_Rally &rally, AP_Mission &mission)
     : _ahrs(ahrs)
-    , _gps(gps)
-    , _compass(compass)
     , _tecs(tecs)
     , _rally(rally)
     , _mission(mission)
@@ -188,30 +185,24 @@ bool AP_Land::preland_step_rally_land(const RallyLocation &ral_loc) {
             float bearing = (radians( (float)(get_bearing_cd(current_loc,_landing_wp)/100.0) ));
 
             // Calculate heading
-            float heading = 5000;
-            if (((Compass &) _compass).read()) {
-                const Matrix3f &m = _ahrs.get_dcm_matrix();
-                heading = _compass.calculate_heading(m);
-
-                //map heading to bearing's coordinate space:
-                if (heading < 0.0f) {
-                    heading += 2.0f*PI;
-                }
-            }
+            float heading = _ahrs.yaw;
  
-            // Check to see if the the plane is heading toward the land waypoint
-            //3 degrees = 0.0523598776 radians
-            if (fabs(bearing - heading) <= 0.0523598776f) {
+            // Check to see if the the plane is heading toward the
+            // land waypoint, with a tolerance of 3 degrees
+            if (fabs(wrap_PI(bearing - heading) <= radians(3.0f))) {
                 if(_land_heading_as_desired == false) {
                     _turns_complete++;
                 }
 
                 _land_heading_as_desired = true;
+
+                float airspeed;
+                bool have_airspeed = _ahrs.airspeed_estimate(&airspeed);
                                 
                 //now ensure we're going slower OR we've turned enough times:
                 _land_speed_as_desired = false;
                 if ( (_turns_complete != 0 && _turns_complete >= _max_turns) ||
-                        _gps.ground_speed() - _tecs.get_target_airspeed() <= 2.0f) {
+                     (have_airspeed && fabsf(airspeed - _tecs.get_target_airspeed()) <= 2.0f)) {
                     _land_speed_as_desired = true;
 
                     //tangential break path?
