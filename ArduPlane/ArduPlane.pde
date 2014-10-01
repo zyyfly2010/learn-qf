@@ -620,7 +620,7 @@ AP_Terrain terrain(ahrs, mission, rally);
 #endif
 
 //For more new auto landing method(s) (if desired)
-AP_Land lander(ahrs, gps, compass, TECS_controller, rally, mission);
+AP_Land lander(ahrs, TECS_controller, rally, mission);
 
 ////////////////////////////////////////////////////////////////////////////////
 // Outback Challenge Failsafe Support
