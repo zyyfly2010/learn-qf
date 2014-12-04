@@ -86,10 +86,10 @@ public:
     const NavEKF2 &get_NavEKF2_const(void) const { return EKF2; }
 
     // return secondary attitude solution if available, as eulers in radians
-    bool get_secondary_attitude(Vector3f &eulers);
+    bool get_secondary_attitude(Vector3f &eulers, uint8_t instance=0);
 
     // return secondary position solution if available
-    bool get_secondary_position(struct Location &loc);
+    bool get_secondary_position(struct Location &loc, uint8_t instance=0);
 
     // EKF has a better ground speed vector estimate
     Vector2f groundspeed_vector(void);

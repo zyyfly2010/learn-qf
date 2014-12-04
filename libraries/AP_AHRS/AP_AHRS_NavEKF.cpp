@@ -295,8 +295,17 @@ bool AP_AHRS_NavEKF::use_compass(void)
 
 
 // return secondary attitude solution if available, as eulers in radians
-bool AP_AHRS_NavEKF::get_secondary_attitude(Vector3f &eulers)
+bool AP_AHRS_NavEKF::get_secondary_attitude(Vector3f &eulers, uint8_t instance)
 {
+    if (instance == 1) {
+        // always give EKF2
+        if (ekf2.started) {
+            EKF2.getEulerAngles(eulers);
+            return true;
+        }
+        eulers = _dcm_attitude;
+        return true;        
+    }
     switch (using_EKF()) {
     case AHRS_SELECTED_EKF1:
     case AHRS_SELECTED_EKF2:
@@ -305,12 +314,12 @@ bool AP_AHRS_NavEKF::get_secondary_attitude(Vector3f &eulers)
         return true;
     case AHRS_SELECTED_DCM:
     default:
-        if (ekf1.started) {
+        if (ekf1.started && instance == 0) {
             // EKF1 is secondary
             EKF1.getEulerAngles(eulers);
             return true;
         }
-        if (ekf2.started) {
+        if (ekf2.started && instance == 1) {
             // EKF1 is secondary
             EKF2.getEulerAngles(eulers);
             return true;
@@ -321,8 +330,17 @@ bool AP_AHRS_NavEKF::get_secondary_attitude(Vector3f &eulers)
 }
 
 // return secondary position solution if available
-bool AP_AHRS_NavEKF::get_secondary_position(struct Location &loc)
+bool AP_AHRS_NavEKF::get_secondary_position(struct Location &loc, uint8_t instance)
 {
+    if (instance == 1) {
+        // always give EKF2
+        if (ekf2.started) {
+            EKF2.getLLH(loc);
+            return true;
+        }
+        AP_AHRS_DCM::get_position(loc);
+        return true;        
+    }
     switch (using_EKF()) {
     case AHRS_SELECTED_EKF1:
     case AHRS_SELECTED_EKF2:
@@ -331,12 +349,12 @@ bool AP_AHRS_NavEKF::get_secondary_position(struct Location &loc)
         return true;
     case AHRS_SELECTED_DCM:
     default:
-        if (ekf1.started) {
+        if (ekf1.started && instance == 0) {
             // EKF1 is secondary
             EKF1.getLLH(loc);
             return true;
         }
-        if (ekf2.started) {
+        if (ekf2.started && instance == 1) {
             // EKF1 is secondary
             EKF2.getLLH(loc);
             return true;
