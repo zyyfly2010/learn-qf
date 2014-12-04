@@ -26,6 +26,7 @@
 
 #if HAL_CPU_CLASS >= HAL_CPU_CLASS_150
 #include <AP_NavEKF.h>
+#include <AP_NavEKF2.h>
 
 #define AP_AHRS_NAVEKF_AVAILABLE 1
 #define AP_AHRS_NAVEKF_SETTLE_TIME_MS 20000     // time in milliseconds the ekf needs to settle after being started
@@ -36,10 +37,12 @@ public:
     // Constructor
     AP_AHRS_NavEKF(AP_InertialSensor &ins, AP_Baro &baro, AP_GPS &gps) :
     AP_AHRS_DCM(ins, baro, gps),
-        EKF(this, baro),
-        ekf_started(false),
+        EKF1(this, baro),
+        EKF2(this, baro),
         startup_delay_ms(10000)
         {
+            ekf1.started = false;
+            ekf2.started = false;
         }
 
     // return the smoothed gyro vector corrected for drift
@@ -76,7 +79,8 @@ public:
     // true if compass is being used
     bool use_compass(void);
 
-    NavEKF &get_NavEKF(void) { return EKF; }
+    NavEKF &get_NavEKF(void) { return EKF1; }
+    NavEKF2 &get_NavEKF2(void) { return EKF2; }
 
     // return secondary attitude solution if available, as eulers in radians
     bool get_secondary_attitude(Vector3f &eulers);
@@ -104,16 +108,27 @@ public:
     bool initialised(void) const;
 
 private:
-    bool using_EKF(void) const;
+    enum AHRS_selected {
+        AHRS_SELECTED_DCM  = 0,
+        AHRS_SELECTED_EKF1 = 1,
+        AHRS_SELECTED_EKF2 = 2
+    };
 
-    NavEKF EKF;
-    bool ekf_started;
-    Matrix3f _dcm_matrix;
+    AHRS_selected using_EKF(void) const;
+    void _update_ekf1(void);
+    void _update_ekf2(void);
+
+    NavEKF EKF1;
+    NavEKF2 EKF2;
     Vector3f _dcm_attitude;
-    Vector3f _gyro_bias;
-    Vector3f _gyro_estimate;
+    struct {
+        bool started;
+        Matrix3f _dcm_matrix;
+        Vector3f _gyro_bias;
+        Vector3f _gyro_estimate;
+        uint32_t start_time_ms;
+    } ekf1, ekf2;
     const uint16_t startup_delay_ms;
-    uint32_t start_time_ms;
 };
 #endif
 
