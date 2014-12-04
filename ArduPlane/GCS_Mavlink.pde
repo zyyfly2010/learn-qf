@@ -656,6 +656,8 @@ bool GCS_MAVLINK::try_send_message(enum ap_message id)
         send_simstate(chan);
         CHECK_PAYLOAD_SIZE(AHRS2);
         gcs[chan-MAVLINK_COMM_0].send_ahrs2(ahrs);
+        CHECK_PAYLOAD_SIZE(AHRS3);
+        gcs[chan-MAVLINK_COMM_0].send_ahrs3(ahrs);
         break;
 
     case MSG_HWSTATUS:
