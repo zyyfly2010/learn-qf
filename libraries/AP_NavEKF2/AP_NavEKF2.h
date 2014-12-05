@@ -28,6 +28,9 @@
 #include <AP_Compass.h>
 #include <AP_Param.h>
 
+
+
+
 // #define MATH_CHECK_INDEXES 1
 
 #include <vectorN.h>
@@ -74,6 +77,32 @@ public:
 
     // Constructor
     NavEKF2(const AP_AHRS *ahrs, AP_Baro &baro);
+
+
+    uint8_t storeIndexIMU;						// arash
+    uint32_t lastAngRateStoreTime_ms;		 // sean
+    VectorN<Vector3f,50> storedAngRate;       //  sean
+    VectorN<Vector3f,50> storeddVelIMU1; //sean
+    VectorN<Vector3f,50>  storeddVelIMU2; //sean
+    uint32_t angRateTimeStamp[50];    		  // sean
+ 
+   uint8_t storeIndexMag;
+    uint32_t lastMagStoreTime_ms;
+    VectorN<Vector3f,50> storedMag;       //  sean
+//    float storedMag[50];
+    uint32_t MagTimeStamp[50];    		  // sean
+
+
+    uint8_t storeIndexTas;              // sean
+    uint32_t lastTasStoreTime_ms;           // sean
+    float storedTas[50];                 // sean
+    uint32_t TasTimeStamp[50];    		  // sean
+
+    uint8_t storeIndexHgt;              // sean
+    uint32_t lastHgtStoreTime_ms;           // sean
+    float storedHgt[50];                 // sean
+    uint32_t HgtTimeStamp[50];    		  // sean
+    uint32_t lastHealthyHgtTime_ms; // time the barometer was last declared healthy
 
     // This function is used to initialise the filter whilst moving, using the AHRS DCM solution
     // It should NOT be used to re-initialise after a timeout as DCM will also be corrupted
@@ -163,6 +192,8 @@ public:
     void  getFilterFaults(uint8_t &faults) const;
 
     static const struct AP_Param::GroupInfo var_info[];
+
+
 
 private:
     const AP_AHRS *_ahrs;
