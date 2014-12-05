@@ -19,6 +19,12 @@
 
 #include <stdio.h>
 
+//sean
+#include <iostream>
+using namespace std;
+#include <stdlib.h>
+//end sean
+
 /*
   parameter defaults for different types of vehicle. The
   APM_BUILD_DIRECTORY is taken from the main vehicle directory name
@@ -729,6 +735,7 @@ void NavEKF2::SelectVelPosFusion()
         hgtUpdateCount = 0;
         // enable fusion
         fuseHgtData = true;
+        lastHealthyHgtTime_ms=lastHgtTime_ms;    // sean : we need this variable for the buffer
     } else {
         fuseHgtData = false;
     }
@@ -849,12 +856,93 @@ void NavEKF2::UpdateStrapdownEquationsNED()
     Quaternion deltaQuat; // quaternion from last to current time step
     const Vector3f gravityNED(0, 0, GRAVITY_MSS); // NED gravity vector m/s^2
 
+
+// sean
+//lastAngRateStoreTime_ms=1;
+//storeIndexIMU=1;
+// cin >> angRateTimeStamp[5];
+//cout << angRateTimeStamp[5] << "\n";
+//cout << lastAngRateStoreTime_ms << "\n";
+//printf("%u \n", storeIndexIMU);
+
+    if (imuSampleTime_ms - lastAngRateStoreTime_ms >= 10) {
+        lastAngRateStoreTime_ms = imuSampleTime_ms;
+        if (storeIndexIMU > 49) {
+            storeIndexIMU = 0;
+        }
+        storedAngRate[storeIndexIMU] = dAngIMU;
+        storeddVelIMU1[storeIndexIMU] = dVelIMU1;
+        storeddVelIMU2[storeIndexIMU] = dVelIMU2;
+        angRateTimeStamp[storeIndexIMU] = lastAngRateStoreTime_ms;
+        storeIndexIMU = storeIndexIMU + 1;
+
+//printf("%u , %u \n", storeIndexIMU, angRateTimeStamp[storeIndexIMU]);
+//        cout << imuSampleTime_ms << "   " << storedAngRate[storeIndexIMU] << "\n";
+    }
+
+//    int GPS_delay_AngRate = ;
+    int timeDeltaAngRate;
+    uint32_t bestTimeDeltaAngRate = 200;
+    uint8_t bestStoreIndex = 0;
+//    state_elements state_delay;
+    Vector3f dAngIMU_Delay;
+    Vector3f dVelIMU1_Delay;
+    Vector3f dVelIMU2_Delay;
+//     Vector3f gyro_bias_delay;
+
+    for (uint8_t i=0; i<=49; i++)
+    {
+        timeDeltaAngRate = abs( (int) imuSampleTime_ms- angRateTimeStamp[i] - constrain_int16(_msecPosDelay, 0, 500));
+        if (timeDeltaAngRate < bestTimeDeltaAngRate)
+        {
+            bestStoreIndex = i;
+            bestTimeDeltaAngRate = timeDeltaAngRate;
+        }
+    }
+dAngIMU_Delay = storedAngRate[bestStoreIndex];
+dVelIMU1_Delay=storeddVelIMU1[bestStoreIndex];
+dVelIMU2_Delay=storeddVelIMU2[bestStoreIndex];
+
+// printf("%u, %u , %u, %u, %u , %d \n", imuSampleTime_ms, storeIndexIMU, bestStoreIndex, bestTimeDeltaAngRate, angRateTimeStamp[storeIndexIMU-1], int(angRateTimeStamp[storeIndexIMU-1]-angRateTimeStamp[bestStoreIndex]));
+
+
+
+// RecallStates(state_delay, (imuSampleTime_ms - constrain_int16(_msecPosDelay, 0, 500)));
+
+// gyro_bias_delay=state_delay.gyro_bias;
+
+    // remove sensor bias errors
+/*
+    correctedDelAng = dAngIMU_Delay - gyro_bias_delay;  
+    correctedDelVel1 = dVelIMU1_Delay;
+    correctedDelVel2 = dVelIMU2_Delay;
+    correctedDelVel1.z -= state_delay.accel_zbias1;
+    correctedDelVel2.z -= state_delay.accel_zbias2;
+*/
+
+    correctedDelAng = dAngIMU_Delay - state.gyro_bias;
+    correctedDelVel1 = dVelIMU1_Delay;
+    correctedDelVel2 = dVelIMU2_Delay;
+    correctedDelVel1.z -= state.accel_zbias1;
+    correctedDelVel2.z -= state.accel_zbias2;
+
+
+/*
     // remove sensor bias errors
     correctedDelAng = dAngIMU - state.gyro_bias;
     correctedDelVel1 = dVelIMU1;
     correctedDelVel2 = dVelIMU2;
     correctedDelVel1.z -= state.accel_zbias1;
     correctedDelVel2.z -= state.accel_zbias2;
+*/
+// end sean
+
+
+
+
+
+
+
 
     // use weighted average of both IMU units for delta velocities
     correctedDelVel12 = correctedDelVel1 * IMU1_weighting + correctedDelVel2 * (1.0f - IMU1_weighting);
@@ -1689,6 +1777,7 @@ void NavEKF2::FuseVelPosNED()
             }
         }
 
+
         // calculate innovations and check GPS data validity using an innovation consistency check
         // test position measurements
         if (fusePosData) {
@@ -1792,8 +1881,57 @@ void NavEKF2::FuseVelPosNED()
             uint32_t hgtRetryTime;
             if (_fusionModeGPS == 0) hgtRetryTime = _hgtRetryTimeMode0;
             else hgtRetryTime = _hgtRetryTimeMode12;
+
+
+////////////////// sean buffering Hgt data and replacing the Hgt measurement with delayed Hgt measurement
+// sean ////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    if (lastHealthyHgtTime_ms - lastHgtStoreTime_ms >= 10) {
+        lastHgtStoreTime_ms = lastHealthyHgtTime_ms;
+        if (storeIndexHgt > 49) {
+            storeIndexHgt = 0;
+        }
+        storedHgt[storeIndexHgt] = hgtMea;
+        HgtTimeStamp[storeIndexHgt] = lastHgtStoreTime_ms;
+        storeIndexHgt = storeIndexHgt + 1;
+//printf("%u , %u, %f \n", TASmsecPrev, imuSampleTime_ms);
+//        cout << imuSampleTime_ms << "   " << storedAngRate[storeIndexIMU] << "\n";
+    }
+
+//    int GPS_delay_Tas = constrain_int16(_msecPosDelay, 0, 500);
+//    int Tas_delay_time= 0;
+    int timeDeltaHgt;
+    uint32_t bestTimeDeltaHgt = 200;
+    uint8_t bestStoreIndex = 0;
+//    state_elements state_delay;
+    float Hgt_Delayed;
+
+    for (uint8_t i=0; i<=49; i++)
+    {
+        timeDeltaHgt = abs( (int) imuSampleTime_ms- HgtTimeStamp[i] - constrain_int16(_msecPosDelay, 0, 500) + _msecHgtDelay);
+        if (timeDeltaHgt < bestTimeDeltaHgt)
+        {
+            bestStoreIndex = i;
+            bestTimeDeltaHgt = timeDeltaHgt;
+        }
+    }
+Hgt_Delayed = storedHgt[bestStoreIndex];
+
+//printf("%u , %u, %u, %u , %d, %f \n", imuSampleTime_ms, bestStoreIndex, bestTimeDeltaMag, MagTimeStamp[storeIndexMag-1], int(MagTimeStamp[storeIndexMag-1]-MagTimeStamp[bestStoreIndex]), Mag_Delay[0]);
+
+
+
+
             // calculate height innovations
+
+            observation[5]=-Hgt_Delayed;
             hgtInnov = statesAtHgtTime.position.z - observation[5];
+
+
+//            hgtInnov = statesAtHgtTime.position.z - observation[5];
+//////////// end sean  //////////////////////////////////////////////////////////////////////
+
+
             varInnovVelPos[5] = P[9][9] + R_OBS[5];
             // calculate the innovation consistency test ratio
             hgtTestRatio = sq(hgtInnov) / (sq(_hgtInnovGate) * varInnovVelPos[5]);
@@ -1965,6 +2103,7 @@ void NavEKF2::FuseVelPosNED()
 // fuse each axis on consecutive time steps to spread computional load
 void NavEKF2::FuseMagnetometer()
 {
+
     // start performance timer
     perf_begin(_perf_FuseMagnetometer);
 
@@ -2267,8 +2406,66 @@ void NavEKF2::FuseMagnetometer()
             magFusePerformed = true;
             magFuseRequired = false;
         }
+
+
+// sean
+
+/*
+
+//printf("%u , %u \n", storeIndexIMU, angRateTimeStamp[storeIndexIMU]);
+//        cout << imuSampleTime_ms << "   " << storedAngRate[storeIndexIMU] << "\n";
+    }
+*/
+
+    if (lastHealthyMagTime_ms - lastMagStoreTime_ms >= 10) {
+        lastMagStoreTime_ms = lastHealthyMagTime_ms;
+        if (storeIndexMag > 49) {
+            storeIndexMag = 0;
+        }
+        storedMag[storeIndexMag] = magData;
+        // storedMag[storeIndexMag][obsIndex];
+        MagTimeStamp[storeIndexMag] = lastMagStoreTime_ms;
+        storeIndexMag = storeIndexMag + 1;
+//printf("%u , %u, %f \n", lastHealthyMagTime_ms, imuSampleTime_ms);
+//        cout << imuSampleTime_ms << "   " << storedAngRate[storeIndexIMU] << "\n";
+    }
+
+//    int GPS_delay_Mag = constrain_int16(_msecPosDelay, 0, 500);
+    int timeDeltaMag;
+    uint32_t bestTimeDeltaMag = 200;
+    uint8_t bestStoreIndex = 0;
+//    state_elements state_delay;
+    float Mag_Delay;
+
+
+    for (uint8_t i=0; i<=49; i++)
+    {
+        timeDeltaMag = abs( (int) imuSampleTime_ms- MagTimeStamp[i] -constrain_int16(_msecPosDelay, 0, 500) + _msecMagDelay);
+        if (timeDeltaMag < bestTimeDeltaMag)
+        {
+            bestStoreIndex = i;
+            bestTimeDeltaMag = timeDeltaMag;
+        }
+    }
+Mag_Delay = storedMag[bestStoreIndex][obsIndex];
+
+// Mag_Delay = storedMag[bestStoreIndex][obsIndex];
+
+//printf("%u , %u, %u, %u , %d, %f \n", imuSampleTime_ms, bestStoreIndex, bestTimeDeltaMag, MagTimeStamp[storeIndexMag-1], int(MagTimeStamp[storeIndexMag-1]-MagTimeStamp[bestStoreIndex]), Mag_Delay[0]);
+
+
+//RecallStates(state_delay, (imuSampleTime_ms - constrain_int16(GPS_delay_AngRate, 0, 500)));
+
+//gyro_bias_delay=state_delay.gyro_bias;
+
+
         // calculate the measurement innovation
-        innovMag[obsIndex] = MagPred[obsIndex] - magData[obsIndex];
+//        innovMag[obsIndex] = MagPred[obsIndex] - magData[obsIndex];
+        innovMag[obsIndex] = MagPred[obsIndex] - Mag_Delay;
+
+
+////////////////////// end sean
+
         // calculate the innovation test ratio
         magTestRatio[obsIndex] = sq(innovMag[obsIndex]) / (sq(_magInnovGate) * varInnovMag[obsIndex]);
         // check the last values from all components and set magnetometer health accordingly
@@ -2443,8 +2640,50 @@ void NavEKF2::FuseAirspeed()
         // calculate measurement innovation variance
         varInnovVtas = 1.0f/SK_TAS;
 
-        // calculate measurement innovation
-        innovVtas = VtasPred - VtasMeas;
+// sean ////////////////////////////////////////////////////////////////////////////////////////////////////
+    if (TASmsecPrev - lastTasStoreTime_ms >= 10) {
+        lastTasStoreTime_ms = TASmsecPrev;
+        if (storeIndexTas > 49) {
+            storeIndexTas = 0;
+        }
+        storedTas[storeIndexTas] = VtasMeas;
+        TasTimeStamp[storeIndexTas] = lastTasStoreTime_ms;
+        storeIndexTas = storeIndexTas + 1;
+//printf("%u , %u, %f \n", TASmsecPrev, imuSampleTime_ms);
+//        cout << imuSampleTime_ms << "   " << storedAngRate[storeIndexIMU] << "\n";
+    }
+
+//    int GPS_delay_Tas = constrain_int16(_msecPosDelay, 0, 500);
+//    int Tas_delay_time= 0;
+    int timeDeltaTas;
+    uint32_t bestTimeDeltaTas = 200;
+    uint8_t bestStoreIndex = 0;
+//    state_elements state_delay;
+    float Vtas_Delayed;
+
+    for (uint8_t i=0; i<=49; i++)
+    {
+        timeDeltaTas = abs( (int) imuSampleTime_ms- TasTimeStamp[i] - constrain_int16(_msecPosDelay, 0, 500) + _msecTasDelay);
+        if (timeDeltaTas < bestTimeDeltaTas)
+        {
+            bestStoreIndex = i;
+            bestTimeDeltaTas = timeDeltaTas;
+        }
+    }
+Vtas_Delayed = storedTas[bestStoreIndex];
+
+//printf("%u , %u, %u, %u , %d, %f \n", imuSampleTime_ms, bestStoreIndex, bestTimeDeltaMag, MagTimeStamp[storeIndexMag-1], int(MagTimeStamp[storeIndexMag-1]-MagTimeStamp[bestStoreIndex]), Mag_Delay[0]);
+
+
+
+        // calculate the measurement innovation
+        innovVtas = VtasPred - Vtas_Delayed;
+
+//////////// end sean  //////////////////////////////////////////////////////////////////////
+
+        // innovVtas = VtasPred - VtasMeas;
+
+
 
         // calculate the innovation consistency test ratio
         tasTestRatio = sq(innovVtas) / (sq(_tasInnovGate) * varInnovVtas);
@@ -3430,6 +3669,14 @@ void NavEKF2::ZeroVariables()
     secondLastFixTime_ms = imuSampleTime_ms;
     lastDecayTime_ms = imuSampleTime_ms;
     airborneDetectTime_ms = imuSampleTime_ms;
+
+// sean stuff ///////////////
+    storeIndexIMU = 0; 
+    lastAngRateStoreTime_ms = imuSampleTime_ms;
+    memset(&storedAngRate[0], 0, sizeof(storedAngRate));
+    memset(&angRateTimeStamp[0], 0, sizeof(angRateTimeStamp));
+    lastHealthyHgtTime_ms = imuSampleTime_ms;
+/////////////////////////
 
     gpsNoiseScaler = 1.0f;
     velTimeout = false;
