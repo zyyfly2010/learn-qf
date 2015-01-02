@@ -135,6 +135,8 @@
  # define FRAME_CONFIG_STRING "SINGLE"
 #elif FRAME_CONFIG == COAX_FRAME
  # define FRAME_CONFIG_STRING "COAX"
+#elif FRAME_CONFIG == TILTROTOR_Y6_FRAME           //Trevor Added
+ # define FRAME_CONFIG_STRING "TILTROTOR_Y6"       //Trevor Added
 #else
  # define FRAME_CONFIG_STRING "UNKNOWN"
 #endif
@@ -164,6 +166,28 @@
   # define RATE_YAW_I                   0.015f
 #endif
 
+/////////////////////////////////////////////////////////////////////////////////
+// Tiltrotor_Y6 defaults   --Trevor Added
+#if FRAME_CONFIG == TILTROTOR_Y6_FRAME
+  # define WP_YAW_BEHAVIOR_DEFAULT      WP_YAW_BEHAVIOR_LOOK_AHEAD
+  # define RATE_ROLL_P                  0.1f
+  # define RATE_ROLL_D                  0.006f
+  # define RATE_PITCH_P                 0.1f
+  # define RATE_PITCH_D                 0.006f
+  # define RATE_YAW_P                   0.150f
+  # define RATE_YAW_I                   0.015f
+  # define RATE_PIT_P_AERO				0.1f
+  # define RATE_PIT_I_AERO              0.100f
+  # define RATE_PIT_D_AERO				0.004f
+  # define RATE_PIT_IMAX_A              1000
+  # define RATE_ROL_P_AERO				0.1f
+  # define RATE_ROL_I_AERO              0.100f
+  # define RATE_ROL_D_AERO				0.004f
+  # define RATE_ROL_IMAX_A              1000
+  # define GEAR_UP_SPEED_DEFUALT  	    1000
+  # define GEAR_DN_SPEED_DEFUALT        1000
+  # define AUTOTUNE_ENABLED             DISABLED
+#endif
 //////////////////////////////////////////////////////////////////////////////
 // ADC Enable - used to eliminate for systems which don't have ADC.
 //

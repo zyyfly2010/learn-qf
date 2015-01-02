@@ -502,6 +502,26 @@ const AP_Param::Info var_info[] PROGMEM = {
     GSCALAR(heli_stab_col_max, "H_STAB_COL_MAX", HELI_STAB_COLLECTIVE_MAX_DEFAULT),
 #endif
 
+#if FRAME_CONFIG ==     TILTROTOR_Y6_FRAME
+    // @Param: GEAR_UP_SPD
+    // @DisplayName: Landing Gear UP speed
+    // @Description: Speed to command gear up 
+    // @Range: 0 2000
+    // @Units: cm/s
+    // @Increment: 1
+    // @User: Standard
+    GSCALAR(auto_gear_up_speed, "GEAR_UP_SPD", GEAR_UP_SPEED_DEFUALT),
+
+    // @Param: GEAR_DN_SPD
+    // @DisplayName: Landing Gear UP speed
+    // @Description: Speed to command gear up 
+    // @Range: 0 2000
+    // @Units: cm/s
+    // @Increment: 1
+    // @User: Standard
+    GSCALAR(auto_gear_dn_speed, "GEAR_DN_SPD", GEAR_DN_SPEED_DEFUALT),
+#endif
+
     // RC channel
     //-----------
     // @Group: RC1_
@@ -618,14 +638,14 @@ const AP_Param::Info var_info[] PROGMEM = {
     // @Range: 0.08 0.20
     // @Increment: 0.005
     // @User: Standard
-
+    
     // @Param: RATE_RLL_I
     // @DisplayName: Roll axis rate controller I gain
     // @Description: Roll axis rate controller I gain.  Corrects long-term difference in desired roll rate vs actual roll rate
     // @Range: 0.01 0.5
     // @Increment: 0.01
     // @User: Standard
-
+	
     // @Param: RATE_RLL_IMAX
     // @DisplayName: Roll axis rate controller I gain maximum
     // @Description: Roll axis rate controller I gain maximum.  Constrains the maximum motor output that the I gain will output
@@ -633,7 +653,7 @@ const AP_Param::Info var_info[] PROGMEM = {
     // @Increment: 10
     // @Units: Percent*10
     // @User: Standard
-
+	
     // @Param: RATE_RLL_D
     // @DisplayName: Roll axis rate controller D gain
     // @Description: Roll axis rate controller D gain.  Compensates for short-term change in desired roll rate vs actual roll rate
@@ -652,14 +672,14 @@ const AP_Param::Info var_info[] PROGMEM = {
     // @Range: 0.08 0.20
     // @Increment: 0.005
     // @User: Standard
-
+    
     // @Param: RATE_PIT_I
     // @DisplayName: Pitch axis rate controller I gain
     // @Description: Pitch axis rate controller I gain.  Corrects long-term difference in desired pitch rate vs actual pitch rate
     // @Range: 0.01 0.5
     // @Increment: 0.01
     // @User: Standard
-
+    
     // @Param: RATE_PIT_IMAX
     // @DisplayName: Pitch axis rate controller I gain maximum
     // @Description: Pitch axis rate controller I gain maximum.  Constrains the maximum motor output that the I gain will output
@@ -673,7 +693,7 @@ const AP_Param::Info var_info[] PROGMEM = {
     // @Description: Pitch axis rate controller D gain.  Compensates for short-term change in desired pitch rate vs actual pitch rate
     // @Range: 0.001 0.02
     // @Increment: 0.001
-    // @User: Standard
+    // @User: Standard  
 #if FRAME_CONFIG == HELI_FRAME
     GGROUP(pid_rate_pitch,    "RATE_PIT_", AC_HELI_PID),
 #else
@@ -774,6 +794,68 @@ const AP_Param::Info var_info[] PROGMEM = {
     // @User: Advanced
     GGROUP(pid_loiter_rate_lon,      "LOITER_LON_",  AC_PID),
 
+#if FRAME_CONFIG ==     TILTROTOR_Y6_FRAME    	
+	// @Param: RATE_AERO_ROL_P
+    // @DisplayName: Aerodynamic Elevon Roll axis rate controller P gain -used in a Tiltrotor_Y6 ONLY
+    // @Description: Pitch axis rate controller P gain.  Converts the difference between desired pitch rate and actual pitch rate into a servo output
+    // @Range: 0.08 0.20
+    // @Increment: 0.005
+    // @User: Standard
+    
+    // @Param: RATE_AERO_ROL_I
+    // @DisplayName: Aerodynamic Elevon Roll axis rate controller I gain -used in a Tiltrotor_Y6 ONLY
+    // @Description: Roll axis rate controller I gain.  Corrects long-term difference in desired roll rate vs actual roll rate
+    // @Range: 0.01 0.5
+    // @Increment: 0.01
+    // @User: Standard
+    
+    // @Param: RATE_AERO_ROL_IMAX
+    // @DisplayName: Aerodynamic Elevon Roll axis rate controller I gain maximum -used in a Tiltrotor_Y6 ONLY
+    // @Description: Roll axis rate controller I gain maximum.  Constrains the maximum motor output that the I gain will output
+    // @Range: 0 4500
+    // @Increment: 10
+    // @Units: Percent*10
+    // @User: Standard
+   
+    // @Param: RATE_AERO_ROL_D
+    // @DisplayName: Aerodyamic Elevon Pitch axis rate controller D gain -used in a Tiltrotor_Y6 ONLY
+    // @Description: Pitch axis rate controller D gain.  Compensates for short-term change in desired pitch rate vs actual pitch rate
+    // @Range: 0.001 0.02
+    // @Increment: 0.001
+    // @User: Standard
+    GGROUP(pid_rate_roll_aero,    "RATE_AERO_ROL_", AC_PID),
+    
+    // @Param: RATE_AERO_PIT_P
+    // @DisplayName: Aerodynamic Elevon Pitch axis rate controller P gain -used in a Tiltrotor_Y6 ONLY
+    // @Description: Pitch axis rate controller P gain.  Converts the difference between desired pitch rate and actual pitch rate into a servo output
+    // @Range: 0.08 0.20
+    // @Increment: 0.005
+    // @User: Standard
+    
+    // @Param: RATE_AERO_PIT_I
+    // @DisplayName: Aerodyamic Elevon Pitch axis rate controller I gain -used in a Tiltrotor_Y6 ONLY
+    // @Description: Pitch axis rate controller I gain.  Corrects long-term difference in desired pitch rate vs actual pitch rate
+    // @Range: 0.01 0.5
+    // @Increment: 0.01
+    // @User: Standard
+    
+    // @Param: RATE_AERO_PIT_IMAX
+    // @DisplayName: Aerodyamic Elevon Pitch axis rate controller I gain maximum -used in a Tiltrotor_Y6 ONLY
+    // @Description: Pitch axis rate controller I gain maximum.  Constrains the maximum motor output that the I gain will output
+    // @Range: 0 4500
+    // @Increment: 10
+    // @Units: Percent*10
+    // @User: Standard
+    
+    // @Param: RATE_AERO_PIT_D
+    // @DisplayName: Aerodyamic Elevon Pitch axis rate controller D gain -used in a Tiltrotor_Y6 ONLY
+    // @Description: Pitch axis rate controller D gain.  Compensates for short-term change in desired pitch rate vs actual pitch rate
+    // @Range: 0.001 0.02
+    // @Increment: 0.001
+    // @User: Standard
+    GGROUP(pid_rate_pit_aero,    "RATE_AERO_PIT_", AC_PID),
+#endif
+    
     // @Param: THR_RATE_P
     // @DisplayName: Throttle rate controller P gain
     // @Description: Throttle rate controller P gain.  Converts the difference between desired vertical speed and actual speed into a desired acceleration that is passed to the throttle acceleration controller
@@ -1087,6 +1169,23 @@ const AP_Param::Info var_info[] PROGMEM = {
     // @Path: ../libraries/AP_Motors/AP_MotorsCoax.cpp
     GOBJECT(motors, "MOT_",           AP_MotorsCoax),
 
+#elif FRAME_CONFIG == TILTROTOR_Y6_FRAME              //Trevor Added Tiltrotor Frame (same as Single)
+    // @Group: SS7_
+    // @Path: ../libraries/RC_Channel/RC_Channel_aux.cpp
+    GGROUP(tiltrotor_servo_7,    "SS7_", RC_Channel_aux),
+    // @Group: SS8_
+    // @Path: ../libraries/RC_Channel/RC_Channel_aux.cpp
+    GGROUP(tiltrotor_servo_8,    "SS8_", RC_Channel_aux),
+    // @Group: SS9_
+    // @Path: ../libraries/RC_Channel/RC_Channel_aux.cpp
+    GGROUP(tiltrotor_servo_9,    "SS9_", RC_Channel_aux),
+    // @Group: SS10_
+    // @Path: ../libraries/RC_Channel/RC_Channel_aux.cpp
+    GGROUP(tiltrotor_servo_10,    "SS10_", RC_Channel_aux),
+    // @Group: MOT_
+    // @Path: ../libraries/AP_Motors/AP_MotorsTiltrotor_Y6.cpp
+    GOBJECT(motors, "MOT_",           AP_MotorsTiltrotor_Y6),
+    
 #else
     // @Group: MOT_
     // @Path: ../libraries/AP_Motors/AP_Motors_Class.cpp

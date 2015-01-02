@@ -124,6 +124,8 @@ public:
         k_param_optflow,
         k_param_dcmcheck_thresh,        // 59
         k_param_log_bitmask,
+        k_param_auto_gear_up_speed,
+        k_param_auto_gear_dn_speed,    //62
 
         // 65: AP_Limits Library
         k_param_limits = 65,            // deprecated - remove
@@ -311,7 +313,12 @@ public:
         k_param_acro_balance_roll,
         k_param_acro_balance_pitch,
         k_param_acro_yaw_p, // 244
-
+        k_param_pid_rate_pit_aero, // 245 Trevor added in 1.2 for tiltrotor_Y6
+        k_param_pid_rate_roll_aero,//246 Trevor added in 1.2 for tiltrotor_Y6
+        k_param_tiltrotor_servo_7,
+        k_param_tiltrotor_servo_8,
+        k_param_tiltrotor_servo_9,
+        k_param_tiltrotor_servo_10,// 250
         // 254,255: reserved
     };
 
@@ -413,6 +420,13 @@ public:
     RC_Channel      single_servo_1, single_servo_2; // servos for two flaps
 #endif
 
+#if FRAME_CONFIG ==     TILTROTOR_Y6_FRAME          //Trevor Added (copy of Single Frame)
+    // Single
+    RC_Channel_aux  tiltrotor_servo_7, tiltrotor_servo_8, tiltrotor_servo_9, tiltrotor_servo_10;     // servos for four flaps
+    AP_Int16        auto_gear_up_speed;      //Speed to command landing gear up
+    AP_Int16        auto_gear_dn_speed;      //Speed to command landing gear down
+#endif
+
     // RC channels
     RC_Channel              rc_1;
     RC_Channel              rc_2;
@@ -453,6 +467,12 @@ public:
     AC_PID                  pid_rate_pitch;
     AC_PID                  pid_rate_yaw;
 #endif
+
+#if FRAME_CONFIG ==     TILTROTOR_Y6_FRAME        // Pitch and Roll P for the aerodyamic surfaces of a TILTROTOR_Y6_FRAME
+    AC_PID          		pid_rate_pit_aero;           // Trevor added in 1.2 for tiltrotor_Y6
+    AC_PID          		pid_rate_roll_aero;          // Trevor added in 1.2 for tiltrotor_Y6
+#endif
+
     AC_PID                  pid_loiter_rate_lat;
     AC_PID                  pid_loiter_rate_lon;
 
@@ -466,6 +486,9 @@ public:
     AC_P                    p_stabilize_pitch;
     AC_P                    p_stabilize_yaw;
     AC_P                    p_alt_hold;
+
+
+
 
     // Note: keep initializers here in the same order as they are declared
     // above.
@@ -487,6 +510,13 @@ public:
 #if FRAME_CONFIG ==     COAX_FRAME
         single_servo_1        (CH_1),
         single_servo_2        (CH_2),
+#endif
+
+#if FRAME_CONFIG ==     TILTROTOR_Y6_FRAME    //Trevor Added (Copy of Single Frame)
+        tiltrotor_servo_7        (CH_7),
+        tiltrotor_servo_8        (CH_8),
+        tiltrotor_servo_9        (CH_9),
+        tiltrotor_servo_10       (CH_10),
 #endif
 
         rc_1                (CH_1),
@@ -513,6 +543,9 @@ public:
         pid_rate_roll           (RATE_ROLL_P,           RATE_ROLL_I,            RATE_ROLL_D,            RATE_ROLL_IMAX),
         pid_rate_pitch          (RATE_PITCH_P,          RATE_PITCH_I,           RATE_PITCH_D,           RATE_PITCH_IMAX),
         pid_rate_yaw            (RATE_YAW_P,            RATE_YAW_I,             RATE_YAW_D,             RATE_YAW_IMAX),
+
+        pid_rate_pit_aero     	(RATE_PIT_P_AERO,       RATE_PIT_I_AERO,        RATE_PIT_D_AERO,       RATE_PIT_IMAX_A),
+        pid_rate_roll_aero     	(RATE_ROL_P_AERO,       RATE_ROL_I_AERO,        RATE_ROL_D_AERO,       RATE_ROL_IMAX_A),
 
         pid_loiter_rate_lat     (LOITER_RATE_P,         LOITER_RATE_I,          LOITER_RATE_D,          LOITER_RATE_IMAX),
         pid_loiter_rate_lon     (LOITER_RATE_P,         LOITER_RATE_I,          LOITER_RATE_D,          LOITER_RATE_IMAX),
