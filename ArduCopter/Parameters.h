@@ -544,8 +544,10 @@ public:
         pid_rate_pitch          (RATE_PITCH_P,          RATE_PITCH_I,           RATE_PITCH_D,           RATE_PITCH_IMAX),
         pid_rate_yaw            (RATE_YAW_P,            RATE_YAW_I,             RATE_YAW_D,             RATE_YAW_IMAX),
 
+#if FRAME_CONFIG ==     TILTROTOR_Y6_FRAME
         pid_rate_pit_aero     	(RATE_PIT_P_AERO,       RATE_PIT_I_AERO,        RATE_PIT_D_AERO,       RATE_PIT_IMAX_A),
         pid_rate_roll_aero     	(RATE_ROL_P_AERO,       RATE_ROL_I_AERO,        RATE_ROL_D_AERO,       RATE_ROL_IMAX_A),
+#endif
 
         pid_loiter_rate_lat     (LOITER_RATE_P,         LOITER_RATE_I,          LOITER_RATE_D,          LOITER_RATE_IMAX),
         pid_loiter_rate_lon     (LOITER_RATE_P,         LOITER_RATE_I,          LOITER_RATE_D,          LOITER_RATE_IMAX),
