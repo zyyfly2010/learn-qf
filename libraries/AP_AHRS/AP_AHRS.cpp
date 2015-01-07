@@ -285,3 +285,11 @@ void AP_AHRS::update_cd_values(void)
     if (yaw_sensor < 0)
         yaw_sensor += 36000;
 }
+
+/*
+// Sean get_v
+void AP_AHRS::get_v(float &v1)
+{
+}
+*/
+

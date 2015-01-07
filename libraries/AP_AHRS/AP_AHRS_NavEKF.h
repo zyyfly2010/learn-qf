@@ -88,6 +88,8 @@ public:
     // return secondary attitude solution if available, as eulers in radians
     bool get_secondary_attitude(Vector3f &eulers, uint8_t instance=0);
 
+ //   void get_v(float &v1);
+    
     // return secondary position solution if available
     bool get_secondary_position(struct Location &loc, uint8_t instance=0);
 

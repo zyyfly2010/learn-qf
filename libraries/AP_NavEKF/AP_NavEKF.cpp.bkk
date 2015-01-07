@@ -1,7 +1,5 @@
 /// -*- tab-width: 4; Mode: C++; c-basic-offset: 4; indent-tabs-mode: nil -*-
 
-// here is an edit
-
 #include <AP_HAL.h>
 
 #if HAL_CPU_CLASS >= HAL_CPU_CLASS_150
@@ -14,24 +12,18 @@
 #pragma GCC optimize("O3")
 #endif
 
-#include "AP_NavEKF2.h"
+#include "AP_NavEKF.h"
 #include <AP_AHRS.h>
 #include <AP_Param.h>
 #include <AP_Vehicle.h>
 
 #include <stdio.h>
 
-//sean
-#include <iostream>
-using namespace std;
-#include <stdlib.h>
-//end sean
-
 /*
   parameter defaults for different types of vehicle. The
   APM_BUILD_DIRECTORY is taken from the main vehicle directory name
   where the code is built. Note that this trick won't work for arduino
-  builds on APM2, but NavEKF2 doesn't run on APM2, so that's OK
+  builds on APM2, but NavEKF doesn't run on APM2, so that's OK
  */
 #if APM_BUILD_TYPE(APM_BUILD_ArduCopter)
 // copter defaults
@@ -111,7 +103,7 @@ extern const AP_HAL::HAL& hal;
 #define INIT_GYRO_BIAS_UNCERTAINTY 0.1f
 
 // Define tuning parameters
-const AP_Param::GroupInfo NavEKF2::var_info[] PROGMEM = {
+const AP_Param::GroupInfo NavEKF::var_info[] PROGMEM = {
 
     // @Param: VELNE_NOISE
     // @DisplayName: GPS horizontal velocity measurement noise (m/s)
@@ -119,7 +111,7 @@ const AP_Param::GroupInfo NavEKF2::var_info[] PROGMEM = {
     // @Range: 0.05 5.0
     // @Increment: 0.05
     // @User: Advanced
-    AP_GROUPINFO("VELNE_NOISE",    0, NavEKF2, _gpsHorizVelNoise, VELNE_NOISE_DEFAULT),
+    AP_GROUPINFO("VELNE_NOISE",    0, NavEKF, _gpsHorizVelNoise, VELNE_NOISE_DEFAULT),
 
     // @Param: VELD_NOISE
     // @DisplayName: GPS vertical velocity measurement noise (m/s)
@@ -127,7 +119,7 @@ const AP_Param::GroupInfo NavEKF2::var_info[] PROGMEM = {
     // @Range: 0.05 5.0
     // @Increment: 0.05
     // @User: Advanced
-    AP_GROUPINFO("VELD_NOISE",    1, NavEKF2, _gpsVertVelNoise, VELD_NOISE_DEFAULT),
+    AP_GROUPINFO("VELD_NOISE",    1, NavEKF, _gpsVertVelNoise, VELD_NOISE_DEFAULT),
 
     // @Param: POSNE_NOISE
     // @DisplayName: GPS horizontal position measurement noise (m)
@@ -135,7 +127,7 @@ const AP_Param::GroupInfo NavEKF2::var_info[] PROGMEM = {
     // @Range: 0.1 10.0
     // @Increment: 0.1
     // @User: Advanced
-    AP_GROUPINFO("POSNE_NOISE",    2, NavEKF2, _gpsHorizPosNoise, POSNE_NOISE_DEFAULT),
+    AP_GROUPINFO("POSNE_NOISE",    2, NavEKF, _gpsHorizPosNoise, POSNE_NOISE_DEFAULT),
 
     // @Param: ALT_NOISE
     // @DisplayName: Altitude measurement noise (m)
@@ -143,7 +135,7 @@ const AP_Param::GroupInfo NavEKF2::var_info[] PROGMEM = {
     // @Range: 0.1 10.0
     // @Increment: 0.1
     // @User: Advanced
-    AP_GROUPINFO("ALT_NOISE",    3, NavEKF2, _baroAltNoise, ALT_NOISE_DEFAULT),
+    AP_GROUPINFO("ALT_NOISE",    3, NavEKF, _baroAltNoise, ALT_NOISE_DEFAULT),
 
     // @Param: MAG_NOISE
     // @DisplayName: Magnetometer measurement noise (Gauss)
@@ -151,7 +143,7 @@ const AP_Param::GroupInfo NavEKF2::var_info[] PROGMEM = {
     // @Range: 0.01 0.5
     // @Increment: 0.01
     // @User: Advanced
-    AP_GROUPINFO("MAG_NOISE",    4, NavEKF2, _magNoise, MAG_NOISE_DEFAULT),
+    AP_GROUPINFO("MAG_NOISE",    4, NavEKF, _magNoise, MAG_NOISE_DEFAULT),
 
     // @Param: EAS_NOISE
     // @DisplayName: Equivalent airspeed measurement noise (m/s)
@@ -159,7 +151,7 @@ const AP_Param::GroupInfo NavEKF2::var_info[] PROGMEM = {
     // @Range: 0.5 5.0
     // @Increment: 0.1
     // @User: Advanced
-    AP_GROUPINFO("EAS_NOISE",    5, NavEKF2, _easNoise, 1.4f),
+    AP_GROUPINFO("EAS_NOISE",    5, NavEKF, _easNoise, 1.4f),
 
     // @Param: WIND_PNOISE
     // @DisplayName: Wind velocity process noise (m/s^2)
@@ -167,7 +159,7 @@ const AP_Param::GroupInfo NavEKF2::var_info[] PROGMEM = {
     // @Range: 0.01 1.0
     // @Increment: 0.1
     // @User: Advanced
-    AP_GROUPINFO("WIND_PNOISE",    6, NavEKF2, _windVelProcessNoise, 0.1f),
+    AP_GROUPINFO("WIND_PNOISE",    6, NavEKF, _windVelProcessNoise, 0.1f),
 
     // @Param: WIND_PSCALE
     // @DisplayName: Height rate to wind procss noise scaler
@@ -175,7 +167,7 @@ const AP_Param::GroupInfo NavEKF2::var_info[] PROGMEM = {
     // @Range: 0.0 1.0
     // @Increment: 0.1
     // @User: Advanced
-    AP_GROUPINFO("WIND_PSCALE",    7, NavEKF2, _wndVarHgtRateScale, 0.5f),
+    AP_GROUPINFO("WIND_PSCALE",    7, NavEKF, _wndVarHgtRateScale, 0.5f),
 
     // @Param: GYRO_PNOISE
     // @DisplayName: Rate gyro noise (rad/s)
@@ -183,7 +175,7 @@ const AP_Param::GroupInfo NavEKF2::var_info[] PROGMEM = {
     // @Range: 0.001 0.05
     // @Increment: 0.001
     // @User: Advanced
-    AP_GROUPINFO("GYRO_PNOISE",    8, NavEKF2, _gyrNoise, GYRO_PNOISE_DEFAULT),
+    AP_GROUPINFO("GYRO_PNOISE",    8, NavEKF, _gyrNoise, GYRO_PNOISE_DEFAULT),
 
     // @Param: ACC_PNOISE
     // @DisplayName: Accelerometer noise (m/s^2)
@@ -191,35 +183,35 @@ const AP_Param::GroupInfo NavEKF2::var_info[] PROGMEM = {
     // @Range: 0.05 1.0
     // @Increment: 0.01
     // @User: Advanced
-    AP_GROUPINFO("ACC_PNOISE",    9, NavEKF2, _accNoise, ACC_PNOISE_DEFAULT),
+    AP_GROUPINFO("ACC_PNOISE",    9, NavEKF, _accNoise, ACC_PNOISE_DEFAULT),
 
     // @Param: GBIAS_PNOISE
     // @DisplayName: Rate gyro bias process noise (rad/s)
     // @Description: This noise controls the growth of gyro bias state error estimates. Increasing it makes rate gyro bias estimation faster and noisier.
     // @Range: 0.0000001 0.00001
     // @User: Advanced
-    AP_GROUPINFO("GBIAS_PNOISE",    10, NavEKF2, _gyroBiasProcessNoise, GBIAS_PNOISE_DEFAULT),
+    AP_GROUPINFO("GBIAS_PNOISE",    10, NavEKF, _gyroBiasProcessNoise, GBIAS_PNOISE_DEFAULT),
 
     // @Param: ABIAS_PNOISE
     // @DisplayName: Accelerometer bias process noise (m/s^2)
     // @Description: This noise controls the growth of the vertical acelerometer bias state error estimate. Increasing it makes accelerometer bias estimation faster and noisier.
     // @Range: 0.00001 0.001
     // @User: Advanced
-    AP_GROUPINFO("ABIAS_PNOISE",    11, NavEKF2, _accelBiasProcessNoise, ABIAS_PNOISE_DEFAULT),
+    AP_GROUPINFO("ABIAS_PNOISE",    11, NavEKF, _accelBiasProcessNoise, ABIAS_PNOISE_DEFAULT),
 
     // @Param: MAGE_PNOISE
     // @DisplayName: Earth magnetic field process noise (gauss/s)
     // @Description: This noise controls the growth of earth magnetic field state error estimates. Increasing it makes earth magnetic field bias estimation faster and noisier.
     // @Range: 0.0001 0.01
     // @User: Advanced
-    AP_GROUPINFO("MAGE_PNOISE",    12, NavEKF2, _magEarthProcessNoise, MAGE_PNOISE_DEFAULT),
+    AP_GROUPINFO("MAGE_PNOISE",    12, NavEKF, _magEarthProcessNoise, MAGE_PNOISE_DEFAULT),
 
     // @Param: MAGB_PNOISE
     // @DisplayName: Body magnetic field process noise (gauss/s)
     // @Description: This noise controls the growth of body magnetic field state error estimates. Increasing it makes compass offset estimation faster and noisier.
     // @Range: 0.0001 0.01
     // @User: Advanced
-    AP_GROUPINFO("MAGB_PNOISE",    13, NavEKF2, _magBodyProcessNoise, MAGB_PNOISE_DEFAULT),
+    AP_GROUPINFO("MAGB_PNOISE",    13, NavEKF, _magBodyProcessNoise, MAGB_PNOISE_DEFAULT),
 
     // @Param: VEL_DELAY
     // @DisplayName: GPS velocity measurement delay (msec)
@@ -227,8 +219,7 @@ const AP_Param::GroupInfo NavEKF2::var_info[] PROGMEM = {
     // @Range: 0 500
     // @Increment: 10
     // @User: Advanced
-    AP_GROUPINFO("VEL_DELAY",    14, NavEKF2, _msecVelDelay, 400),
-//   AP_GROUPINFO("VEL_DELAY",    14, NavEKF2, _msecVelDelay, 300),  // Sean change velocity delay
+    AP_GROUPINFO("VEL_DELAY",    14, NavEKF, _msecVelDelay, 220),
 
     // @Param: POS_DELAY
     // @DisplayName: GPS position measurement delay (msec)
@@ -236,8 +227,7 @@ const AP_Param::GroupInfo NavEKF2::var_info[] PROGMEM = {
     // @Range: 0 500
     // @Increment: 10
     // @User: Advanced
-   AP_GROUPINFO("POS_DELAY",    15, NavEKF2, _msecPosDelay, 400),
-//    AP_GROUPINFO("POS_DELAY",    15, NavEKF2, _msecPosDelay, 300),
+    AP_GROUPINFO("POS_DELAY",    15, NavEKF, _msecPosDelay, 220),
 
     // @Param: GPS_TYPE
     // @DisplayName: GPS velocity mode control
@@ -245,7 +235,7 @@ const AP_Param::GroupInfo NavEKF2::var_info[] PROGMEM = {
     // @Range: 0 3
     // @Increment: 1
     // @User: Advanced
-    AP_GROUPINFO("GPS_TYPE",    16, NavEKF2, _fusionModeGPS, 0),
+    AP_GROUPINFO("GPS_TYPE",    16, NavEKF, _fusionModeGPS, 0),
 
     // @Param: VEL_GATE
     // @DisplayName: GPS velocity measurement gate size
@@ -253,7 +243,7 @@ const AP_Param::GroupInfo NavEKF2::var_info[] PROGMEM = {
     // @Range: 1 100
     // @Increment: 1
     // @User: Advanced
-    AP_GROUPINFO("VEL_GATE",    17, NavEKF2, _gpsVelInnovGate, VEL_GATE_DEFAULT),
+    AP_GROUPINFO("VEL_GATE",    17, NavEKF, _gpsVelInnovGate, VEL_GATE_DEFAULT),
 
     // @Param: POS_GATE
     // @DisplayName: GPS position measurement gate size
@@ -261,7 +251,7 @@ const AP_Param::GroupInfo NavEKF2::var_info[] PROGMEM = {
     // @Range: 1 100
     // @Increment: 1
     // @User: Advanced
-    AP_GROUPINFO("POS_GATE",    18, NavEKF2, _gpsPosInnovGate, POS_GATE_DEFAULT),
+    AP_GROUPINFO("POS_GATE",    18, NavEKF, _gpsPosInnovGate, POS_GATE_DEFAULT),
 
     // @Param: HGT_GATE
     // @DisplayName: Height measurement gate size
@@ -269,7 +259,7 @@ const AP_Param::GroupInfo NavEKF2::var_info[] PROGMEM = {
     // @Range: 1 100
     // @Increment: 1
     // @User: Advanced
-    AP_GROUPINFO("HGT_GATE",    19, NavEKF2, _hgtInnovGate, HGT_GATE_DEFAULT),
+    AP_GROUPINFO("HGT_GATE",    19, NavEKF, _hgtInnovGate, HGT_GATE_DEFAULT),
 
     // @Param: MAG_GATE
     // @DisplayName: Magnetometer measurement gate size
@@ -277,7 +267,7 @@ const AP_Param::GroupInfo NavEKF2::var_info[] PROGMEM = {
     // @Range: 1 100
     // @Increment: 1
     // @User: Advanced
-    AP_GROUPINFO("MAG_GATE",    20, NavEKF2, _magInnovGate, MAG_GATE_DEFAULT),
+    AP_GROUPINFO("MAG_GATE",    20, NavEKF, _magInnovGate, MAG_GATE_DEFAULT),
 
     // @Param: EAS_GATE
     // @DisplayName: Airspeed measurement gate size
@@ -285,7 +275,7 @@ const AP_Param::GroupInfo NavEKF2::var_info[] PROGMEM = {
     // @Range: 1 100
     // @Increment: 1
     // @User: Advanced
-    AP_GROUPINFO("EAS_GATE",    21, NavEKF2, _tasInnovGate, 10),
+    AP_GROUPINFO("EAS_GATE",    21, NavEKF, _tasInnovGate, 10),
 
     // @Param: MAG_CAL
     // @DisplayName: Magnetometer calibration mode
@@ -293,7 +283,7 @@ const AP_Param::GroupInfo NavEKF2::var_info[] PROGMEM = {
     // @Values: 0:Speed and Height,1:Acceleration,2:Never
     // @Increment: 1
     // @User: Advanced
-    AP_GROUPINFO("MAG_CAL",    22, NavEKF2, _magCal, MAG_CAL_DEFAULT),
+    AP_GROUPINFO("MAG_CAL",    22, NavEKF, _magCal, MAG_CAL_DEFAULT),
 
     // @Param: GLITCH_ACCEL
     // @DisplayName: GPS glitch accel gate size (cm/s^2)
@@ -301,7 +291,7 @@ const AP_Param::GroupInfo NavEKF2::var_info[] PROGMEM = {
     // @Range: 100 500
     // @Increment: 50
     // @User: Advanced
-    AP_GROUPINFO("GLITCH_ACCEL",    23, NavEKF2, _gpsGlitchAccelMax, GLITCH_ACCEL_DEFAULT),
+    AP_GROUPINFO("GLITCH_ACCEL",    23, NavEKF, _gpsGlitchAccelMax, GLITCH_ACCEL_DEFAULT),
 
     // @Param: GLITCH_RAD
     // @DisplayName: GPS glitch radius gate size (m)
@@ -309,21 +299,21 @@ const AP_Param::GroupInfo NavEKF2::var_info[] PROGMEM = {
     // @Range: 10 50
     // @Increment: 5
     // @User: Advanced
-    AP_GROUPINFO("GLITCH_RAD",    24, NavEKF2, _gpsGlitchRadiusMax, GLITCH_RADIUS_DEFAULT),
+    AP_GROUPINFO("GLITCH_RAD",    24, NavEKF, _gpsGlitchRadiusMax, GLITCH_RADIUS_DEFAULT),
 
     // @Param: FALLBACK
     // @DisplayName: Fallback strictness
     // @Description: This parameter controls the conditions necessary to trigger a fallback to DCM and INAV. A value of 1 will cause fallbacks to occur on loss of GPS and other conditions. A value of 0 will trust the EKF more.
     // @Values: 0:Trust EKF more, 1:Trust DCM more
     // @User: Advanced
-    AP_GROUPINFO("FALLBACK",    31, NavEKF2, _fallback, 1),
+    AP_GROUPINFO("FALLBACK",    31, NavEKF, _fallback, 1),
 
     AP_GROUPEND
 };
 
 
 // constructor
-NavEKF2::NavEKF2(const AP_AHRS *ahrs, AP_Baro &baro) :
+NavEKF::NavEKF(const AP_AHRS *ahrs, AP_Baro &baro) :
     _ahrs(ahrs),
     _baro(baro),
     state(*reinterpret_cast<struct state_elements *>(&states)),
@@ -353,12 +343,9 @@ NavEKF2::NavEKF2(const AP_AHRS *ahrs, AP_Baro &baro) :
     _gpsNEVelVarAccScale    = 0.05f;    // Scale factor applied to NE velocity measurement variance due to manoeuvre acceleration
     _gpsDVelVarAccScale     = 0.07f;    // Scale factor applied to vertical velocity measurement variance due to manoeuvre acceleration
     _gpsPosVarAccScale      = 0.05f;    // Scale factor applied to horizontal position measurement variance due to manoeuvre acceleration
- //   _msecHgtDelay           = 60;       // Height measurement delay (msec)
-    _msecHgtDelay           = 0;       // Sean change delay
- //   _msecMagDelay           = 40;       // Magnetometer measurement delay (msec)
-    _msecMagDelay           = 0;  // Sean change delay
- //   _msecTasDelay           = 240;      // Airspeed measurement delay (msec)
-    _msecTasDelay           = 0;    // l change delay
+    _msecHgtDelay           = 60;       // Height measurement delay (msec)
+    _msecMagDelay           = 40;       // Magnetometer measurement delay (msec)
+    _msecTasDelay           = 240;      // Airspeed measurement delay (msec)
     _gpsRetryTimeUseTAS     = 20000;    // GPS retry time with airspeed measurements (msec)
     _gpsRetryTimeNoTAS      = 10000;    // GPS retry time without airspeed measurements (msec)
     _hgtRetryTimeMode0      = 10000;    // Height retry time with vertical velocity measurement (msec)
@@ -380,7 +367,7 @@ NavEKF2::NavEKF2(const AP_AHRS *ahrs, AP_Baro &baro) :
 }
 
 // Check basic filter health metrics and return a consolidated health status
-bool NavEKF2::healthy(void) const
+bool NavEKF::healthy(void) const
 {
     if (!statesInitialised) {
         return false;
@@ -409,21 +396,21 @@ bool NavEKF2::healthy(void) const
 }
 
 // return true if filter is dead-reckoning height
-bool NavEKF2::HeightDrifting(void) const
+bool NavEKF::HeightDrifting(void) const
 {
     // Set to true if height measurements are failing the innovation consistency check
     return !hgtHealth;
 }
 
 // return true if filter is dead-reckoning position
-bool NavEKF2::PositionDrifting(void) const
+bool NavEKF::PositionDrifting(void) const
 {
     // Set to true if position measurements are failing the innovation consistency check
     return !posHealth;
 }
 
 // resets position states to last GPS measurement or to zero if in static mode
-void NavEKF2::ResetPosition(void)
+void NavEKF::ResetPosition(void)
 {
     if (staticMode) {
         state.position.x = 0;
@@ -444,7 +431,7 @@ void NavEKF2::ResetPosition(void)
 }
 
 // resets velocity states to last GPS measurement or to zero if in static mode
-void NavEKF2::ResetVelocity(void)
+void NavEKF::ResetVelocity(void)
 {
     if (staticMode) {
          state.velocity.zero();
@@ -469,7 +456,7 @@ void NavEKF2::ResetVelocity(void)
 }
 
 // reset the vertical position state using the last height measurement
-void NavEKF2::ResetHeight(void)
+void NavEKF::ResetHeight(void)
 {
     // read the altimeter
     readHgtData();
@@ -485,7 +472,7 @@ void NavEKF2::ResetHeight(void)
 
 // this function is used to initialise the filter whilst moving, using the AHRS DCM solution
 // it should NOT be used to re-initialise after a timeout as DCM will also be corrupted
-void NavEKF2::InitialiseFilterDynamic(void)
+void NavEKF::InitialiseFilterDynamic(void)
 {
     // this forces healthy() to be false so that when we ask for ahrs
     // attitude we get the DCM attitude regardless of the state of AHRS_EKF_USE
@@ -533,7 +520,7 @@ void NavEKF2::InitialiseFilterDynamic(void)
 
 // Initialise the states from accelerometer and magnetometer data (if present)
 // This method can only be used when the vehicle is static
-void NavEKF2::InitialiseFilterBootstrap(void)
+void NavEKF::InitialiseFilterBootstrap(void)
 {
     // set re-used variables to zero
     ZeroVariables();
@@ -605,7 +592,7 @@ void NavEKF2::InitialiseFilterBootstrap(void)
 }
 
 // Update Filter States - this should be called whenever new IMU data is available
-void NavEKF2::UpdateFilter()
+void NavEKF::UpdateFilter()
 {
     // don't run filter updates if states have not been initialised
     if (!statesInitialised) {
@@ -687,7 +674,7 @@ void NavEKF2::UpdateFilter()
 }
 
 // select fusion of velocity, position and height measurements
-void NavEKF2::SelectVelPosFusion()
+void NavEKF::SelectVelPosFusion()
 {
     // check for new data, specify which measurements should be used and check data for freshness
     if (!staticMode) {
@@ -742,7 +729,6 @@ void NavEKF2::SelectVelPosFusion()
         hgtUpdateCount = 0;
         // enable fusion
         fuseHgtData = true;
-        lastHealthyHgtTime_ms=lastHgtTime_ms;    // sean : we need this variable for the buffer
     } else {
         fuseHgtData = false;
     }
@@ -768,7 +754,7 @@ void NavEKF2::SelectVelPosFusion()
 }
 
 // select fusion of magnetometer data
-void NavEKF2::SelectMagFusion()
+void NavEKF::SelectMagFusion()
 {
     // check for and read new magnetometer measurements
     readMagData();
@@ -809,7 +795,7 @@ void NavEKF2::SelectMagFusion()
 }
 
 // select fusion of true airspeed measurements
-void NavEKF2::SelectTasFusion()
+void NavEKF::SelectTasFusion()
 {
     // get true airspeed measurement
     readAirSpdData();
@@ -834,7 +820,7 @@ void NavEKF2::SelectTasFusion()
 // select fusion of synthetic sideslip measurements
 // synthetic sidelip fusion only works for fixed wing aircraft and relies on the average sideslip being close to zero
 // it requires a stable wind for best results and should not be used for aerobatic flight with manoeuvres that induce large sidslip angles (eg knife-edge, spins, etc)
-void NavEKF2::SelectBetaFusion()
+void NavEKF::SelectBetaFusion()
 {
     // set to true if fusion is locked out due to magnetometer fusion on the same time step (done for load levelling)
     bool f_lockedOut = (magFusePerformed && !fuseMeNow);
@@ -852,9 +838,8 @@ void NavEKF2::SelectBetaFusion()
 }
 
 // update the quaternion, velocity and position states using IMU measurements
-void NavEKF2::UpdateStrapdownEquationsNED()
+void NavEKF::UpdateStrapdownEquationsNED()
 {
-    Matrix3f Tbn_temp;
     Vector3f delVelNav;  // delta velocity vector calculated using a blend of IMU1 and IMU2 data
     Vector3f delVelNav1; // delta velocity vector calculated using IMU1 data
     Vector3f delVelNav2; // delta velocity vector calculated using IMU2 data
@@ -863,89 +848,15 @@ void NavEKF2::UpdateStrapdownEquationsNED()
     Quaternion qUpdated; // quaternion at current time step after application of delta quaternion
     Quaternion deltaQuat; // quaternion from last to current time step
     const Vector3f gravityNED(0, 0, GRAVITY_MSS); // NED gravity vector m/s^2
- 
-// sean
 
-   Vector3f D_q_tmp;  // sean   temporary vector part of quaternion Delta 
-   Quaternion q_tmp;  // sean   temporary quaternion
-
-
-
-//lastAngRateStoreTime_ms=1;
-//storeIndexIMU=1;
-// cin >> angRateTimeStamp[5];
-//cout << angRateTimeStamp[5] << "\n";
-//cout << lastAngRateStoreTime_ms << "\n";
-//printf("%u \n", storeIndexIMU);
-
-    if (imuSampleTime_ms - lastAngRateStoreTime_ms >= 10) {
-        lastAngRateStoreTime_ms = imuSampleTime_ms;
-        if (storeIndexIMU > 49) {
-            storeIndexIMU = 0;
-        }
-        storedAngRate[storeIndexIMU] = dAngIMU;
-        storeddVelIMU1[storeIndexIMU] = dVelIMU1;
-        storeddVelIMU2[storeIndexIMU] = dVelIMU2;
-        angRateTimeStamp[storeIndexIMU] = lastAngRateStoreTime_ms;
-        storeIndexIMU = storeIndexIMU + 1;
-
-//printf("%u , %u \n", storeIndexIMU, angRateTimeStamp[storeIndexIMU]);
-//        cout << imuSampleTime_ms << "   " << storedAngRate[storeIndexIMU] << "\n";
-    }
-
-//    int GPS_delay_AngRate = ;
-    int timeDeltaAngRate;
-    uint32_t bestTimeDeltaAngRate = 200;
-    uint8_t bestStoreIndex = 0;
-//    state_elements state_delay;
-    Vector3f dAngIMU_Delay;
-    Vector3f dVelIMU1_Delay;
-    Vector3f dVelIMU2_Delay;
-//     Vector3f gyro_bias_delay;
-
-    for (uint8_t i=0; i<=49; i++)
-    {
-        timeDeltaAngRate = abs( (int) imuSampleTime_ms- angRateTimeStamp[i] - constrain_int16(_msecPosDelay, 0, 500));
-        if (timeDeltaAngRate < bestTimeDeltaAngRate)
-        {
-            bestStoreIndex = i;
-            bestTimeDeltaAngRate = timeDeltaAngRate;
-        }
-    }
-dAngIMU_Delay = storedAngRate[bestStoreIndex];
-dVelIMU1_Delay=storeddVelIMU1[bestStoreIndex];
-dVelIMU2_Delay=storeddVelIMU2[bestStoreIndex];
-
-// printf("%u, %u , %u, %u, %u , %d \n", imuSampleTime_ms, storeIndexIMU, bestStoreIndex, bestTimeDeltaAngRate, angRateTimeStamp[storeIndexIMU-1], int(angRateTimeStamp[storeIndexIMU-1]-angRateTimeStamp[bestStoreIndex]));
-
-
-
-// RecallStates(state_delay, (imuSampleTime_ms - constrain_int16(_msecPosDelay, 0, 500)));
-
-// gyro_bias_delay=state_delay.gyro_bias;
-
-
-    correctedDelAng = dAngIMU_Delay - state.gyro_bias;
-    correctedDelVel1 = dVelIMU1_Delay;
-    correctedDelVel2 = dVelIMU2_Delay;
-    correctedDelVel1.z -= state.accel_zbias1;
-    correctedDelVel2.z -= state.accel_zbias2;
-
-
-/*
     // remove sensor bias errors
     correctedDelAng = dAngIMU - state.gyro_bias;
     correctedDelVel1 = dVelIMU1;
     correctedDelVel2 = dVelIMU2;
     correctedDelVel1.z -= state.accel_zbias1;
     correctedDelVel2.z -= state.accel_zbias2;
-*/
-// end sean
-/////////////////////////////////////////////////////////////
 
-
-
-   // use weighted average of both IMU units for delta velocities
+    // use weighted average of both IMU units for delta velocities
     correctedDelVel12 = correctedDelVel1 * IMU1_weighting + correctedDelVel2 * (1.0f - IMU1_weighting);
 
     // apply corrections for earths rotation rate and coning errors
@@ -985,6 +896,7 @@ dVelIMU2_Delay=storeddVelIMU2[bestStoreIndex];
     state.quat = qUpdated;
 
     // calculate the body to nav cosine matrix
+    Matrix3f Tbn_temp;
     state.quat.rotation_matrix(Tbn_temp);
     prevTnb = Tbn_temp.transposed();
 
@@ -1024,205 +936,10 @@ dVelIMU2_Delay=storeddVelIMU2[bestStoreIndex];
 
     // limit states to protect against divergence
     ConstrainStates();
-    
-    
-    /////////////////////////// Sean: (12 - 15)/12/2014 -- Predictor ///////////////////////////////////////////////////////////
-// retreive previous calculations
-// D_T = D;
-
-D_q = D_q_k1;
-// q_hat = q_hat_T_k1;
-
-/*
-// calculate Delta matrix from quaternion form.
-D[0][0] = D_q[1]*D_q[1]+D_q[2]*D_q[2]-D_q[3]*D_q[3]-D_q[4]*D_q[4];
-D[0][1] = 2.0f*D_q[2]*D_q[3]-2.0f*D_q[1]*D_q[4];
-D[0][2] = 2.0f*D_q[1]*D_q[3]+2.0f*D_q[2]*D_q[4];
-D[1][0] = 2.0f*D_q[2]*D_q[3] + 2.0f*D_q[1]*D_q[4];
-D[1][1] = D_q[1]*D_q[1]-D_q[2]*D_q[2]+D_q[3]*D_q[3]-D_q[4]*D_q[4];
-D[1][2] = -2.0f*D_q[1]*D_q[2]+2.0f*D_q[3]*D_q[4];
-D[2][0] = -2.0f*D_q[1]*D_q[3] + 2.0f*D_q[2]*D_q[4];
-D[2][1] = 2.0f*D_q[1]*D_q[2] + 2.0f*D_q[3]*D_q[4];
-D[2][2] = D_q[1]*D_q[1]-D_q[2]*D_q[2]-D_q[3]*D_q[3]+D_q[4]*D_q[4];
-*/
-
-tilde_q = dAngIMU - state.gyro_bias;
-
-n_tilde_q = sqrt(tilde_q[0]*tilde_q[0]+tilde_q[1]*tilde_q[1]+tilde_q[2]*tilde_q[2]);
-if (n_tilde_q < 1e-12f)
-{
-    delta_q[0] = 1;
-    delta_q[1] = 0;
-    delta_q[2] = 0;
-    delta_q[3] = 0;
-}
-else
-{
-// check: delta_q=single([cos(0.5*n_tilde_q);(sin(0.5*n_tilde_q)/n_tilde_q).*tilde_q]);
-    delta_q[0] = cosf(0.5f * n_tilde_q);
-    rotScaler = (sinf(0.5f * n_tilde_q)) / n_tilde_q;
-    delta_q[1] = tilde_q.x * rotScaler;
-    delta_q[2] = tilde_q.y * rotScaler;
-    delta_q[3] = tilde_q.z * rotScaler;
-}
-
-// update the quaternions by rotating from the previous attitude through
-// the delta angle rotation quaternion
-D_q_k1[0] = D_q[0]*delta_q[0] - D_q[1]*delta_q[1] - D_q[2]*delta_q[2] - D_q[3]*delta_q[3];
-D_q_k1[1] = D_q[0]*delta_q[1] + D_q[1]*delta_q[0] + D_q[2]*delta_q[3] - D_q[3]*delta_q[2];
-D_q_k1[2] = D_q[0]*delta_q[2] + D_q[2]*delta_q[0] + D_q[3]*delta_q[1] - D_q[1]*delta_q[3];
-D_q_k1[3] = D_q[0]*delta_q[3] + D_q[3]*delta_q[0] + D_q[1]*delta_q[2] - D_q[2]*delta_q[1];
-
-
-n_D_q_k1 = D_q_k1[0]*D_q_k1[0]+D_q_k1[1]*D_q_k1[1]+D_q_k1[2]*D_q_k1[2]+D_q_k1[3]*D_q_k1[3];
-D_q_k1[0] = D_q_k1[0]/n_D_q_k1;
-D_q_k1[1] = D_q_k1[1]/n_D_q_k1;
-D_q_k1[2] = D_q_k1[2]/n_D_q_k1;
-D_q_k1[3] = D_q_k1[3]/n_D_q_k1;
-
-
-
-    if (imuSampleTime_ms - lastDStoreTime_ms >= 10) {
-        lastDStoreTime_ms = imuSampleTime_ms;
-        if (storeIndexD > 49) {
-            storeIndexD = 0;
-        }
-        storedD_s[storeIndexD]=D_q_k1[0];
-        D_q_tmp[0]=D_q_k1[1];
-        D_q_tmp[1]=D_q_k1[2];
-        D_q_tmp[2]=D_q_k1[3];
-        storedD_v[storeIndexD] = D_q_tmp;
-        DTimeStamp[storeIndexD] = lastDStoreTime_ms;
-        storeIndexD = storeIndexD + 1;
-
-//printf("%u , %u \n", storeIndexIMU, angRateTimeStamp[storeIndexIMU]);
-//        cout << imuSampleTime_ms << "   " << storedAngRate[storeIndexIMU] << "\n";
-    }
-
-
-
-    int timeD;
-    uint32_t bestTimeD = 200;
-    Quaternion D_Delay;
-    bestStoreIndex = 0;
-
-    for (uint8_t i=0; i<=49; i++)
-    {
-        timeD = abs( (int) imuSampleTime_ms- DTimeStamp[i] - constrain_int16(_msecPosDelay, 0, 500));
-        printf("%u \n",constrain_int16(_msecPosDelay, 0, 500));
-	if (timeD < bestTimeD)
-        {
-            bestStoreIndex = i;
-            bestTimeD = timeD;
-        }
-    }
-
-D_Delay[0] = storedD_s[bestStoreIndex];
-D_q_tmp=storedD_v[bestStoreIndex];
-D_Delay[1] = D_q_tmp[0];
-D_Delay[2] = D_q_tmp[1];
-D_Delay[3] = D_q_tmp[2];
-
-
-
-q_tmp[0]= D_Delay[0];
-q_tmp[1]= -D_Delay[1];
-q_tmp[2]= -D_Delay[2];
-q_tmp[3]= -D_Delay[3];
-
-// D_q_delay^{-1} \times D_q 
-
-q_hat[0] = q_tmp[0]*D_q[0] - q_tmp[1]*D_q[1] - q_tmp[2]*D_q[2] - q_tmp[3]*D_q[3];
-q_hat[1] = q_tmp[0]*D_q[1] + q_tmp[1]*D_q[0] + q_tmp[2]*D_q[3] - q_tmp[3]*D_q[2];
-q_hat[2] = q_tmp[0]*D_q[2] + q_tmp[2]*D_q[0] + q_tmp[3]*D_q[1] - q_tmp[1]*D_q[3];
-q_hat[3] = q_tmp[0]*D_q[3] + q_tmp[3]*D_q[0] + q_tmp[1]*D_q[2] - q_tmp[2]*D_q[1];
-
-// q_hat_tau \times D_q_delay^{-1} \times D_q 
-
-q_tmp[0] = state.quat[0]*q_hat[0] - state.quat[1]*q_hat[1] - state.quat[2]*q_hat[2] - state.quat[3]*q_hat[3];
-q_tmp[1] = state.quat[0]*q_hat[1] + state.quat[1]*q_hat[0] + state.quat[2]*q_hat[3] - state.quat[3]*q_hat[2];
-q_tmp[2] = state.quat[0]*q_hat[2] + state.quat[2]*q_hat[0] + state.quat[3]*q_hat[1] - state.quat[1]*q_hat[3];
-q_tmp[3] = state.quat[0]*q_hat[3] + state.quat[3]*q_hat[0] + state.quat[1]*q_hat[2] - state.quat[2]*q_hat[1];
-
-q_tmp.normalize();
-q_hat=q_tmp;
-
-
-// velocity prediction
-    Matrix3f prevTnb_pred;    
- 
-    state.quat.rotation_matrix(Tbn_temp);
-    prevTnb_pred = Tbn_temp.transposed();
-   
-    Vector3f tilde_Vel; 
-    Vector3f corrected_tilde_Vel1;
-    Vector3f corrected_tilde_Vel2;
-    Vector3f corrected_tilde_Vel12;
-    
-    corrected_tilde_Vel1 = dVelIMU1;
-    corrected_tilde_Vel2 = dVelIMU2;
-    corrected_tilde_Vel1.z -= state.accel_zbias1;
-    corrected_tilde_Vel2.z -= state.accel_zbias2;
-    corrected_tilde_Vel12 =  corrected_tilde_Vel1* IMU1_weighting +  corrected_tilde_Vel2* (1.0f - IMU1_weighting);
-    tilde_Vel  = Tbn_temp*corrected_tilde_Vel12 + gravityNED*dtIMU;
-
-    d_v+=tilde_Vel ;
-
-// buffering d_v
-        storeIndexD = storeIndexD - 1;
-	storedd_v[storeIndexD]=d_v;
-        storeIndexD = storeIndexD + 1;
-
-// picking up the delayed d_v
-   Vector3f d_v_Delay=storedd_v[bestStoreIndex];
-// v_hat   
-   v_hat = state.velocity + d_v- d_v_Delay;
-
-// position prediction
-   d_p+= v_hat*dtIMU;  
-// buffering d_p
-        storeIndexD = storeIndexD - 1;
-	storedd_p[storeIndexD]=d_p;
-        storeIndexD = storeIndexD + 1;
-// picking up the delayed d_p
-   Vector3f d_p_Delay=storedd_p[bestStoreIndex];
-// p_hat   
-   p_hat = state.position + d_p- d_p_Delay;
-
-
-static FILE *mylog;
-if (mylog==NULL){
-	mylog = fopen("logtmp.txt", "w");
-}
-if (mylog!=NULL){
-// fputs ("Ali",  mylog);
-fprintf (mylog, "{%lu;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f}\n", hal.scheduler->millis(), q_hat[0], q_hat[1],q_hat[2],q_hat[3],v_hat[0],v_hat[1],v_hat[2],d_v[0],d_v[1],d_v[2],d_v_Delay[0],d_v_Delay[1],d_v_Delay[2],p_hat[0],p_hat[1],p_hat[2]);
-}
-/*
-if (mylog){
-	fprintf("%f", q_hat[0]);
-}
-*/
-
-// update predictor R_hat
-/*
-R_hat_T = R_hat;
-R_hat[0][0] = D_T[0][0]*(D[0][0]*R_hat_T[0][0]+D[1][0]*R_hat_T[0][1]+D[2][0]*R_hat_T[0][2])+D_T[1][0]*(D[0][1]*R_hat_T[0][0]+D[1][1]*R_hat_T[0][1]+D[2][1]*R_hat_T[0][2])+D_T[2][0]*(D[0][2]*R_hat_T[0][0]+D[1][2]*R_hat_T[0][1]+D[2][2]*R_hat_T[0][2]);
-R_hat[0][1] = D_T[0][1]*(D[0][0]*R_hat_T[0][0]+D[1][0]*R_hat_T[0][1]+D[2][0]*R_hat_T[0][2])+D_T[1][1]*(D[0][1]*R_hat_T[0][0]+D[1][1]*R_hat_T[0][1]+D[2][1]*R_hat_T[0][2])+D_T[2][1]*(D[0][2]*R_hat_T[0][0]+D[1][2]*R_hat_T[0][1]+D[2][2]*R_hat_T[0][2]);
-R_hat[0][2] = D_T[0][2]*(D[0][0]*R_hat_T[0][0]+D[1][0]*R_hat_T[0][1]+D[2][0]*R_hat_T[0][2])+D_T[1][2]*(D[0][1]*R_hat_T[0][0]+D[1][1]*R_hat_T[0][1]+D[2][1]*R_hat_T[0][2])+D_T[2][2]*(D[0][2]*R_hat_T[0][0]+D[1][2]*R_hat_T[0][1]+D[2][2]*R_hat_T[0][2]);
-R_hat[1][0] = D_T[0][0]*(D[0][0]*R_hat_T[1][0]+D[1][0]*R_hat_T[1][1]+D[2][0]*R_hat_T[1][2])+D_T[1][0]*(D[0][1]*R_hat_T[1][0]+D[1][1]*R_hat_T[1][1]+D[2][1]*R_hat_T[1][2])+D_T[2][0]*(D[0][2]*R_hat_T[1][0]+D[1][2]*R_hat_T[1][1]+D[2][2]*R_hat_T[1][2]);
-R_hat[1][1] = D_T[0][1]*(D[0][0]*R_hat_T[1][0]+D[1][0]*R_hat_T[1][1]+D[2][0]*R_hat_T[1][2])+D_T[1][1]*(D[0][1]*R_hat_T[1][0]+D[1][1]*R_hat_T[1][1]+D[2][1]*R_hat_T[1][2])+D_T[2][1]*(D[0][2]*R_hat_T[1][0]+D[1][2]*R_hat_T[1][1]+D[2][2]*R_hat_T[1][2]);
-R_hat[1][2] = D_T[0][2]*(D[0][0]*R_hat_T[1][0]+D[1][0]*R_hat_T[1][1]+D[2][0]*R_hat_T[1][2])+D_T[1][2]*(D[0][1]*R_hat_T[1][0]+D[1][1]*R_hat_T[1][1]+D[2][1]*R_hat_T[1][2])+D_T[2][2]*(D[0][2]*R_hat_T[1][0]+D[1][2]*R_hat_T[1][1]+D[2][2]*R_hat_T[1][2]);
-R_hat[2][0] = D_T[0][0]*(D[0][0]*R_hat_T[2][0]+D[1][0]*R_hat_T[2][1]+D[2][0]*R_hat_T[2][2])+D_T[1][0]*(D[0][1]*R_hat_T[2][0]+D[1][1]*R_hat_T[2][1]+D[2][1]*R_hat_T[2][2])+D_T[2][0]*(D[0][2]*R_hat_T[2][0]+D[1][2]*R_hat_T[2][1]+D[2][2]*R_hat_T[2][2]);
-R_hat[2][1] = D_T[0][1]*(D[0][0]*R_hat_T[2][0]+D[1][0]*R_hat_T[2][1]+D[2][0]*R_hat_T[2][2])+D_T[1][1]*(D[0][1]*R_hat_T[2][0]+D[1][1]*R_hat_T[2][1]+D[2][1]*R_hat_T[2][2])+D_T[2][1]*(D[0][2]*R_hat_T[2][0]+D[1][2]*R_hat_T[2][1]+D[2][2]*R_hat_T[2][2]);
-R_hat[2][2] = D_T[0][2]*(D[0][0]*R_hat_T[2][0]+D[1][0]*R_hat_T[2][1]+D[2][0]*R_hat_T[2][2])+D_T[1][2]*(D[0][1]*R_hat_T[2][0]+D[1][1]*R_hat_T[2][1]+D[2][1]*R_hat_T[2][2])+D_T[2][2]*(D[0][2]*R_hat_T[2][0]+D[1][2]*R_hat_T[2][1]+D[2][2]*R_hat_T[2][2]);
-*/
-
-///////////////////////////////////////  end sean predictor //////////////////////////////////////////////////////
 }
 
 // calculate the predicted state covariance matrix
-void NavEKF2::CovariancePrediction()
+void NavEKF::CovariancePrediction()
 {
     perf_begin(_perf_CovariancePrediction);
     float windVelSigma; // wind velocity 1-sigma process noise - m/s
@@ -1879,7 +1596,7 @@ void NavEKF2::CovariancePrediction()
 // fuse selected position, velocity and height measurements, checking dat for consistency
 // provide a static mode that allows maintenance of the attitude reference without GPS provided the vehicle is not accelerating
 // check innovation consistency of velocity states calculated using IMU1 and IMU2 and calculate the optimal weighting of accel data
-void NavEKF2::FuseVelPosNED()
+void NavEKF::FuseVelPosNED()
 {
     // start performance timer
     perf_begin(_perf_FuseVelPosNED);
@@ -1971,7 +1688,6 @@ void NavEKF2::FuseVelPosNED()
                 badIMUdata = false;
             }
         }
-
 
         // calculate innovations and check GPS data validity using an innovation consistency check
         // test position measurements
@@ -2076,57 +1792,8 @@ void NavEKF2::FuseVelPosNED()
             uint32_t hgtRetryTime;
             if (_fusionModeGPS == 0) hgtRetryTime = _hgtRetryTimeMode0;
             else hgtRetryTime = _hgtRetryTimeMode12;
-
-
-////////////////// sean buffering Hgt data and replacing the Hgt measurement with delayed Hgt measurement
-// sean ////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    if (lastHealthyHgtTime_ms - lastHgtStoreTime_ms >= 10) {
-        lastHgtStoreTime_ms = lastHealthyHgtTime_ms;
-        if (storeIndexHgt > 49) {
-            storeIndexHgt = 0;
-        }
-        storedHgt[storeIndexHgt] = hgtMea;
-        HgtTimeStamp[storeIndexHgt] = lastHgtStoreTime_ms;
-        storeIndexHgt = storeIndexHgt + 1;
-//printf("%u , %u, %f \n", TASmsecPrev, imuSampleTime_ms);
-//        cout << imuSampleTime_ms << "   " << storedAngRate[storeIndexIMU] << "\n";
-    }
-
-//    int GPS_delay_Tas = constrain_int16(_msecPosDelay, 0, 500);
-//    int Tas_delay_time= 0;
-    int timeDeltaHgt;
-    uint32_t bestTimeDeltaHgt = 200;
-    uint8_t bestStoreIndex = 0;
-//    state_elements state_delay;
-    float Hgt_Delayed;
-
-    for (uint8_t i=0; i<=49; i++)
-    {
-        timeDeltaHgt = abs( (int) imuSampleTime_ms- HgtTimeStamp[i] - constrain_int16(_msecPosDelay, 0, 500) + _msecHgtDelay);
-        if (timeDeltaHgt < bestTimeDeltaHgt)
-        {
-            bestStoreIndex = i;
-            bestTimeDeltaHgt = timeDeltaHgt;
-        }
-    }
-Hgt_Delayed = storedHgt[bestStoreIndex];
-
-//printf("%u , %u, %u, %u , %d, %f \n", imuSampleTime_ms, bestStoreIndex, bestTimeDeltaMag, MagTimeStamp[storeIndexMag-1], int(MagTimeStamp[storeIndexMag-1]-MagTimeStamp[bestStoreIndex]), Mag_Delay[0]);
-
-
-
-
             // calculate height innovations
-
-            observation[5]=-Hgt_Delayed;
             hgtInnov = statesAtHgtTime.position.z - observation[5];
-
-
-//            hgtInnov = statesAtHgtTime.position.z - observation[5];
-//////////// end sean  //////////////////////////////////////////////////////////////////////
-
-
             varInnovVelPos[5] = P[9][9] + R_OBS[5];
             // calculate the innovation consistency test ratio
             hgtTestRatio = sq(hgtInnov) / (sq(_hgtInnovGate) * varInnovVelPos[5]);
@@ -2296,9 +1963,8 @@ Hgt_Delayed = storedHgt[bestStoreIndex];
 
 // fuse magnetometer measurements and apply innovation consistency checks
 // fuse each axis on consecutive time steps to spread computional load
-void NavEKF2::FuseMagnetometer()
+void NavEKF::FuseMagnetometer()
 {
-
     // start performance timer
     perf_begin(_perf_FuseMagnetometer);
 
@@ -2601,66 +2267,8 @@ void NavEKF2::FuseMagnetometer()
             magFusePerformed = true;
             magFuseRequired = false;
         }
-
-
-// sean
-
-/*
-
-//printf("%u , %u \n", storeIndexIMU, angRateTimeStamp[storeIndexIMU]);
-//        cout << imuSampleTime_ms << "   " << storedAngRate[storeIndexIMU] << "\n";
-    }
-*/
-
-    if (lastHealthyMagTime_ms - lastMagStoreTime_ms >= 10) {
-        lastMagStoreTime_ms = lastHealthyMagTime_ms;
-        if (storeIndexMag > 49) {
-            storeIndexMag = 0;
-        }
-        storedMag[storeIndexMag] = magData;
-        // storedMag[storeIndexMag][obsIndex];
-        MagTimeStamp[storeIndexMag] = lastMagStoreTime_ms;
-        storeIndexMag = storeIndexMag + 1;
-//printf("%u , %u, %f \n", lastHealthyMagTime_ms, imuSampleTime_ms);
-//        cout << imuSampleTime_ms << "   " << storedAngRate[storeIndexIMU] << "\n";
-    }
-
-//    int GPS_delay_Mag = constrain_int16(_msecPosDelay, 0, 500);
-    int timeDeltaMag;
-    uint32_t bestTimeDeltaMag = 200;
-    uint8_t bestStoreIndex = 0;
-//    state_elements state_delay;
-    float Mag_Delay;
-
-
-    for (uint8_t i=0; i<=49; i++)
-    {
-        timeDeltaMag = abs( (int) imuSampleTime_ms- MagTimeStamp[i] -constrain_int16(_msecPosDelay, 0, 500) + _msecMagDelay);
-        if (timeDeltaMag < bestTimeDeltaMag)
-        {
-            bestStoreIndex = i;
-            bestTimeDeltaMag = timeDeltaMag;
-        }
-    }
-Mag_Delay = storedMag[bestStoreIndex][obsIndex];
-
-// Mag_Delay = storedMag[bestStoreIndex][obsIndex];
-
-//printf("%u , %u, %u, %u , %d, %f \n", imuSampleTime_ms, bestStoreIndex, bestTimeDeltaMag, MagTimeStamp[storeIndexMag-1], int(MagTimeStamp[storeIndexMag-1]-MagTimeStamp[bestStoreIndex]), Mag_Delay[0]);
-
-
-//RecallStates(state_delay, (imuSampleTime_ms - constrain_int16(GPS_delay_AngRate, 0, 500)));
-
-//gyro_bias_delay=state_delay.gyro_bias;
-
-
         // calculate the measurement innovation
-//        innovMag[obsIndex] = MagPred[obsIndex] - magData[obsIndex];
-        innovMag[obsIndex] = MagPred[obsIndex] - Mag_Delay;
-
-
-////////////////////// end sean
-
+        innovMag[obsIndex] = MagPred[obsIndex] - magData[obsIndex];
         // calculate the innovation test ratio
         magTestRatio[obsIndex] = sq(innovMag[obsIndex]) / (sq(_magInnovGate) * varInnovMag[obsIndex]);
         // check the last values from all components and set magnetometer health accordingly
@@ -2747,7 +2355,7 @@ Mag_Delay = storedMag[bestStoreIndex][obsIndex];
 }
 
 // fuse true airspeed measurements
-void NavEKF2::FuseAirspeed()
+void NavEKF::FuseAirspeed()
 {
     // start performance timer
     perf_begin(_perf_FuseAirspeed);
@@ -2835,50 +2443,8 @@ void NavEKF2::FuseAirspeed()
         // calculate measurement innovation variance
         varInnovVtas = 1.0f/SK_TAS;
 
-// sean ////////////////////////////////////////////////////////////////////////////////////////////////////
-    if (TASmsecPrev - lastTasStoreTime_ms >= 10) {
-        lastTasStoreTime_ms = TASmsecPrev;
-        if (storeIndexTas > 49) {
-            storeIndexTas = 0;
-        }
-        storedTas[storeIndexTas] = VtasMeas;
-        TasTimeStamp[storeIndexTas] = lastTasStoreTime_ms;
-        storeIndexTas = storeIndexTas + 1;
-//printf("%u , %u, %f \n", TASmsecPrev, imuSampleTime_ms);
-//        cout << imuSampleTime_ms << "   " << storedAngRate[storeIndexIMU] << "\n";
-    }
-
-//    int GPS_delay_Tas = constrain_int16(_msecPosDelay, 0, 500);
-//    int Tas_delay_time= 0;
-    int timeDeltaTas;
-    uint32_t bestTimeDeltaTas = 200;
-    uint8_t bestStoreIndex = 0;
-//    state_elements state_delay;
-    float Vtas_Delayed;
-
-    for (uint8_t i=0; i<=49; i++)
-    {
-        timeDeltaTas = abs( (int) imuSampleTime_ms- TasTimeStamp[i] - constrain_int16(_msecPosDelay, 0, 500) + _msecTasDelay);
-        if (timeDeltaTas < bestTimeDeltaTas)
-        {
-            bestStoreIndex = i;
-            bestTimeDeltaTas = timeDeltaTas;
-        }
-    }
-Vtas_Delayed = storedTas[bestStoreIndex];
-
-//printf("%u , %u, %u, %u , %d, %f \n", imuSampleTime_ms, bestStoreIndex, bestTimeDeltaMag, MagTimeStamp[storeIndexMag-1], int(MagTimeStamp[storeIndexMag-1]-MagTimeStamp[bestStoreIndex]), Mag_Delay[0]);
-
-
-
-        // calculate the measurement innovation
-        innovVtas = VtasPred - Vtas_Delayed;
-
-//////////// end sean  //////////////////////////////////////////////////////////////////////
-
-        // innovVtas = VtasPred - VtasMeas;
-
-
+        // calculate measurement innovation
+        innovVtas = VtasPred - VtasMeas;
 
         // calculate the innovation consistency test ratio
         tasTestRatio = sq(innovVtas) / (sq(_tasInnovGate) * varInnovVtas);
@@ -2944,7 +2510,7 @@ Vtas_Delayed = storedTas[bestStoreIndex];
 }
 
 // fuse sythetic sideslip measurement of zero
-void NavEKF2::FuseSideslip()
+void NavEKF::FuseSideslip()
 {
     // start performance timer
     perf_begin(_perf_FuseSideslip);
@@ -3134,7 +2700,7 @@ void NavEKF2::FuseSideslip()
 }
 
 // zero specified range of rows in the state covariance matrix
-void NavEKF2::zeroRows(Matrix22 &covMat, uint8_t first, uint8_t last)
+void NavEKF::zeroRows(Matrix22 &covMat, uint8_t first, uint8_t last)
 {
     uint8_t row;
     for (row=first; row<=last; row++)
@@ -3144,7 +2710,7 @@ void NavEKF2::zeroRows(Matrix22 &covMat, uint8_t first, uint8_t last)
 }
 
 // zero specified range of columns in the state covariance matrix
-void NavEKF2::zeroCols(Matrix22 &covMat, uint8_t first, uint8_t last)
+void NavEKF::zeroCols(Matrix22 &covMat, uint8_t first, uint8_t last)
 {
     uint8_t row;
     for (row=0; row<=21; row++)
@@ -3154,7 +2720,7 @@ void NavEKF2::zeroCols(Matrix22 &covMat, uint8_t first, uint8_t last)
 }
 
 // store states in a history array along with time stamp
-void NavEKF2::StoreStates()
+void NavEKF::StoreStates()
 {
     // Don't need to store states more often than every 10 msec
     if (imuSampleTime_ms - lastStateStoreTime_ms >= 10) {
@@ -3169,7 +2735,7 @@ void NavEKF2::StoreStates()
 }
 
 // reset the stored state history and store the current state
-void NavEKF2::StoreStatesReset()
+void NavEKF::StoreStatesReset()
 {
     // clear stored state history
     memset(&storedStates[0], 0, sizeof(storedStates));
@@ -3182,7 +2748,7 @@ void NavEKF2::StoreStatesReset()
 }
 
 // recall state vector stored at closest time to the one specified by msec
-void NavEKF2::RecallStates(state_elements &statesForFusion, uint32_t msec)
+void NavEKF::RecallStates(state_elements &statesForFusion, uint32_t msec)
 {
     uint32_t timeDelta;
     uint32_t bestTimeDelta = 200;
@@ -3198,9 +2764,7 @@ void NavEKF2::RecallStates(state_elements &statesForFusion, uint32_t msec)
     }
     if (bestTimeDelta < 200) // only output stored state if < 200 msec retrieval error
     {
- //       statesForFusion = storedStates[bestStoreIndex];
-//Sean EKF bypassing delay compensation
-	statesForFusion = state;
+        statesForFusion = storedStates[bestStoreIndex];
     }
     else // otherwise output current state
     {
@@ -3209,61 +2773,45 @@ void NavEKF2::RecallStates(state_elements &statesForFusion, uint32_t msec)
 }
 
 // calculate nav to body quaternions from body to nav rotation matrix
-void NavEKF2::quat2Tbn(Matrix3f &Tbn, const Quaternion &quat) const
+void NavEKF::quat2Tbn(Matrix3f &Tbn, const Quaternion &quat) const
 {
     // Calculate the body to nav cosine matrix
     quat.rotation_matrix(Tbn);
 }
 
 // return the Euler roll, pitch and yaw angle in radians
-void NavEKF2::getEulerAngles(Vector3f &euler) const
+void NavEKF::getEulerAngles(Vector3f &euler) const
 {
     state.quat.to_euler(euler.x, euler.y, euler.z);
     euler = euler - _ahrs->get_trim();
 }
 
-/*
-// Sean v1-v4 filling
-void NavEKF2::getv1(float &v1) const
-{
-    v1=q_hat[0];
-}
-*/
-
 // return NED velocity in m/s
-void NavEKF2::getVelNED(Vector3f &vel) const
+void NavEKF::getVelNED(Vector3f &vel) const
 {
     vel = state.velocity;
-// Sean new data log 
-//    vel = v_hat;
 }
 
 // return the last calculated NED position relative to the reference point (m).
 // return false if no position is available
-bool NavEKF2::getPosNED(Vector3f &pos) const
+bool NavEKF::getPosNED(Vector3f &pos) const
 {
-   pos = state.position;
-   return true;
+    pos = state.position;
+    return true;
 }
 
 // return body axis gyro bias estimates in rad/sec
-void NavEKF2::getGyroBias(Vector3f &gyroBias) const
+void NavEKF::getGyroBias(Vector3f &gyroBias) const
 {
- 
-   if (dtIMU == 0) {
+    if (dtIMU == 0) {
         gyroBias.zero();
         return;
     }
     gyroBias = state.gyro_bias / dtIMU;
-
-// Sean test virtual data loging
-/*
-	gyroBias=v_hat;
-*/
-	}
+}
 
 // reset the body axis gyro bias states to zero and re-initialise the corresponding covariances
-void NavEKF2::resetGyroBias(void)
+void NavEKF::resetGyroBias(void)
 {
     state.gyro_bias.zero();
     zeroRows(P,10,12);
@@ -3275,13 +2823,13 @@ void NavEKF2::resetGyroBias(void)
 }
 
 // return weighting of first IMU in blending function
-void NavEKF2::getIMU1Weighting(float &ret) const
+void NavEKF::getIMU1Weighting(float &ret) const
 {
     ret = IMU1_weighting;
 }
 
 // return the individual Z-accel bias estimates in m/s^2
-void NavEKF2::getAccelZBias(float &zbias1, float &zbias2) const {
+void NavEKF::getAccelZBias(float &zbias1, float &zbias2) const {
     if (dtIMU == 0) {
         zbias1 = 0;
         zbias2 = 0;
@@ -3292,7 +2840,7 @@ void NavEKF2::getAccelZBias(float &zbias1, float &zbias2) const {
 }
 
 // return the NED wind speed estimates in m/s (positive is air moving in the direction of the axis)
-void NavEKF2::getWind(Vector3f &wind) const
+void NavEKF::getWind(Vector3f &wind) const
 {
     wind.x = state.wind_vel.x;
     wind.y = state.wind_vel.y;
@@ -3300,19 +2848,19 @@ void NavEKF2::getWind(Vector3f &wind) const
 }
 
 // return earth magnetic field estimates in measurement units / 1000
-void NavEKF2::getMagNED(Vector3f &magNED) const
+void NavEKF::getMagNED(Vector3f &magNED) const
 {
     magNED = state.earth_magfield * 1000.0f;
 }
 
 // return body magnetic field estimates in measurement units / 1000
-void NavEKF2::getMagXYZ(Vector3f &magXYZ) const
+void NavEKF::getMagXYZ(Vector3f &magXYZ) const
 {
     magXYZ = state.body_magfield*1000.0f;
 }
 
 // return the last calculated latitude, longitude and height
-bool NavEKF2::getLLH(struct Location &loc) const
+bool NavEKF::getLLH(struct Location &loc) const
 {
     loc.lat = _ahrs->get_home().lat;
     loc.lng = _ahrs->get_home().lng;
@@ -3324,7 +2872,7 @@ bool NavEKF2::getLLH(struct Location &loc) const
 }
 
 // calculate whether the flight vehicle is on the ground or flying from height, airspeed and GPS speed
-void NavEKF2::SetFlightAndFusionModes()
+void NavEKF::SetFlightAndFusionModes()
 {
     // determine if the vehicle is manoevring
     if (accNavMagHoriz > 0.5f){
@@ -3416,7 +2964,7 @@ void NavEKF2::SetFlightAndFusionModes()
 }
 
 // initialise the covariance matrix
-void NavEKF2::CovarianceInit()
+void NavEKF::CovarianceInit()
 {
     // zero the matrix
     for (uint8_t i=1; i<=21; i++)
@@ -3459,7 +3007,7 @@ void NavEKF2::CovarianceInit()
 }
 
 // force symmetry on the covariance matrix to prevent ill-conditioning
-void NavEKF2::ForceSymmetry()
+void NavEKF::ForceSymmetry()
 {
     for (uint8_t i=1; i<=21; i++)
     {
@@ -3473,7 +3021,7 @@ void NavEKF2::ForceSymmetry()
 }
 
 // copy covariances across from covariance prediction calculation and fix numerical errors
-void NavEKF2::CopyAndFixCovariances()
+void NavEKF::CopyAndFixCovariances()
 {
     // copy predicted variances
     for (uint8_t i=0; i<=21; i++) {
@@ -3490,7 +3038,7 @@ void NavEKF2::CopyAndFixCovariances()
 }
 
 // constrain variances (diagonal terms) in the state covariance matrix to  prevent ill-conditioning
-void NavEKF2::ConstrainVariances()
+void NavEKF::ConstrainVariances()
 {
     for (uint8_t i=0; i<=3; i++) P[i][i] = constrain_float(P[i][i],0.0f,1.0f); // quaternions
     for (uint8_t i=4; i<=6; i++) P[i][i] = constrain_float(P[i][i],0.0f,1.0e3f); // velocities
@@ -3502,7 +3050,7 @@ void NavEKF2::ConstrainVariances()
 }
 
 // constrain states to prevent ill-conditioning
-void NavEKF2::ConstrainStates()
+void NavEKF::ConstrainStates()
 {
     // quaternions are limited between +-1
     for (uint8_t i=0; i<=3; i++) states[i] = constrain_float(states[i],-1.0f,1.0f);
@@ -3526,7 +3074,7 @@ void NavEKF2::ConstrainStates()
 }
 
 // update IMU delta angle and delta velocity measurements
-void NavEKF2::readIMUData()
+void NavEKF::readIMUData()
 {
     Vector3f angRate;   // angular rate vector in XYZ body axes measured by the IMU (rad/s)
     Vector3f accel1;    // acceleration vector in XYZ body axes measured by IMU1 (m/s^2)
@@ -3570,7 +3118,7 @@ void NavEKF2::readIMUData()
 }
 
 // check for new valid GPS data and update stored measurement if available
-void NavEKF2::readGpsData()
+void NavEKF::readGpsData()
 {
     // check for new GPS data
     if ((_ahrs->get_gps().last_message_time_ms() != lastFixTime_ms) &&
@@ -3619,7 +3167,7 @@ void NavEKF2::readGpsData()
 }
 
 // check for new altitude measurement data and update stored measurement if available
-void NavEKF2::readHgtData()
+void NavEKF::readHgtData()
 {
     // check to see if baro measurement has changed so we know if a new measurement has arrived
     if (_baro.get_last_update() != lastHgtMeasTime) {
@@ -3641,7 +3189,7 @@ void NavEKF2::readHgtData()
 }
 
 // check for new magnetometer data and update store measurements if available
-void NavEKF2::readMagData()
+void NavEKF::readMagData()
 {
     if (use_compass() && _ahrs->get_compass()->last_update != lastMagUpdate) {
         // store time of last measurement update
@@ -3662,7 +3210,7 @@ void NavEKF2::readMagData()
 }
 
 // check for new airspeed data and update stored measurements if available
-void NavEKF2::readAirSpdData()
+void NavEKF::readAirSpdData()
 {
     // if airspeed reading is valid and is set by the user to be used and has been updated then
     // we take a new reading, convert from EAS to TAS and set the flag letting other functions
@@ -3681,7 +3229,7 @@ void NavEKF2::readAirSpdData()
 }
 
 // calculate the NED earth spin vector in rad/sec
-void NavEKF2::calcEarthRateNED(Vector3f &omega, int32_t latitude) const
+void NavEKF::calcEarthRateNED(Vector3f &omega, int32_t latitude) const
 {
     float lat_rad = radians(latitude*1.0e-7f);
     omega.x  = earthRate*cosf(lat_rad);
@@ -3692,7 +3240,7 @@ void NavEKF2::calcEarthRateNED(Vector3f &omega, int32_t latitude) const
 // initialise the earth magnetic field states using declination, suppled roll/pitch
 // and magnetometer measurements and return initial attitude quaternion
 // if no magnetometer data, do not update magnetic field states and assume zero yaw angle
-Quaternion NavEKF2::calcQuatAndFieldStates(float roll, float pitch)
+Quaternion NavEKF::calcQuatAndFieldStates(float roll, float pitch)
 {
     // declare local variables required to calculate initial orientation and magnetic field
     float yaw;
@@ -3749,7 +3297,7 @@ Quaternion NavEKF2::calcQuatAndFieldStates(float roll, float pitch)
 
 // this function is used to do a forced alignment of the yaw angle to align with the horizontal velocity
 // vector from GPS. It is used to align the yaw angle after launch or takeoff.
-void NavEKF2::alignYawGPS()
+void NavEKF::alignYawGPS()
 {
     if ((sq(velNED[0]) + sq(velNED[1])) > 25.0f) {
         float roll;
@@ -3809,7 +3357,7 @@ void NavEKF2::alignYawGPS()
 // fly-forward vehicle without an airspeed sensor on the assumption
 // that launch will be into wind and STARTUP_WIND_SPEED is
 // representative of typical launch wind
-void NavEKF2::setWindVelStates()
+void NavEKF::setWindVelStates()
 {
     float gndSpd = pythagorous2(state.velocity.x, state.velocity.y);
     if (gndSpd > 4.0f) {
@@ -3826,7 +3374,7 @@ void NavEKF2::setWindVelStates()
 }
 
 // return the transformation matrix from XYZ (body) to NED axes
-void NavEKF2::getRotationBodyToNED(Matrix3f &mat) const
+void NavEKF::getRotationBodyToNED(Matrix3f &mat) const
 {
     Vector3f trim = _ahrs->get_trim();
     state.quat.rotation_matrix(mat);
@@ -3834,7 +3382,7 @@ void NavEKF2::getRotationBodyToNED(Matrix3f &mat) const
 }
 
 // return the innovations for the NED Pos, NED Vel, XYZ Mag and Vtas measurements
-void  NavEKF2::getInnovations(Vector3f &velInnov, Vector3f &posInnov, Vector3f &magInnov, float &tasInnov) const
+void  NavEKF::getInnovations(Vector3f &velInnov, Vector3f &posInnov, Vector3f &magInnov, float &tasInnov) const
 {
     velInnov.x = innovVelPos[0];
     velInnov.y = innovVelPos[1];
@@ -3851,7 +3399,7 @@ void  NavEKF2::getInnovations(Vector3f &velInnov, Vector3f &posInnov, Vector3f &
 // return the innovation consistency test ratios for the velocity, position, magnetometer and true airspeed measurements
 // this indicates the amount of margin available when tuning the various error traps
 // also return the current offsets applied to the GPS position measurements
-void  NavEKF2::getVariances(float &velVar, float &posVar, float &hgtVar, Vector3f &magVar, float &tasVar, Vector2f &offset) const
+void  NavEKF::getVariances(float &velVar, float &posVar, float &hgtVar, Vector3f &magVar, float &tasVar, Vector2f &offset) const
 {
     velVar   = sqrtf(velTestRatio);
     posVar   = sqrtf(posTestRatio);
@@ -3864,7 +3412,7 @@ void  NavEKF2::getVariances(float &velVar, float &posVar, float &hgtVar, Vector3
 }
 
 // zero stored variables - this needs to be called before a full filter initialisation
-void NavEKF2::ZeroVariables()
+void NavEKF::ZeroVariables()
 {
     // initialise time stamps
     imuSampleTime_ms = hal.scheduler->millis();
@@ -3882,43 +3430,6 @@ void NavEKF2::ZeroVariables()
     secondLastFixTime_ms = imuSampleTime_ms;
     lastDecayTime_ms = imuSampleTime_ms;
     airborneDetectTime_ms = imuSampleTime_ms;
-
-// sean stuff ///////////////
-    storeIndexIMU = 0; 
-    lastAngRateStoreTime_ms = imuSampleTime_ms;
-    memset(&storedAngRate[0], 0, sizeof(storedAngRate));
-    memset(&angRateTimeStamp[0], 0, sizeof(angRateTimeStamp));
-    lastHealthyHgtTime_ms = imuSampleTime_ms;
-/////////////////////////
-
-// Delta Predictor ///////////////
-
-    D[0][0] = 1;
-    D[0][1] = 0;
-    D[0][2] = 0;
-    D[1][0] = 0;
-    D[1][1] = 1;
-    D[1][2] = 0;
-    D[2][0] = 0;
-    D[2][1] = 0;
-    D[2][2] = 1;
-    D_T = D;
-    R_hat_T = D;
-    R_hat = D;
-    D_q[0] = 1;
-    D_q[1] = 0;
-    D_q[2] = 0;
-    D_q[3] = 0;
-    D_q_k1 = D_q;
-//    q_hat = D_q;
-//    q_hat_T_k1 = D_q;
-    tilde_q[0] = 1;
-    tilde_q[1] = 0;
-    tilde_q[2] = 0;
-    n_tilde_q = 1;
-    delta_q = D_q;
-
-/////////////////////////
 
     gpsNoiseScaler = 1.0f;
     velTimeout = false;
@@ -3955,7 +3466,7 @@ void NavEKF2::ZeroVariables()
 }
 
 // return true if we should use the airspeed sensor
-bool NavEKF2::useAirspeed(void) const
+bool NavEKF::useAirspeed(void) const
 {
     if (_ahrs->get_airspeed() == NULL) {
         return false;
@@ -3966,13 +3477,13 @@ bool NavEKF2::useAirspeed(void) const
 // return true if the vehicle code has requested use of static mode
 // in static mode, position and height are constrained to zero, allowing an attitude
 // reference to be initialised and maintained when on the ground and without GPS lock
-bool NavEKF2::static_mode_demanded(void) const
+bool NavEKF::static_mode_demanded(void) const
 {
     return !_ahrs->get_armed() || !_ahrs->get_correct_centrifugal();
 }
 
 // return true if we should use the compass
-bool NavEKF2::use_compass(void) const
+bool NavEKF::use_compass(void) const
 {
     return _ahrs->get_compass() && _ahrs->get_compass()->use_for_yaw();
 }
@@ -3980,7 +3491,7 @@ bool NavEKF2::use_compass(void) const
 // decay GPS horizontal position offset to close to zero at a rate of 1 m/s
 // limit radius to a maximum of 100m
 // apply glitch offset to GPS measurements
-void NavEKF2::decayGpsOffset()
+void NavEKF::decayGpsOffset()
 {
     float lapsedTime = 0.001f*float(imuSampleTime_ms - lastDecayTime_ms);
     lastDecayTime_ms = imuSampleTime_ms;
@@ -3997,7 +3508,7 @@ void NavEKF2::decayGpsOffset()
 /*
   should we assume zero sideslip?
  */
-bool NavEKF2::assume_zero_sideslip(void) const
+bool NavEKF::assume_zero_sideslip(void) const
 {
     // we don't assume zero sideslip for ground vehicles as EKF could
     // be quite sensitive to a rapid spin of the ground vehicle if
@@ -4017,7 +3528,7 @@ return the filter fault status as a bitmasked integer
  7 = unassigned
 return normalised delta gyro bias length used for divergence test
 */
-void  NavEKF2::getFilterFaults(uint8_t &faults) const
+void  NavEKF::getFilterFaults(uint8_t &faults) const
 {
     faults = (faultStatus.bad_xmag<<2 |
               faultStatus.bad_ymag<<3 |

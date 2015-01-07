@@ -1072,10 +1072,17 @@ void DataFlash_Class::Log_Write_EKF2(AP_AHRS_NavEKF &ahrs)
         posN    : (float)(posNED.x), // metres North
         posE    : (float)(posNED.y), // metres East
         posD    : (float)(posNED.z), // metres Down
+
         gyrX    : (int16_t)(100*degrees(gyroBias.x)), // cd/sec, displayed as deg/sec due to format string
         gyrY    : (int16_t)(100*degrees(gyroBias.y)), // cd/sec, displayed as deg/sec due to format string
         gyrZ    : (int16_t)(100*degrees(gyroBias.z)) // cd/sec, displayed as deg/sec due to format string
-    };
+/*
+// Sean change data log
+        gyrX    : (float)(gyroBias.x), 
+        gyrY    : (float)(gyroBias.y), 
+        gyrZ    : (float)(gyroBias.z) 
+*/
+};
     WriteBlock(&pkt, sizeof(pkt));
 
 	// Write second EKF packet

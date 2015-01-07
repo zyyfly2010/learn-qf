@@ -329,6 +329,19 @@ bool AP_AHRS_NavEKF::get_secondary_attitude(Vector3f &eulers, uint8_t instance)
     return false;
 }
 
+/*
+// Sean get v ahrs
+void AP_AHRS_NavEKF::get_v(float &v1)
+{
+        if (ekf2.started) {
+            EKF2.getv1(v1);
+	}
+	else {
+        v1= 0;
+         }
+}
+*/
+
 // return secondary position solution if available
 bool AP_AHRS_NavEKF::get_secondary_position(struct Location &loc, uint8_t instance)
 {

@@ -226,7 +226,7 @@ const AP_Param::GroupInfo NavEKF::var_info[] PROGMEM = {
     // @Range: 0 500
     // @Increment: 10
     // @User: Advanced
-    AP_GROUPINFO("VEL_DELAY",    14, NavEKF, _msecVelDelay, 220),
+    AP_GROUPINFO("VEL_DELAY",    14, NavEKF, _msecVelDelay, 400), //Sean change delay amount
 
     // @Param: POS_DELAY
     // @DisplayName: GPS position measurement delay (msec)
@@ -234,7 +234,7 @@ const AP_Param::GroupInfo NavEKF::var_info[] PROGMEM = {
     // @Range: 0 500
     // @Increment: 10
     // @User: Advanced
-    AP_GROUPINFO("POS_DELAY",    15, NavEKF, _msecPosDelay, 220),
+    AP_GROUPINFO("POS_DELAY",    15, NavEKF, _msecPosDelay, 400), //Sean change delay amount
 
     // @Param: GPS_TYPE
     // @DisplayName: GPS mode control
@@ -422,7 +422,6 @@ NavEKF::NavEKF(const AP_AHRS *ahrs, AP_Baro &baro, const RangeFinder &rng) :
 #endif
 {
     AP_Param::setup_object_defaults(this, var_info);
-
 }
 
 // Check basic filter health metrics and return a consolidated health status

@@ -252,6 +252,7 @@ void GCS_MAVLINK::send_ahrs3(AP_AHRS &ahrs)
         float v2 = 0;
         float v3 = 0;
         float v4 = 0;
+//	ahrs.get_v(v1);
         mavlink_msg_ahrs3_send(chan,
                                euler.x,
                                euler.y,

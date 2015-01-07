@@ -18,8 +18,8 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef AP_NavEKF2
-#define AP_NavEKF2
+#ifndef AP_NavEKF
+#define AP_NavEKF
 
 #include <AP_Math.h>
 #include <AP_InertialSensor.h>
@@ -27,9 +27,6 @@
 #include <AP_Airspeed.h>
 #include <AP_Compass.h>
 #include <AP_Param.h>
-
-
-
 
 // #define MATH_CHECK_INDEXES 1
 
@@ -42,7 +39,7 @@
 
 class AP_AHRS;
 
-class NavEKF2
+class NavEKF
 {
 public:
     typedef float ftype;
@@ -76,44 +73,7 @@ public:
 #endif
 
     // Constructor
-    NavEKF2(const AP_AHRS *ahrs, AP_Baro &baro);
-
-
-    uint8_t storeIndexIMU;						// arash
-    uint32_t lastAngRateStoreTime_ms;		 // sean
-    VectorN<Vector3f,50> storedAngRate;       //  sean
-    VectorN<Vector3f,50> storeddVelIMU1; //sean
-    VectorN<Vector3f,50>  storeddVelIMU2; //sean
-    uint32_t angRateTimeStamp[50];    		  // sean
- 
-   uint8_t storeIndexMag;
-    uint32_t lastMagStoreTime_ms;
-    VectorN<Vector3f,50> storedMag;       //  sean
-//    float storedMag[50];
-    uint32_t MagTimeStamp[50];    		  // sean
-
-
-    uint8_t storeIndexTas;              // sean
-    uint32_t lastTasStoreTime_ms;           // sean
-    float storedTas[50];                 // sean
-    uint32_t TasTimeStamp[50];    		  // sean
-
-    uint8_t storeIndexHgt;              // sean
-    uint32_t lastHgtStoreTime_ms;           // sean
-    float storedHgt[50];                 // sean
-    uint32_t HgtTimeStamp[50];    		  // sean
-    uint32_t lastHealthyHgtTime_ms; // Sean time the barometer was last declared healthy
-
-    uint8_t storeIndexD;						// sean
-    uint32_t lastDStoreTime_ms;		 // sean
-    VectorN<Vector3f,50> storedD_v;       //  sean vector part of quaternion Delta
-    float storedD_s[50];                 // sean  scalar part of quaternion Delta
-    uint32_t DTimeStamp[50];    		  // sean
-    VectorN<Vector3f,50> storedd_v;       //  sean buffer for delta corrsponding to velocity prediction
-    VectorN<Vector3f,50> storedd_p;       //  sean buffer for delta corrsponding to position prediction
-
-
-
+    NavEKF(const AP_AHRS *ahrs, AP_Baro &baro);
 
     // This function is used to initialise the filter whilst moving, using the AHRS DCM solution
     // It should NOT be used to re-initialise after a timeout as DCM will also be corrupted
@@ -169,9 +129,6 @@ public:
     // return the Euler roll, pitch and yaw angle in radians
     void getEulerAngles(Vector3f &eulers) const;
 
- // sean return v1
-//    void getv1(float &v1) const;
-
     // return the transformation matrix from XYZ (body) to NED axes
     void getRotationBodyToNED(Matrix3f &mat) const;
 
@@ -206,8 +163,6 @@ public:
     void  getFilterFaults(uint8_t &faults) const;
 
     static const struct AP_Param::GroupInfo var_info[];
-
-
 
 private:
     const AP_AHRS *_ahrs;
@@ -520,26 +475,6 @@ private:
     bool inhibitWindStates;         // true when wind states and covariances are to remain constant
     bool inhibitMagStates;          // true when magnetic field states and covariances are to remain constant
 
-    /////////////////////////// Sean: (12 - 15)/12/2014 -- Predictor ///////////////////////////////////////////////////////////
-    
-    Matrix3f D;
-    Matrix3f D_T;
-    Quaternion D_q;
-    Quaternion D_q_k1;
-    float n_D_q_k1;
-    Quaternion q_hat;   //sean prediction of the current quaternion
-    Quaternion q_hat_T_k1;
-    Vector3f tilde_q;
-    float n_tilde_q;
-    Quaternion delta_q;
-    Matrix3f R_hat_T;
-    Matrix3f R_hat;
-    Vector3f d_v;
-    Vector3f v_hat; // prediction of current velocity
-    Vector3f d_p;
-    Vector3f p_hat; // prediction of current position
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
     // Used by smoothing of state corrections
     float gpsIncrStateDelta[10];    // vector of corrections to attitude, velocity and position to be applied over the period between the current and next GPS measurement
     float hgtIncrStateDelta[10];    // vector of corrections to attitude, velocity and position to be applied over the period between the current and next height measurement
@@ -603,4 +538,4 @@ private:
 #define perf_end(x)
 #endif
 
-#endif // AP_NavEKF2
+#endif // AP_NavEKF

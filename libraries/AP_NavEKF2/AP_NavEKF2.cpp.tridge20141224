@@ -227,8 +227,7 @@ const AP_Param::GroupInfo NavEKF2::var_info[] PROGMEM = {
     // @Range: 0 500
     // @Increment: 10
     // @User: Advanced
-    AP_GROUPINFO("VEL_DELAY",    14, NavEKF2, _msecVelDelay, 400),
-//   AP_GROUPINFO("VEL_DELAY",    14, NavEKF2, _msecVelDelay, 300),  // Sean change velocity delay
+    AP_GROUPINFO("VEL_DELAY",    14, NavEKF2, _msecVelDelay, 220),
 
     // @Param: POS_DELAY
     // @DisplayName: GPS position measurement delay (msec)
@@ -236,8 +235,7 @@ const AP_Param::GroupInfo NavEKF2::var_info[] PROGMEM = {
     // @Range: 0 500
     // @Increment: 10
     // @User: Advanced
-   AP_GROUPINFO("POS_DELAY",    15, NavEKF2, _msecPosDelay, 400),
-//    AP_GROUPINFO("POS_DELAY",    15, NavEKF2, _msecPosDelay, 300),
+    AP_GROUPINFO("POS_DELAY",    15, NavEKF2, _msecPosDelay, 220),
 
     // @Param: GPS_TYPE
     // @DisplayName: GPS velocity mode control
@@ -353,12 +351,9 @@ NavEKF2::NavEKF2(const AP_AHRS *ahrs, AP_Baro &baro) :
     _gpsNEVelVarAccScale    = 0.05f;    // Scale factor applied to NE velocity measurement variance due to manoeuvre acceleration
     _gpsDVelVarAccScale     = 0.07f;    // Scale factor applied to vertical velocity measurement variance due to manoeuvre acceleration
     _gpsPosVarAccScale      = 0.05f;    // Scale factor applied to horizontal position measurement variance due to manoeuvre acceleration
- //   _msecHgtDelay           = 60;       // Height measurement delay (msec)
-    _msecHgtDelay           = 0;       // Sean change delay
- //   _msecMagDelay           = 40;       // Magnetometer measurement delay (msec)
-    _msecMagDelay           = 0;  // Sean change delay
- //   _msecTasDelay           = 240;      // Airspeed measurement delay (msec)
-    _msecTasDelay           = 0;    // l change delay
+    _msecHgtDelay           = 60;       // Height measurement delay (msec)
+    _msecMagDelay           = 40;       // Magnetometer measurement delay (msec)
+    _msecTasDelay           = 240;      // Airspeed measurement delay (msec)
     _gpsRetryTimeUseTAS     = 20000;    // GPS retry time with airspeed measurements (msec)
     _gpsRetryTimeNoTAS      = 10000;    // GPS retry time without airspeed measurements (msec)
     _hgtRetryTimeMode0      = 10000;    // Height retry time with vertical velocity measurement (msec)
@@ -854,7 +849,6 @@ void NavEKF2::SelectBetaFusion()
 // update the quaternion, velocity and position states using IMU measurements
 void NavEKF2::UpdateStrapdownEquationsNED()
 {
-    Matrix3f Tbn_temp;
     Vector3f delVelNav;  // delta velocity vector calculated using a blend of IMU1 and IMU2 data
     Vector3f delVelNav1; // delta velocity vector calculated using IMU1 data
     Vector3f delVelNav2; // delta velocity vector calculated using IMU2 data
@@ -863,14 +857,9 @@ void NavEKF2::UpdateStrapdownEquationsNED()
     Quaternion qUpdated; // quaternion at current time step after application of delta quaternion
     Quaternion deltaQuat; // quaternion from last to current time step
     const Vector3f gravityNED(0, 0, GRAVITY_MSS); // NED gravity vector m/s^2
- 
+
+
 // sean
-
-   Vector3f D_q_tmp;  // sean   temporary vector part of quaternion Delta 
-   Quaternion q_tmp;  // sean   temporary quaternion
-
-
-
 //lastAngRateStoreTime_ms=1;
 //storeIndexIMU=1;
 // cin >> angRateTimeStamp[5];
@@ -924,6 +913,14 @@ dVelIMU2_Delay=storeddVelIMU2[bestStoreIndex];
 
 // gyro_bias_delay=state_delay.gyro_bias;
 
+    // remove sensor bias errors
+/*
+    correctedDelAng = dAngIMU_Delay - gyro_bias_delay;  
+    correctedDelVel1 = dVelIMU1_Delay;
+    correctedDelVel2 = dVelIMU2_Delay;
+    correctedDelVel1.z -= state_delay.accel_zbias1;
+    correctedDelVel2.z -= state_delay.accel_zbias2;
+*/
 
     correctedDelAng = dAngIMU_Delay - state.gyro_bias;
     correctedDelVel1 = dVelIMU1_Delay;
@@ -941,11 +938,15 @@ dVelIMU2_Delay=storeddVelIMU2[bestStoreIndex];
     correctedDelVel2.z -= state.accel_zbias2;
 */
 // end sean
-/////////////////////////////////////////////////////////////
 
 
 
-   // use weighted average of both IMU units for delta velocities
+
+
+
+
+
+    // use weighted average of both IMU units for delta velocities
     correctedDelVel12 = correctedDelVel1 * IMU1_weighting + correctedDelVel2 * (1.0f - IMU1_weighting);
 
     // apply corrections for earths rotation rate and coning errors
@@ -985,6 +986,7 @@ dVelIMU2_Delay=storeddVelIMU2[bestStoreIndex];
     state.quat = qUpdated;
 
     // calculate the body to nav cosine matrix
+    Matrix3f Tbn_temp;
     state.quat.rotation_matrix(Tbn_temp);
     prevTnb = Tbn_temp.transposed();
 
@@ -1024,201 +1026,6 @@ dVelIMU2_Delay=storeddVelIMU2[bestStoreIndex];
 
     // limit states to protect against divergence
     ConstrainStates();
-    
-    
-    /////////////////////////// Sean: (12 - 15)/12/2014 -- Predictor ///////////////////////////////////////////////////////////
-// retreive previous calculations
-// D_T = D;
-
-D_q = D_q_k1;
-// q_hat = q_hat_T_k1;
-
-/*
-// calculate Delta matrix from quaternion form.
-D[0][0] = D_q[1]*D_q[1]+D_q[2]*D_q[2]-D_q[3]*D_q[3]-D_q[4]*D_q[4];
-D[0][1] = 2.0f*D_q[2]*D_q[3]-2.0f*D_q[1]*D_q[4];
-D[0][2] = 2.0f*D_q[1]*D_q[3]+2.0f*D_q[2]*D_q[4];
-D[1][0] = 2.0f*D_q[2]*D_q[3] + 2.0f*D_q[1]*D_q[4];
-D[1][1] = D_q[1]*D_q[1]-D_q[2]*D_q[2]+D_q[3]*D_q[3]-D_q[4]*D_q[4];
-D[1][2] = -2.0f*D_q[1]*D_q[2]+2.0f*D_q[3]*D_q[4];
-D[2][0] = -2.0f*D_q[1]*D_q[3] + 2.0f*D_q[2]*D_q[4];
-D[2][1] = 2.0f*D_q[1]*D_q[2] + 2.0f*D_q[3]*D_q[4];
-D[2][2] = D_q[1]*D_q[1]-D_q[2]*D_q[2]-D_q[3]*D_q[3]+D_q[4]*D_q[4];
-*/
-
-tilde_q = dAngIMU - state.gyro_bias;
-
-n_tilde_q = sqrt(tilde_q[0]*tilde_q[0]+tilde_q[1]*tilde_q[1]+tilde_q[2]*tilde_q[2]);
-if (n_tilde_q < 1e-12f)
-{
-    delta_q[0] = 1;
-    delta_q[1] = 0;
-    delta_q[2] = 0;
-    delta_q[3] = 0;
-}
-else
-{
-// check: delta_q=single([cos(0.5*n_tilde_q);(sin(0.5*n_tilde_q)/n_tilde_q).*tilde_q]);
-    delta_q[0] = cosf(0.5f * n_tilde_q);
-    rotScaler = (sinf(0.5f * n_tilde_q)) / n_tilde_q;
-    delta_q[1] = tilde_q.x * rotScaler;
-    delta_q[2] = tilde_q.y * rotScaler;
-    delta_q[3] = tilde_q.z * rotScaler;
-}
-
-// update the quaternions by rotating from the previous attitude through
-// the delta angle rotation quaternion
-D_q_k1[0] = D_q[0]*delta_q[0] - D_q[1]*delta_q[1] - D_q[2]*delta_q[2] - D_q[3]*delta_q[3];
-D_q_k1[1] = D_q[0]*delta_q[1] + D_q[1]*delta_q[0] + D_q[2]*delta_q[3] - D_q[3]*delta_q[2];
-D_q_k1[2] = D_q[0]*delta_q[2] + D_q[2]*delta_q[0] + D_q[3]*delta_q[1] - D_q[1]*delta_q[3];
-D_q_k1[3] = D_q[0]*delta_q[3] + D_q[3]*delta_q[0] + D_q[1]*delta_q[2] - D_q[2]*delta_q[1];
-
-
-n_D_q_k1 = D_q_k1[0]*D_q_k1[0]+D_q_k1[1]*D_q_k1[1]+D_q_k1[2]*D_q_k1[2]+D_q_k1[3]*D_q_k1[3];
-D_q_k1[0] = D_q_k1[0]/n_D_q_k1;
-D_q_k1[1] = D_q_k1[1]/n_D_q_k1;
-D_q_k1[2] = D_q_k1[2]/n_D_q_k1;
-D_q_k1[3] = D_q_k1[3]/n_D_q_k1;
-
-
-
-    if (imuSampleTime_ms - lastDStoreTime_ms >= 10) {
-        lastDStoreTime_ms = imuSampleTime_ms;
-        if (storeIndexD > 49) {
-            storeIndexD = 0;
-        }
-        storedD_s[storeIndexD]=D_q_k1[0];
-        D_q_tmp[0]=D_q_k1[1];
-        D_q_tmp[1]=D_q_k1[2];
-        D_q_tmp[2]=D_q_k1[3];
-        storedD_v[storeIndexD] = D_q_tmp;
-        DTimeStamp[storeIndexD] = lastDStoreTime_ms;
-        storeIndexD = storeIndexD + 1;
-
-//printf("%u , %u \n", storeIndexIMU, angRateTimeStamp[storeIndexIMU]);
-//        cout << imuSampleTime_ms << "   " << storedAngRate[storeIndexIMU] << "\n";
-    }
-
-
-
-    int timeD;
-    uint32_t bestTimeD = 200;
-    Quaternion D_Delay;
-    bestStoreIndex = 0;
-
-    for (uint8_t i=0; i<=49; i++)
-    {
-        timeD = abs( (int) imuSampleTime_ms- DTimeStamp[i] - constrain_int16(_msecPosDelay, 0, 500));
-        printf("%u \n",constrain_int16(_msecPosDelay, 0, 500));
-	if (timeD < bestTimeD)
-        {
-            bestStoreIndex = i;
-            bestTimeD = timeD;
-        }
-    }
-
-D_Delay[0] = storedD_s[bestStoreIndex];
-D_q_tmp=storedD_v[bestStoreIndex];
-D_Delay[1] = D_q_tmp[0];
-D_Delay[2] = D_q_tmp[1];
-D_Delay[3] = D_q_tmp[2];
-
-
-
-q_tmp[0]= D_Delay[0];
-q_tmp[1]= -D_Delay[1];
-q_tmp[2]= -D_Delay[2];
-q_tmp[3]= -D_Delay[3];
-
-// D_q_delay^{-1} \times D_q 
-
-q_hat[0] = q_tmp[0]*D_q[0] - q_tmp[1]*D_q[1] - q_tmp[2]*D_q[2] - q_tmp[3]*D_q[3];
-q_hat[1] = q_tmp[0]*D_q[1] + q_tmp[1]*D_q[0] + q_tmp[2]*D_q[3] - q_tmp[3]*D_q[2];
-q_hat[2] = q_tmp[0]*D_q[2] + q_tmp[2]*D_q[0] + q_tmp[3]*D_q[1] - q_tmp[1]*D_q[3];
-q_hat[3] = q_tmp[0]*D_q[3] + q_tmp[3]*D_q[0] + q_tmp[1]*D_q[2] - q_tmp[2]*D_q[1];
-
-// q_hat_tau \times D_q_delay^{-1} \times D_q 
-
-q_tmp[0] = state.quat[0]*q_hat[0] - state.quat[1]*q_hat[1] - state.quat[2]*q_hat[2] - state.quat[3]*q_hat[3];
-q_tmp[1] = state.quat[0]*q_hat[1] + state.quat[1]*q_hat[0] + state.quat[2]*q_hat[3] - state.quat[3]*q_hat[2];
-q_tmp[2] = state.quat[0]*q_hat[2] + state.quat[2]*q_hat[0] + state.quat[3]*q_hat[1] - state.quat[1]*q_hat[3];
-q_tmp[3] = state.quat[0]*q_hat[3] + state.quat[3]*q_hat[0] + state.quat[1]*q_hat[2] - state.quat[2]*q_hat[1];
-
-q_tmp.normalize();
-q_hat=q_tmp;
-
-
-// velocity prediction
-    Matrix3f prevTnb_pred;    
- 
-    state.quat.rotation_matrix(Tbn_temp);
-    prevTnb_pred = Tbn_temp.transposed();
-   
-    Vector3f tilde_Vel; 
-    Vector3f corrected_tilde_Vel1;
-    Vector3f corrected_tilde_Vel2;
-    Vector3f corrected_tilde_Vel12;
-    
-    corrected_tilde_Vel1 = dVelIMU1;
-    corrected_tilde_Vel2 = dVelIMU2;
-    corrected_tilde_Vel1.z -= state.accel_zbias1;
-    corrected_tilde_Vel2.z -= state.accel_zbias2;
-    corrected_tilde_Vel12 =  corrected_tilde_Vel1* IMU1_weighting +  corrected_tilde_Vel2* (1.0f - IMU1_weighting);
-    tilde_Vel  = Tbn_temp*corrected_tilde_Vel12 + gravityNED*dtIMU;
-
-    d_v+=tilde_Vel ;
-
-// buffering d_v
-        storeIndexD = storeIndexD - 1;
-	storedd_v[storeIndexD]=d_v;
-        storeIndexD = storeIndexD + 1;
-
-// picking up the delayed d_v
-   Vector3f d_v_Delay=storedd_v[bestStoreIndex];
-// v_hat   
-   v_hat = state.velocity + d_v- d_v_Delay;
-
-// position prediction
-   d_p+= v_hat*dtIMU;  
-// buffering d_p
-        storeIndexD = storeIndexD - 1;
-	storedd_p[storeIndexD]=d_p;
-        storeIndexD = storeIndexD + 1;
-// picking up the delayed d_p
-   Vector3f d_p_Delay=storedd_p[bestStoreIndex];
-// p_hat   
-   p_hat = state.position + d_p- d_p_Delay;
-
-
-static FILE *mylog;
-if (mylog==NULL){
-	mylog = fopen("logtmp.txt", "w");
-}
-if (mylog!=NULL){
-// fputs ("Ali",  mylog);
-fprintf (mylog, "{%lu;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f}\n", hal.scheduler->millis(), q_hat[0], q_hat[1],q_hat[2],q_hat[3],v_hat[0],v_hat[1],v_hat[2],d_v[0],d_v[1],d_v[2],d_v_Delay[0],d_v_Delay[1],d_v_Delay[2],p_hat[0],p_hat[1],p_hat[2]);
-}
-/*
-if (mylog){
-	fprintf("%f", q_hat[0]);
-}
-*/
-
-// update predictor R_hat
-/*
-R_hat_T = R_hat;
-R_hat[0][0] = D_T[0][0]*(D[0][0]*R_hat_T[0][0]+D[1][0]*R_hat_T[0][1]+D[2][0]*R_hat_T[0][2])+D_T[1][0]*(D[0][1]*R_hat_T[0][0]+D[1][1]*R_hat_T[0][1]+D[2][1]*R_hat_T[0][2])+D_T[2][0]*(D[0][2]*R_hat_T[0][0]+D[1][2]*R_hat_T[0][1]+D[2][2]*R_hat_T[0][2]);
-R_hat[0][1] = D_T[0][1]*(D[0][0]*R_hat_T[0][0]+D[1][0]*R_hat_T[0][1]+D[2][0]*R_hat_T[0][2])+D_T[1][1]*(D[0][1]*R_hat_T[0][0]+D[1][1]*R_hat_T[0][1]+D[2][1]*R_hat_T[0][2])+D_T[2][1]*(D[0][2]*R_hat_T[0][0]+D[1][2]*R_hat_T[0][1]+D[2][2]*R_hat_T[0][2]);
-R_hat[0][2] = D_T[0][2]*(D[0][0]*R_hat_T[0][0]+D[1][0]*R_hat_T[0][1]+D[2][0]*R_hat_T[0][2])+D_T[1][2]*(D[0][1]*R_hat_T[0][0]+D[1][1]*R_hat_T[0][1]+D[2][1]*R_hat_T[0][2])+D_T[2][2]*(D[0][2]*R_hat_T[0][0]+D[1][2]*R_hat_T[0][1]+D[2][2]*R_hat_T[0][2]);
-R_hat[1][0] = D_T[0][0]*(D[0][0]*R_hat_T[1][0]+D[1][0]*R_hat_T[1][1]+D[2][0]*R_hat_T[1][2])+D_T[1][0]*(D[0][1]*R_hat_T[1][0]+D[1][1]*R_hat_T[1][1]+D[2][1]*R_hat_T[1][2])+D_T[2][0]*(D[0][2]*R_hat_T[1][0]+D[1][2]*R_hat_T[1][1]+D[2][2]*R_hat_T[1][2]);
-R_hat[1][1] = D_T[0][1]*(D[0][0]*R_hat_T[1][0]+D[1][0]*R_hat_T[1][1]+D[2][0]*R_hat_T[1][2])+D_T[1][1]*(D[0][1]*R_hat_T[1][0]+D[1][1]*R_hat_T[1][1]+D[2][1]*R_hat_T[1][2])+D_T[2][1]*(D[0][2]*R_hat_T[1][0]+D[1][2]*R_hat_T[1][1]+D[2][2]*R_hat_T[1][2]);
-R_hat[1][2] = D_T[0][2]*(D[0][0]*R_hat_T[1][0]+D[1][0]*R_hat_T[1][1]+D[2][0]*R_hat_T[1][2])+D_T[1][2]*(D[0][1]*R_hat_T[1][0]+D[1][1]*R_hat_T[1][1]+D[2][1]*R_hat_T[1][2])+D_T[2][2]*(D[0][2]*R_hat_T[1][0]+D[1][2]*R_hat_T[1][1]+D[2][2]*R_hat_T[1][2]);
-R_hat[2][0] = D_T[0][0]*(D[0][0]*R_hat_T[2][0]+D[1][0]*R_hat_T[2][1]+D[2][0]*R_hat_T[2][2])+D_T[1][0]*(D[0][1]*R_hat_T[2][0]+D[1][1]*R_hat_T[2][1]+D[2][1]*R_hat_T[2][2])+D_T[2][0]*(D[0][2]*R_hat_T[2][0]+D[1][2]*R_hat_T[2][1]+D[2][2]*R_hat_T[2][2]);
-R_hat[2][1] = D_T[0][1]*(D[0][0]*R_hat_T[2][0]+D[1][0]*R_hat_T[2][1]+D[2][0]*R_hat_T[2][2])+D_T[1][1]*(D[0][1]*R_hat_T[2][0]+D[1][1]*R_hat_T[2][1]+D[2][1]*R_hat_T[2][2])+D_T[2][1]*(D[0][2]*R_hat_T[2][0]+D[1][2]*R_hat_T[2][1]+D[2][2]*R_hat_T[2][2]);
-R_hat[2][2] = D_T[0][2]*(D[0][0]*R_hat_T[2][0]+D[1][0]*R_hat_T[2][1]+D[2][0]*R_hat_T[2][2])+D_T[1][2]*(D[0][1]*R_hat_T[2][0]+D[1][1]*R_hat_T[2][1]+D[2][1]*R_hat_T[2][2])+D_T[2][2]*(D[0][2]*R_hat_T[2][0]+D[1][2]*R_hat_T[2][1]+D[2][2]*R_hat_T[2][2]);
-*/
-
-///////////////////////////////////////  end sean predictor //////////////////////////////////////////////////////
 }
 
 // calculate the predicted state covariance matrix
@@ -3198,9 +3005,7 @@ void NavEKF2::RecallStates(state_elements &statesForFusion, uint32_t msec)
     }
     if (bestTimeDelta < 200) // only output stored state if < 200 msec retrieval error
     {
- //       statesForFusion = storedStates[bestStoreIndex];
-//Sean EKF bypassing delay compensation
-	statesForFusion = state;
+        statesForFusion = storedStates[bestStoreIndex];
     }
     else // otherwise output current state
     {
@@ -3222,45 +3027,29 @@ void NavEKF2::getEulerAngles(Vector3f &euler) const
     euler = euler - _ahrs->get_trim();
 }
 
-/*
-// Sean v1-v4 filling
-void NavEKF2::getv1(float &v1) const
-{
-    v1=q_hat[0];
-}
-*/
-
 // return NED velocity in m/s
 void NavEKF2::getVelNED(Vector3f &vel) const
 {
     vel = state.velocity;
-// Sean new data log 
-//    vel = v_hat;
 }
 
 // return the last calculated NED position relative to the reference point (m).
 // return false if no position is available
 bool NavEKF2::getPosNED(Vector3f &pos) const
 {
-   pos = state.position;
-   return true;
+    pos = state.position;
+    return true;
 }
 
 // return body axis gyro bias estimates in rad/sec
 void NavEKF2::getGyroBias(Vector3f &gyroBias) const
 {
- 
-   if (dtIMU == 0) {
+    if (dtIMU == 0) {
         gyroBias.zero();
         return;
     }
     gyroBias = state.gyro_bias / dtIMU;
-
-// Sean test virtual data loging
-/*
-	gyroBias=v_hat;
-*/
-	}
+}
 
 // reset the body axis gyro bias states to zero and re-initialise the corresponding covariances
 void NavEKF2::resetGyroBias(void)
@@ -3889,35 +3678,6 @@ void NavEKF2::ZeroVariables()
     memset(&storedAngRate[0], 0, sizeof(storedAngRate));
     memset(&angRateTimeStamp[0], 0, sizeof(angRateTimeStamp));
     lastHealthyHgtTime_ms = imuSampleTime_ms;
-/////////////////////////
-
-// Delta Predictor ///////////////
-
-    D[0][0] = 1;
-    D[0][1] = 0;
-    D[0][2] = 0;
-    D[1][0] = 0;
-    D[1][1] = 1;
-    D[1][2] = 0;
-    D[2][0] = 0;
-    D[2][1] = 0;
-    D[2][2] = 1;
-    D_T = D;
-    R_hat_T = D;
-    R_hat = D;
-    D_q[0] = 1;
-    D_q[1] = 0;
-    D_q[2] = 0;
-    D_q[3] = 0;
-    D_q_k1 = D_q;
-//    q_hat = D_q;
-//    q_hat_T_k1 = D_q;
-    tilde_q[0] = 1;
-    tilde_q[1] = 0;
-    tilde_q[2] = 0;
-    n_tilde_q = 1;
-    delta_q = D_q;
-
 /////////////////////////
 
     gpsNoiseScaler = 1.0f;
