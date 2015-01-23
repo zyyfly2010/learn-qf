@@ -87,6 +87,10 @@
 
 #include <AP_OpticalFlow.h>     // Optical Flow library
 
+#if HAL_CPU_CLASS >= HAL_CPU_CLASS_75
+#include <AP_CompassMot.h>
+#endif
+
 // Pre-AP_HAL compatibility
 #include "compat.h"
 
@@ -893,6 +897,10 @@ static void ahrs_update()
     // frame yaw rate
     steer_state.locked_course_err += ahrs.get_yaw_rate_earth() * G_Dt;
     steer_state.locked_course_err = wrap_PI(steer_state.locked_course_err);
+
+#if HAL_CPU_CLASS >= HAL_CPU_CLASS_75
+    compass.update_gyro(ins.get_gyro()+ahrs.get_gyro_drift());
+#endif
 }
 
 /*
@@ -1068,6 +1076,7 @@ static void compass_save()
 {
     if (g.compass_enabled) {
         compass.save_offsets();
+        compass.save_motor_compensation();
     }
 }
 

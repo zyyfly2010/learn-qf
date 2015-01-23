@@ -167,6 +167,11 @@ static void init_ardupilot()
             ahrs.set_compass(&compass);
         }
     }
+
+#if HAL_CPU_CLASS >= HAL_CPU_CLASS_75
+    compass.set_gyro_deltat(0.02);
+    compass.set_dataflash(&DataFlash);
+#endif
     
     // make optflow available to libraries
     ahrs.set_optflow(&optflow);
