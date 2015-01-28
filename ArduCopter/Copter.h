@@ -1,6 +1,10 @@
 /// -*- tab-width: 4; Mode: C++; c-basic-offset: 4; indent-tabs-mode: nil -*-
 
-#define THISFIRMWARE "APM:Copter V3.4-dev"
+#ifdef GIT_TAG
+#define THISFIRMWARE "APM:Copter " GIT_TAG
+#else
+ #define THISFIRMWARE "APM:Copter V3.3-dev"
+#endif
 /*
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
