@@ -24,7 +24,7 @@
 #include <DataFlash.h>
 
 #define UBLOX_DEBUGGING 0
-#define UBLOX_FAKE_3DLOCK 0
+#define UBLOX_FAKE_3DLOCK 1
 
 extern const AP_HAL::HAL& hal;
 
