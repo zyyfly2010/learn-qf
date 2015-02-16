@@ -478,37 +478,36 @@
       <field type="float" name="v3">test variable3</field>
       <field type="float" name="v4">test variable4</field>
     </message>
-        
-    <message name="GIMBAL_FEEDBACK" id="183">
-      <description>3 axis gimbal mesuraments</description>
-      <field type="uint8_t" name="target_system">System ID</field>
-      <field type="uint8_t" name="target_component">Component ID</field>
-      <field type="uint8_t" name="id">Message identifier</field>
-      <field type="float" name="accx">Delta velocity X, m/s</field>
-      <field type="float" name="accy">Delta velocity Y, m/s</field>
-      <field type="float" name="accz">Delta velocity Z, m/s</field> 
-      <field type="float" name="gyrox">Delta angle X, radians</field>
-      <field type="float" name="gyroy">Delta angle Y, radians</field>
-      <field type="float" name="gyroz">Delta angle X, radians</field>
-      <field type="float" name="joint_az"> Joint AZ, radians</field>
-      <field type="float" name="joint_roll"> Joint ROLL, radians</field>
-      <field type="float" name="joint_el"> Joint EL, radians</field>
-    </message>
 
-    <message name="GIMBAL_CONTROL" id="184">
-      <description>Control message for rate gimbal</description>
-      <field type="uint8_t" name="target_system">System ID</field>
-      <field type="uint8_t" name="target_component">Component ID</field>
-      <field type="uint8_t" name="id">Message identifier</field>
-      <field type="float" name="ratex">Demanded angular rate X, rad/s</field>
-      <field type="float" name="ratey">Demanded angular rate Y, rad/s</field>
-      <field type="float" name="ratez">Demanded angular rate Z, rad/s</field>
-    </message>
-
-    <message name="AUTOPILOT_VERSION_REQUEST" id="185">
+    <message name="AUTOPILOT_VERSION_REQUEST" id="183">
         <description>Request the autopilot version from the system/component.</description>
         <field type="uint8_t" name="target_system">System ID</field>
         <field type="uint8_t" name="target_component">Component ID</field>
+    </message>
+
+    <message name="GIMBAL_REPORT" id="184">
+      <description>Report from MAVLink enabled gimbal to vehicle. The deltas are in gimbal sensor frame. Joint measurements assume a 312 ordering (azimuth, roll, pitch).</description>
+      <field type="uint8_t" name="target_system">System ID</field>
+      <field type="uint8_t" name="target_component">Component ID</field>
+      <field type="float" name="delta_time">Time since last update (seconds)</field>
+      <field type="float" name="delta_angle_x">Delta angle X, radians</field>
+      <field type="float" name="delta_angle_y">Delta angle Y, radians</field>
+      <field type="float" name="delta_angle_z">Delta angle Z, radians</field>
+      <field type="float" name="delta_velocity_x">Delta velocity X, m/s</field>
+      <field type="float" name="delta_velocity_y">Delta velocity Y, m/s</field>
+      <field type="float" name="delta_velocity_z">Delta velocity Z, m/s</field>
+      <field type="float" name="joint_roll">Joint roll, radians</field>
+      <field type="float" name="joint_pitch">Joint pitch, radians</field>
+      <field type="float" name="joint_yaw">Joint yaw, radians</field>
+    </message>
+
+    <message name="GIMBAL_CONTROL" id="185">
+      <description>Control packet from vehicle to MAVLink enabled gimbal. All values in gimbal sensor frame</description>
+      <field type="uint8_t" name="target_system">System ID</field>
+      <field type="uint8_t" name="target_component">Component ID</field>
+      <field type="float" name="demanded_rate_x">Demanded angular rate X, radians/s</field>
+      <field type="float" name="demanded_rate_y">Demanded angular rate Y, radians/s</field>
+      <field type="float" name="demanded_rate_z">Demanded angular rate Z, radians/s</field>
     </message>
 
      </messages>
