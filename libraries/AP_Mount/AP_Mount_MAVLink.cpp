@@ -5,7 +5,8 @@
 #include <GCS_MAVLink.h>
 
 #define MOUNT_DEBUG 0
-#define TILT_CONTROL_ONLY 0
+#define TILT_CONTROL_ONLY 1
+#define TILT_FF_ENABLE 0
 
 #if MOUNT_DEBUG
 #include <stdio.h>
@@ -130,16 +131,11 @@ void AP_Mount_MAVLink::handle_gimbal_report(mavlink_channel_t chan, mavlink_mess
                                                  _gimbal_report.delta_time, delta_angles, delta_velocity, joint_angles);
 #endif
 
-    // for now send a zero gyro bias update and incorporate into the
-    // demanded rates
-    Vector3f gyroBias(0,0,0);
-
     // send the gimbal control message
     mavlink_msg_gimbal_control_send(chan, 
                                     msg->sysid,
                                     msg->compid,
-                                    rateDemand.x, rateDemand.y, rateDemand.z, // demanded rates
-                                    gyroBias.x, gyroBias.y, gyroBias.z);
+                                    rateDemand.x, rateDemand.y, rateDemand.z);
 }
 
 /*
@@ -272,13 +268,26 @@ Vector3f AP_Mount_MAVLink::gimbal_update_control2(const Vector3f &ef_target_eule
 {
     // get the gimbal quaternion estimate
     Quaternion quatEst;
+
+    // maximum demanded rate in rad/sec
+    float max_change_rads = 0.5f / delta_time;
+
     _ekf.getQuat(quatEst);
+
+    Vector3f target_change = ef_target_euler_rad - last_ef_target;
+    target_change.x = constrain_float(target_change.x, -max_change_rads, max_change_rads);
+    target_change.y = constrain_float(target_change.y, -max_change_rads, max_change_rads);
+    target_change.z = constrain_float(target_change.z, -max_change_rads, max_change_rads);
+    Vector3f new_ef_target = last_ef_target + target_change;
+
+    last_ef_target = new_ef_target;
  
     // Add the control rate vectors
-    Vector3f gimbalRateDemVec = 
-        getGimbalRateDemVecYaw(ef_target_euler_rad, delta_time, quatEst, joint_angles) + 
-        getGimbalRateDemVecTilt(ef_target_euler_rad, quatEst) + 
-        getGimbalRateDemVecForward(ef_target_euler_rad, delta_time, quatEst);
+    Vector3f gimbalRateDemVec = getGimbalRateDemVecYaw(new_ef_target, delta_time, quatEst, joint_angles);
+    gimbalRateDemVec += getGimbalRateDemVecTilt(new_ef_target, quatEst);
+#if TILT_FF_ENABLE
+    gimbalRateDemVec += getGimbalRateDemVecForward(new_ef_target, delta_time, quatEst);
+#endif
 
     Vector3f gyroBias;
     _ekf.getGyroBias(gyroBias);

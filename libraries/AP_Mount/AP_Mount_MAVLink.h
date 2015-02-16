@@ -71,6 +71,8 @@ private:
     // reducing this makes the gimbal respond more to vehicle yaw disturbances
     const float yawErrorLimit;
 
+    Vector3f last_ef_target;
+
     // quaternion demanded at the previous time step
     Quaternion lastQuatDem;
 
