@@ -55,6 +55,11 @@ static void init_rc_out()
     channel_rudder->enable_out();
     RC_Channel_aux::enable_aux_servos();
 
+    // enable for reference board
+    hal.rcout->enable_ch(0);
+    hal.rcout->enable_ch(1);
+    hal.rcout->enable_ch(2);
+
     // Initialization of servo outputs
     RC_Channel::output_trim_all();
 
