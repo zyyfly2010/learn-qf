@@ -81,6 +81,7 @@
 #include <AP_ServoRelayEvents.h>
 #include <AP_Camera.h>          // Photo or video camera
 #include <AP_Mount.h>           // Camera/Antenna mount
+#include <AP_Gimbal.h>          // Camera rate controlled gimbal
 #include <AP_Airspeed.h>        // needed for AHRS build
 #include <AP_Vehicle.h>         // needed for AHRS build
 #include <AP_InertialNav.h>     // ArduPilot Mega inertial navigation library
@@ -459,6 +460,8 @@ private:
     AC_Fence    fence;
 #endif
 
+    AP_Gimbal gimbal{ahrs, g.sysid_this_mav, 230};
+
     // Rally library
 #if AC_RALLY == ENABLED
     AP_Rally rally;
@@ -596,6 +599,7 @@ private:
     void Log_Write_MotBatt();
     void Log_Write_Startup();
     void Log_Write_EntireMission();
+    void Log_Write_Gimbal();
     void Log_Write_Event(uint8_t id);
     void Log_Write_Data(uint8_t id, int32_t value);
     void Log_Write_Data(uint8_t id, uint32_t value);
