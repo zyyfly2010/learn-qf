@@ -205,7 +205,9 @@ static void init_ardupilot()
      *  setup the 'main loop is dead' check. Note that this relies on
      *  the RC library being initialised.
      */
+#if 0
     hal.scheduler->register_timer_failsafe(failsafe_check, 1000);
+#endif
 
 #if CLI_ENABLED == ENABLED
     if (g.cli_enabled == 1) {
