@@ -121,7 +121,7 @@ void Plane::init_ardupilot()
     serial_manager.init();
 
     // allow servo set on all channels except first 4
-    ServoRelayEvents.set_channel_mask(0xFFF0);
+    ServoRelayEvents.set_channel_mask(0xFFFF);
 
     set_control_channels();
 
