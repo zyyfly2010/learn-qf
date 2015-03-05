@@ -118,6 +118,9 @@ then
         fi
 fi
 
+# force continue boot
+set HAVE_MICROSD 1
+
 # if this is an APM build then there will be a rc.APM script
 # from an EXTERNAL_SCRIPTS build option
 if [ -f /etc/init.d/rc.APM -a $HAVE_MICROSD == 1 -a ! -f /fs/microsd/APM/nostart ]
