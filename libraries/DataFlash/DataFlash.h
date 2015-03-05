@@ -11,6 +11,7 @@
 #include <AP_Param.h>
 #include <AP_GPS.h>
 #include <AP_InertialSensor.h>
+#include <AP_Gimbal.h>
 #include <AP_Baro.h>
 #include <AP_AHRS.h>
 #include <AP_Vehicle.h>
@@ -102,6 +103,7 @@ public:
     };
 
     void Log_Write_PID(uint8_t msg_type, const PID_Info &info);
+    void Log_Write_Gimbal(const AP_Gimbal &gimbal);
 
     bool logging_started(void) const { return log_write_started; }
 
@@ -241,6 +243,36 @@ struct PACKED log_Vibe {
     uint64_t time_us;
     float vibe_x, vibe_y, vibe_z;
     uint32_t clipping_0, clipping_1, clipping_2;
+};
+
+struct PACKED log_Gimbal1 {
+    LOG_PACKET_HEADER;
+    uint64_t time_us;
+    float delta_time;
+    float delta_angles_x;
+    float delta_angles_y;
+    float delta_angles_z;
+    float delta_velocity_x;
+    float delta_velocity_y;
+    float delta_velocity_z;
+    float joint_angles_x;
+    float joint_angles_y;
+    float joint_angles_z;
+};
+
+struct PACKED log_Gimbal2 {
+    LOG_PACKET_HEADER;
+    uint64_t time_us;
+    uint8_t  est_sta;
+    float est_x;
+    float est_y;  
+    float est_z;  
+    float rate_x;  
+    float rate_y; 
+    float rate_z; 
+    float target_x;
+    float target_y;
+    float target_z;
 };
 
 struct PACKED log_RCIN {
@@ -732,7 +764,11 @@ Format characters in the format string for binary log messages
     { LOG_IMUDT2_MSG, sizeof(log_IMUDT), \
       "IMT2","Qffffffff","TimeUS,DelT,DelvT,DelAX,DelAY,DelAZ,DelVX,DelVY,DelVZ" }, \
     { LOG_IMUDT3_MSG, sizeof(log_IMUDT), \
-      "IMT3","Qffffffff","TimeUS,DelT,DelvT,DelAX,DelAY,DelAZ,DelVX,DelVY,DelVZ" }
+      "IMT3","Qffffffff","TimeUS,DelT,DelvT,DelAX,DelAY,DelAZ,DelVX,DelVY,DelVZ" }, \
+    { LOG_GIMBAL1_MSG, sizeof(log_Gimbal1), \
+      "GMB1", "Qffffffffff", "TimeUS,dt,dax,day,daz,dvx,dvy,dvz,jx,jy,jz" }, \
+    { LOG_GIMBAL2_MSG, sizeof(log_Gimbal2), \
+      "GMB2", "QBfffffffff", "TimeUS,es,ex,ey,ez,rx,ry,rz,tx,ty,tz" }
 
 #if HAL_CPU_CLASS >= HAL_CPU_CLASS_75
 #define LOG_COMMON_STRUCTURES LOG_BASE_STRUCTURES, LOG_EXTRA_STRUCTURES
@@ -802,6 +838,8 @@ Format characters in the format string for binary log messages
 #define LOG_IMUDT_MSG     184
 #define LOG_IMUDT2_MSG    185
 #define LOG_IMUDT3_MSG    186
+#define LOG_GIMBAL1_MSG   187
+#define LOG_GIMBAL2_MSG   188
 
 // message types 200 to 210 reversed for GPS driver use
 // message types 211 to 220 reversed for autotune use
