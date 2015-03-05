@@ -1054,6 +1054,7 @@ void Plane::set_servos(void)
 
 void Plane::demo_servos(uint8_t i) 
 {
+#if 0
     while(i > 0) {
         gcs_send_text_P(MAV_SEVERITY_WARNING,PSTR("Demo Servos!"));
         demoing_servos = true;
@@ -1066,6 +1067,7 @@ void Plane::demo_servos(uint8_t i)
         hal.scheduler->delay(400);
         i--;
     }
+#endif
 }
 
 /*
