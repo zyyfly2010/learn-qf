@@ -43,7 +43,7 @@ if rm /fs/microsd/APM/boot.log
 then
    echo "removed old boot.log"
 fi
-set logfile /fs/microsd/APM/BOOT.LOG
+set logfile /dev/null
 
 if [ ! -f /bin/ArduPilot ]
 then
@@ -146,7 +146,6 @@ then
         echo "PX4IO CRC OK"
     else
         echo "PX4IO CRC failure"
-        echo "PX4IO CRC failure" >> $logfile    
         tone_alarm MBABGP
 
         if px4io safety_on
@@ -164,23 +163,19 @@ then
                if px4io start norc
                then
                   echo "PX4IO restart OK"
-                  echo "PX4IO restart OK" >> $logfile    
                   tone_alarm MSPAA
                else
                   echo "PX4IO restart failed"
-                  echo "PX4IO restart failed" >> $logfile    
                   tone_alarm MNGGG
                   sh /etc/init.d/rc.error
                fi
         else
                echo "PX4IO update failed"
-               echo "PX4IO update failed" >> $logfile    
                tone_alarm MNGGG
         fi
     fi
 else
     echo "No PX4IO board found"
-    echo "No PX4IO board found" >> $logfile
 
     if [ $BOARD == FMUv2 ]
     then
@@ -207,7 +202,6 @@ then
    echo "ms5611 started OK"
 else
    echo "no ms5611 found"
-   echo "No ms5611 found" >> $logfile
    sh /etc/init.d/rc.error
 fi
 
@@ -215,7 +209,6 @@ if adc start
 then
    echo "adc started OK"
 else
-   echo "No adc" >> $logfile
    sh /etc/init.d/rc.error
 fi
 
@@ -227,7 +220,6 @@ then
         echo "hmc5883 started OK"
     else
         echo "hmc5883 start failed"
-        echo "hmc5883 start failed" >> $logfile
         sh /etc/init.d/rc.error
     fi
     if mpu6000 start
@@ -241,7 +233,6 @@ then
        echo "l3gd20 started OK"
     else
        echo "No l3gd20"
-       echo "No l3gd20" >> $logfile
     fi
 else
     echo "Starting FMUv2 sensors"
@@ -268,7 +259,6 @@ else
                echo "Found MPU6000 internal"
         else
                echo "No MPU6000"
-               echo "No MPU6000" >> $logfile
                sh /etc/init.d/rc.error
         fi
         if hmc5883 -C -T -S -R 8 start
