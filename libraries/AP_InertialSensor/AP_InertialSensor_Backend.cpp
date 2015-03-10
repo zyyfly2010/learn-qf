@@ -15,8 +15,10 @@ AP_InertialSensor_Backend::AP_InertialSensor_Backend(AP_InertialSensor &imu) :
 void AP_InertialSensor_Backend::_rotate_and_offset_gyro(uint8_t instance, const Vector3f &gyro)
 {
     _imu._gyro[instance] = gyro;
-    _imu._gyro[instance].rotate(_imu._board_orientation);
+
+    // gyro calibration is always assumed to have been done in sensor frame
     _imu._gyro[instance] -= _imu._gyro_offset[instance];
+    _imu._gyro[instance].rotate(_imu._board_orientation);
     _imu._gyro_healthy[instance] = true;
 }
 
@@ -25,14 +27,31 @@ void AP_InertialSensor_Backend::_rotate_and_offset_gyro(uint8_t instance, const 
  */
 void AP_InertialSensor_Backend::_rotate_and_offset_accel(uint8_t instance, const Vector3f &accel)
 {
-    _imu._accel[instance] = accel;
-    _imu._accel[instance].rotate(_imu._board_orientation);
-
     const Vector3f &accel_scale = _imu._accel_scale[instance].get();
+    _imu._accel[instance] = accel;
+
+    /*
+      we rotate before or after offset and scaling based on the
+      INS_CALSENSFRAME parameter. This allows us to use older
+      calibrations, while making all new calibrations operate in
+      sensor frame, and thus be independent of AHRS_ORIENTATION
+     */
+    if (_imu._cal_sensor_frame == 0) {
+        _imu._accel[instance].rotate(_imu._board_orientation);
+    }
+
+    // apply scaling
     _imu._accel[instance].x *= accel_scale.x;
     _imu._accel[instance].y *= accel_scale.y;
     _imu._accel[instance].z *= accel_scale.z;
+
+    // apply offsets
     _imu._accel[instance] -= _imu._accel_offset[instance];
+
+    if (_imu._cal_sensor_frame != 0) {
+        _imu._accel[instance].rotate(_imu._board_orientation);
+    }
+
     _imu._accel_healthy[instance] = true;
 }
 

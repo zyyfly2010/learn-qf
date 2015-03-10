@@ -215,7 +215,7 @@ private:
     void _calibrate_update_matrices(float dS[6], float JS[6][6], float beta[6], float data[3]);
     void _calibrate_reset_matrices(float dS[6], float JS[6][6]);
     void _calibrate_find_delta(float dS[6], float JS[6][6], float delta[6]);
-    void _calculate_trim(Vector3f accel_sample, float& trim_roll, float& trim_pitch);
+    void _calculate_trim(const Vector3f &accel_sample, float& trim_roll, float& trim_pitch);
 #endif
 
     // check if we have 3D accel calibration
@@ -253,6 +253,9 @@ private:
 
     // filtering frequency (0 means default)
     AP_Int8     _mpu6000_filter;
+
+    // was the accel cal done in sensor frame?
+    AP_Int8    _cal_sensor_frame;
 
     // board orientation from AHRS
     enum Rotation _board_orientation;
