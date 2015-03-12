@@ -356,10 +356,11 @@ bool Copter::pre_arm_checks(bool display_failure)
         }
 
 #if COMPASS_MAX_INSTANCES > 1
-        // check all compasses point in roughly same direction
+        // check all compasses point in roughly same direction and apply a more stringent check in the XY plane
         if (compass.get_count() > 1) {
             Vector3f prime_mag_vec = compass.get_field();
-            prime_mag_vec.normalize();
+            Vector3f prime_mag_vec_norm = prime_mag_vec;
+            prime_mag_vec_norm.normalize();
             for(uint8_t i=0; i<compass.get_count(); i++) {
                 // get next compass
                 Vector3f mag_vec = compass.get_field(i);
@@ -368,6 +369,17 @@ bool Copter::pre_arm_checks(bool display_failure)
                 if (compass.use_for_yaw(i) && vec_diff.length() > COMPASS_ACCEPTABLE_VECTOR_DIFF) {
                     if (display_failure) {
                         gcs_send_text_P(SEVERITY_HIGH,PSTR("PreArm: inconsistent compasses"));
+                    }
+                    return false;
+                }
+                // calculate the angular difference in the XY plane
+                float angDiff_XY = wrap_PI((atan2f(prime_mag_vec.y,prime_mag_vec.x) - atan2f(mag_vec.y,mag_vec.x)));
+                // calculate the length difference in the XY plane
+                float lengthDiff_XY = sqrtf(sq(prime_mag_vec.x - mag_vec.x) + sq(prime_mag_vec.y - mag_vec.y));
+                // check for inconsistency in the XY plane
+                if (fabsf(angDiff_XY) > MAX_COMPASS_XY_ANG_DIFF || lengthDiff_XY > MAX_COMPASS_XY_LENGTH_DIFF) {
+                    if (display_failure) {
+                        gcs_send_text_P(SEVERITY_HIGH,PSTR("PreArm: Compass XY field inconsistency"));
                     }
                     return false;
                 }
