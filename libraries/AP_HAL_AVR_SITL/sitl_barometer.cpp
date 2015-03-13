@@ -27,6 +27,14 @@ extern const AP_HAL::HAL& hal;
   setup the barometer with new input
   altitude is in meters
  */
+
+uint8_t storeBaroIndex;
+uint32_t lastBaroStoreTime;
+VectorN<uint32_t,50> baroTimeStamp;
+VectorN<float,50> storedBaro;
+uint32_t timeBaroDelta;
+uint32_t delayed_baro_time;
+
 void SITL_State::_update_barometer(float altitude)
 {
 	static uint32_t last_update;
@@ -55,7 +63,34 @@ void SITL_State::_update_barometer(float altitude)
 
 	// add baro glitch
 	sim_alt += _sitl->baro_glitch;
+///////////////////////////////////////// add baro delay ////////////////////////////////////////
+	uint32_t bestTimeBaroDelta = 200;
+	uint8_t bestBaroIndex = 0;
 
+	if (now - lastBaroStoreTime >= 10) {
+        lastBaroStoreTime = now;
+        if (storeBaroIndex > 49) {
+            storeBaroIndex = 0;
+        }
+        storedBaro[storeBaroIndex] = sim_alt;
+        baroTimeStamp[storeBaroIndex] = lastBaroStoreTime;
+        storeBaroIndex = storeBaroIndex + 1;
+	}
+	delayed_baro_time = now - _sitl->baro_delay;
+	for (uint8_t i=0; i<=49; i++)
+    {
+        timeBaroDelta = delayed_baro_time - baroTimeStamp[i];
+        if (timeBaroDelta < bestTimeBaroDelta)
+        {
+            bestBaroIndex = i;
+            bestTimeBaroDelta = timeBaroDelta;
+        }
+	}
+	if (bestTimeBaroDelta < 200) // only output stored state if < 200 msec retrieval error
+	{
+        sim_alt = storedBaro[bestBaroIndex];
+	}
+///////////////////////////////////////// add baro delay ////////////////////////////////////////
 	_barometer->setHIL(sim_alt);
 }
 
