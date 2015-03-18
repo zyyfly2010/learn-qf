@@ -27,7 +27,7 @@ static void downstream_handle_gps(mavlink_message_t* msg) {
 void downstream_handler(mavlink_channel_t from, mavlink_message_t* msg) {
     switch (msg->msgid) {
       case MAVLINK_MSG_ID_HEARTBEAT:
-        downstream_handle_heartbeat(msg); 
+        downstream_handle_heartbeat(msg);
         _mavlink_resend_uart(downstream_channel, msg);
         break;
       case MAVLINK_MSG_ID_GPS_RAW_INT:

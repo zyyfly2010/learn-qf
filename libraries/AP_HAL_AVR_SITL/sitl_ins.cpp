@@ -28,6 +28,13 @@
 
 using namespace AVR_SITL;
 
+uint8_t storeIndexWind;
+uint32_t lastStoreTimeWind = 10;
+VectorN<uint32_t,50> timeStampWind;
+VectorN<float,50> storedDataWind;
+uint32_t timeDeltaWind;
+uint32_t delayed_time_wind;
+
 /*
   convert airspeed in m/s to an airspeed sensor value
  */
@@ -42,6 +49,40 @@ uint16_t SITL_State::_airspeed_sensor(float airspeed)
         if (airspeed_raw/4 > 0xFFFF) {
             return 0xFFFF;
         }
+
+    // add delay
+	uint32_t bestTimeDeltaWind = 200; // initialise large time representing buffer entry closest to current time - delay.
+	uint8_t bestIndexWind = 0; // initialise number representing the index of the entry in buffer closest to delay.
+
+    // storing data from sensor to buffer
+	if (now - lastStoreTimeWind >= 10) { // store data every 10 ms.
+        lastStoreTimeWind = now;
+        if (storeIndexWind > 49) { // reset buffer index if index greater than size of buffer
+            storeIndexWind = 0;
+        }
+        storedDataWind[storeIndexWind] = airspeed_raw; // add data to current index
+        timeStampWind[storeIndexWind] = lastStoreTimeWind; // add timeStampWind to current index
+        storeIndexWind = storeIndexWind + 1; // increment index
+	}
+
+	// return delayed measurement
+	delayed_time_wind = now - _sitl->wind_delay; // get time corresponding to delay
+	// find data corresponding to delayed time in buffer
+	for (uint8_t i=0; i<=49; i++)
+    {
+        timeDeltaWind = delayed_time_wind - timeStampWind[i]; // find difference between delayed time and measurement in buffer
+        // if this difference is smaller than last delta, store this time
+        if (timeDeltaWind < bestTimeDeltaWind)
+        {
+            bestIndexWind = i;
+            bestTimeDeltaWind = timeDeltaWind;
+        }
+	}
+	if (bestTimeDeltaWind < 200) // only output stored state if < 200 msec retrieval error
+	{
+        airspeed_raw = storedDataWind[bestIndexWind];
+	}
+
 	return airspeed_raw/4;
 }
 
@@ -72,18 +113,18 @@ uint16_t SITL_State::_ground_sonar(void)
         fabsf(_sitl->state.pitchDeg) < 90) {
         // adjust for apparent altitude with roll
         altitude /= cos(radians(_sitl->state.rollDeg)) * cos(radians(_sitl->state.pitchDeg));
-        
+
         altitude += _sitl->sonar_noise * _rand_float();
 
         // Altitude in in m, scaler in meters/volt
         voltage = altitude / _sitl->sonar_scale;
         voltage = constrain_float(voltage, 0, 5.0f);
-        
+
         if (_sitl->sonar_glitch >= (_rand_float() + 1.0f)/2.0f) {
             voltage = 5.0f;
         }
     }
-    
+
     return 1023*(voltage / 5.0f);
 }
 

@@ -92,7 +92,9 @@ public:
     AP_Float wind_turbulance;
     AP_Float gps_drift_alt;
 
-    AP_Int8  baro_delay; // barom data delay
+    AP_Int16  baro_delay; // barometer data delay
+    AP_Int16  mag_delay; // magnetometer data delay
+    AP_Int16  wind_delay; // windspeed data delay
 
 	void simstate_send(mavlink_channel_t chan);
 

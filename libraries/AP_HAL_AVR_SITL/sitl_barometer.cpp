@@ -28,12 +28,12 @@ extern const AP_HAL::HAL& hal;
   altitude is in meters
  */
 
-uint8_t storeBaroIndex;
-uint32_t lastBaroStoreTime;
-VectorN<uint32_t,50> baroTimeStamp;
-VectorN<float,50> storedBaro;
-uint32_t timeBaroDelta;
-uint32_t delayed_baro_time;
+uint8_t storeIndexBaro;
+uint32_t lastStoreTimeBaro = 10;
+VectorN<uint32_t,50> timeStampBaro;
+VectorN<float,50> storedDataBaro;
+uint32_t timeDeltaBaro;
+uint32_t delayed_time_baro;
 
 void SITL_State::_update_barometer(float altitude)
 {
@@ -52,7 +52,7 @@ void SITL_State::_update_barometer(float altitude)
         }
 
 	// 80Hz, to match the real APM2 barometer
-        uint32_t now = hal.scheduler->millis();
+    uint32_t now = hal.scheduler->millis();
 	if ((now - last_update) < 12) {
 		return;
 	}
@@ -63,34 +63,40 @@ void SITL_State::_update_barometer(float altitude)
 
 	// add baro glitch
 	sim_alt += _sitl->baro_glitch;
-///////////////////////////////////////// add baro delay ////////////////////////////////////////
-	uint32_t bestTimeBaroDelta = 200;
-	uint8_t bestBaroIndex = 0;
 
-	if (now - lastBaroStoreTime >= 10) {
-        lastBaroStoreTime = now;
-        if (storeBaroIndex > 49) {
-            storeBaroIndex = 0;
+    // add delay
+	uint32_t bestTimeDeltaBaro = 200; // initialise large time representing buffer entry closest to current time - delay.
+	uint8_t bestIndexBaro = 0; // initialise number representing the index of the entry in buffer closest to delay.
+
+    // storing data from sensor to buffer
+	if (now - lastStoreTimeBaro >= 10) { // store data every 10 ms.
+        lastStoreTimeBaro = now;
+        if (storeIndexBaro > 49) { // reset buffer index if index greater than size of buffer
+            storeIndexBaro = 0;
         }
-        storedBaro[storeBaroIndex] = sim_alt;
-        baroTimeStamp[storeBaroIndex] = lastBaroStoreTime;
-        storeBaroIndex = storeBaroIndex + 1;
+        storedDataBaro[storeIndexBaro] = sim_alt; // add data to current index
+        timeStampBaro[storeIndexBaro] = lastStoreTimeBaro; // add timeStampBaro to current index
+        storeIndexBaro = storeIndexBaro + 1; // increment index
 	}
-	delayed_baro_time = now - _sitl->baro_delay;
+
+	// return delayed measurement
+	delayed_time_baro = now - _sitl->baro_delay; // get time corresponding to delay
+	// find data corresponding to delayed time in buffer
 	for (uint8_t i=0; i<=49; i++)
     {
-        timeBaroDelta = delayed_baro_time - baroTimeStamp[i];
-        if (timeBaroDelta < bestTimeBaroDelta)
+        timeDeltaBaro = delayed_time_baro - timeStampBaro[i]; // find difference between delayed time and measurement in buffer
+        // if this difference is smaller than last delta, store this time
+        if (timeDeltaBaro < bestTimeDeltaBaro)
         {
-            bestBaroIndex = i;
-            bestTimeBaroDelta = timeBaroDelta;
+            bestIndexBaro = i;
+            bestTimeDeltaBaro = timeDeltaBaro;
         }
 	}
-	if (bestTimeBaroDelta < 200) // only output stored state if < 200 msec retrieval error
+	if (bestTimeDeltaBaro < 200) // only output stored state if < 200 msec retrieval error
 	{
-        sim_alt = storedBaro[bestBaroIndex];
+        sim_alt = storedDataBaro[bestIndexBaro];
 	}
-///////////////////////////////////////// add baro delay ////////////////////////////////////////
+
 	_barometer->setHIL(sim_alt);
 }
 
