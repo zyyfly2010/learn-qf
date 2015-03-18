@@ -9,6 +9,8 @@
 #include <AP_Declination.h> // ArduPilot Mega Declination Helper Library
 #include <AP_HAL.h>
 #include "AP_Compass_Backend.h"
+#include <CompassCalibrator.h>
+#include <GCS_MAVLink.h>
 
 // compass product id
 #define AP_COMPASS_TYPE_UNKNOWN         0x00
@@ -243,6 +245,30 @@ public:
         Vector3f field;
     } _hil;
 
+
+    /* compass calibration methods */
+    void compass_cal_update();
+
+    bool start_calibration(uint8_t i, bool retry=false, bool autosave=false, float delay_sec=0.0f);
+    bool start_calibration_all(bool retry=false, bool autosave=false, float delay_sec=0.0f);
+    bool start_calibration_mask(uint8_t mask, bool retry=false, bool autosave=false, float delay_sec=0.0f);
+
+    void cancel_calibration(uint8_t i);
+    void cancel_calibration_all();
+    void cancel_calibration_mask(uint8_t mask);
+
+    bool accept_calibration(uint8_t i);
+    bool accept_calibration_all();
+    bool accept_calibration_mask(uint8_t mask);
+
+    uint8_t get_cal_mask() const;
+    bool is_calibrating() const;
+
+    uint8_t get_healthy_mask() const;
+
+    void send_mag_cal_progress(mavlink_channel_t chan);
+    void send_mag_cal_report(mavlink_channel_t chan);
+
 private:
     /// Register a new compas driver, allocating an instance number
     ///
@@ -323,6 +349,15 @@ private:
 
     // if we want HIL only
     bool _hil_mode:1;
+
+    /* compass calibration support */
+    CompassCalibrator _calibrator[COMPASS_MAX_INSTANCES];
+
+    void set_and_save_diagonals(uint8_t i, const Vector3f &diagonals);
+    void set_and_save_offdiagonals(uint8_t i, const Vector3f &diagonals);
+
+    AP_Vector3f _diagonals[COMPASS_MAX_INSTANCES];
+    AP_Vector3f _offdiagonals[COMPASS_MAX_INSTANCES];
 };
 
 #include "AP_Compass_Backend.h"
