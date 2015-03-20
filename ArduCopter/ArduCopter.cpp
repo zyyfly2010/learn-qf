@@ -311,9 +311,6 @@ void Copter::throttle_loop()
 // should be run at 50hz
 void Copter::update_mount()
 {
-    // update gimbal library
-    gimbal.update_failsafe(failsafe.radio);
-
 #if MOUNT == ENABLED
     // update camera mount's position
     camera_mount.update();
