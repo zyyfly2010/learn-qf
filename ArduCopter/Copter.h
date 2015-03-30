@@ -460,7 +460,7 @@ private:
     AC_Fence    fence;
 #endif
 
-    AP_Gimbal gimbal{ahrs, g.sysid_this_mav, 230};
+    AP_Gimbal gimbal{ahrs, g.sysid_this_mav, MAV_COMP_ID_GIMBAL};
 
     // Rally library
 #if AC_RALLY == ENABLED
