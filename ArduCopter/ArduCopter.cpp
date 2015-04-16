@@ -360,9 +360,6 @@ void Copter::ten_hz_logging_loop()
     if (should_log(MASK_LOG_RCIN)) {
         DataFlash.Log_Write_RCIN();
     }
-    if (should_log(MASK_LOG_RCOUT)) {
-        DataFlash.Log_Write_RCOUT();
-    }
     if (should_log(MASK_LOG_NTUN) && (mode_requires_GPS(control_mode) || landing_with_GPS())) {
         Log_Write_Nav_Tuning();
     }
@@ -390,6 +387,10 @@ void Copter::fifty_hz_logging_loop()
             DataFlash.Log_Write_PID(LOG_PIDY_MSG, g.pid_rate_yaw.get_pid_info() );
             DataFlash.Log_Write_PID(LOG_PIDA_MSG, g.pid_accel_z.get_pid_info() );
         }
+    }
+
+    if (should_log(MASK_LOG_RCOUT)) {
+        DataFlash.Log_Write_RCOUT();
     }
 
     // log IMU data if we're not already logging at the higher rate
