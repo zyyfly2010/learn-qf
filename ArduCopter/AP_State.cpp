@@ -102,6 +102,11 @@ void Copter::set_pre_arm_check(bool b)
         ap.pre_arm_check = b;
         AP_Notify::flags.pre_arm_check = b;
     }
+    ap.land_complete = b;
+
+    if (ap.land_complete && motors.armed() && mode_disarms_on_land(control_mode)) {
+        init_disarm_motors();
+    }
 }
 
 void Copter::set_pre_arm_rc_check(bool b)
