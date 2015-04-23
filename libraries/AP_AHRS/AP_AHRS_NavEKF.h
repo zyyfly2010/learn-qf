@@ -118,6 +118,7 @@ AP_AHRS_NavEKF(AP_InertialSensor &ins, AP_Baro &baro, AP_GPS &gps, RangeFinder &
     void setTakeoffExpected(bool val);
     void setTouchdownExpected(bool val);
 
+    float get_yaw_for_control_cd() const;
 
     // is the AHRS subsystem healthy?
     bool healthy(void) const;
