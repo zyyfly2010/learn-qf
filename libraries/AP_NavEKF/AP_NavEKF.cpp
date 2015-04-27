@@ -226,7 +226,7 @@ const AP_Param::GroupInfo NavEKF::var_info[] PROGMEM = {
     // @Range: 0 500
     // @Increment: 10
     // @User: Advanced
-    AP_GROUPINFO("VEL_DELAY",    14, NavEKF, _msecVelDelay, 400), //Sean change delay amount
+    AP_GROUPINFO("VEL_DELAY",    14, NavEKF, _msecVelDelay, 220),
 
     // @Param: POS_DELAY
     // @DisplayName: GPS position measurement delay (msec)
@@ -234,7 +234,7 @@ const AP_Param::GroupInfo NavEKF::var_info[] PROGMEM = {
     // @Range: 0 500
     // @Increment: 10
     // @User: Advanced
-    AP_GROUPINFO("POS_DELAY",    15, NavEKF, _msecPosDelay, 400), //Sean change delay amount
+    AP_GROUPINFO("POS_DELAY",    15, NavEKF, _msecPosDelay, 220), 
 
     // @Param: GPS_TYPE
     // @DisplayName: GPS mode control
@@ -505,7 +505,7 @@ void NavEKF::ResetHeight(void)
     state.posD1 = -hgtMea; // down position from IMU1 accel data
     state.posD2 = -hgtMea; // down position from IMU2 accel data
     // reset stored vertical position states to prevent subsequent GPS measurements from being rejected
-    for (uint8_t i=0; i<=49; i++){
+    for (uint8_t i=0; i<=(BUFFER_SIZE-1); i++){
         storedStates[i].position.z = -hgtMea;
     }
     terrainState = state.position.z + rngOnGnd;
@@ -3502,8 +3502,9 @@ void NavEKF::StoreStates()
     // Don't need to store states more often than every 10 msec
     if (imuSampleTime_ms - lastStateStoreTime_ms >= 10) {
         lastStateStoreTime_ms = imuSampleTime_ms;
-        if (storeIndex > 49) {
-            storeIndex = 0;
+ //       if (storeIndex > 49) {
+        if (storeIndex > (BUFFER_SIZE-1)) {   // Sean increase buffer length
+	    storeIndex = 0;
         }
         storedStates[storeIndex] = state;
         statetimeStamp[storeIndex] = lastStateStoreTime_ms;
@@ -3530,8 +3531,9 @@ void NavEKF::RecallStates(state_elements &statesForFusion, uint32_t msec)
     uint32_t timeDelta;
     uint32_t bestTimeDelta = 200;
     uint8_t bestStoreIndex = 0;
-    for (uint8_t i=0; i<=49; i++)
-    {
+ //   for (uint8_t i=0; i<=49; i++)
+   for (uint8_t i=0; i<=(BUFFER_SIZE-1); i++)    //sean increase buffer length from 50 to BUFFER_SIZE
+	{
         timeDelta = msec - statetimeStamp[i];
         if (timeDelta < bestTimeDelta)
         {
@@ -4112,8 +4114,8 @@ void NavEKF::readGpsData()
 
         // get state vectors that were stored at the time that is closest to when the the GPS measurement
         // time after accounting for measurement delays
-        RecallStates(statesAtVelTime, (imuSampleTime_ms - constrain_int16(_msecVelDelay, 0, 500)));
-        RecallStates(statesAtPosTime, (imuSampleTime_ms - constrain_int16(_msecPosDelay, 0, 500)));
+        RecallStates(statesAtVelTime, (imuSampleTime_ms - constrain_int16(_msecVelDelay, 0, MAX_MSDELAY)));
+        RecallStates(statesAtPosTime, (imuSampleTime_ms - constrain_int16(_msecPosDelay, 0, MAX_MSDELAY)));
 
         // read the NED velocity from the GPS
         velNED = _ahrs->get_gps().velocity();

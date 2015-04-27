@@ -1,7 +1,7 @@
 /// -*- tab-width: 4; Mode: C++; c-basic-offset: 4; indent-tabs-mode: nil -*-
 /*
   22 state EKF based on https://github.com/priseborough/InertialNav
-
+int16
   Converted from Matlab to C++ by Paul Riseborough
 
   This program is free software: you can redistribute it and/or modify
@@ -38,6 +38,8 @@
 #if CONFIG_HAL_BOARD == HAL_BOARD_PX4 || CONFIG_HAL_BOARD == HAL_BOARD_VRBRAIN
 #include <systemlib/perf_counter.h>
 #endif
+
+
 
 
 class AP_AHRS;
@@ -78,42 +80,45 @@ public:
     // Constructor
     NavEKF2(const AP_AHRS *ahrs, AP_Baro &baro);
 
+#define BUFFER_SIZE  200   // sean buffer size for sensors
+#define MAX_MSDELAY  2000   // maximum allowed delay
 
-    uint8_t storeIndexIMU;						// arash
+    uint16_t storeIndexIMU;						// arash
     uint32_t lastAngRateStoreTime_ms;		 // sean
-    VectorN<Vector3f,50> storedAngRate;       //  sean
-    VectorN<Vector3f,50> storeddVelIMU1; //sean
-    VectorN<Vector3f,50>  storeddVelIMU2; //sean
-    uint32_t angRateTimeStamp[50];    		  // sean
+    VectorN<Vector3f,BUFFER_SIZE> storedAngRate;       //  sean
+    VectorN<Vector3f,BUFFER_SIZE> storeddVelIMU1; //sean
+    VectorN<Vector3f,BUFFER_SIZE>  storeddVelIMU2; //sean
+    uint32_t angRateTimeStamp[BUFFER_SIZE];    		  // sean
  
-   uint8_t storeIndexMag;
+   uint16_t storeIndexMag;
     uint32_t lastMagStoreTime_ms;
-    VectorN<Vector3f,50> storedMag;       //  sean
-//    float storedMag[50];
-    uint32_t MagTimeStamp[50];    		  // sean
+    VectorN<Vector3f,BUFFER_SIZE> storedMag;       //  sean
+    uint32_t MagTimeStamp[BUFFER_SIZE];    		  // sean
 
 
-    uint8_t storeIndexTas;              // sean
+    uint16_t storeIndexTas;              // sean
     uint32_t lastTasStoreTime_ms;           // sean
-    float storedTas[50];                 // sean
-    uint32_t TasTimeStamp[50];    		  // sean
+    float storedTas[BUFFER_SIZE];                 // sean
+    uint32_t TasTimeStamp[BUFFER_SIZE];    		  // sean
 
-    uint8_t storeIndexHgt;              // sean
+    uint16_t storeIndexHgt;              // sean
     uint32_t lastHgtStoreTime_ms;           // sean
-    float storedHgt[50];                 // sean
-    uint32_t HgtTimeStamp[50];    		  // sean
+    float storedHgt[BUFFER_SIZE];                 // sean
+    uint32_t HgtTimeStamp[BUFFER_SIZE];    		  // sean
     uint32_t lastHealthyHgtTime_ms; // Sean time the barometer was last declared healthy
 
-    uint8_t storeIndexD;						// sean
+    uint16_t storeIndexD;						// sean
     uint32_t lastDStoreTime_ms;		 // sean
-    VectorN<Vector3f,50> storedD_v;       //  sean vector part of quaternion Delta
-    float storedD_s[50];                 // sean  scalar part of quaternion Delta
-    uint32_t DTimeStamp[50];    		  // sean
-    VectorN<Vector3f,50> storedd_v;       //  sean buffer for delta corrsponding to velocity prediction
-    VectorN<Vector3f,50> storedd_p;       //  sean buffer for delta corrsponding to position prediction
-
-
-
+    VectorN<Vector3f,BUFFER_SIZE> storedD_v;       //  sean vector part of quaternion Delta
+    float storedD_s[BUFFER_SIZE];                 // sean  scalar part of quaternion Delta
+    uint32_t DTimeStamp[BUFFER_SIZE];    		  // sean
+    VectorN<Vector3f,BUFFER_SIZE> storedd_v;       //  sean buffer for delta corrsponding to velocity prediction
+    VectorN<Vector3f,BUFFER_SIZE> storedd_p;       //  sean buffer for delta corrsponding to position prediction
+   VectorN<Vector3f,BUFFER_SIZE> storedd_p_m;       //  sean buffer for delta corrsponding to position prediction mixed-invariant
+    VectorN<Vector3f,BUFFER_SIZE> storedd_v_m;       //  sean buffer for delta corrsponding to velocity prediction mixed-invariant
+   uint32_t ctr_rst;  // reset predictor cntr
+   
+   float init_reset;   //sean reset initial quaternions
 
     // This function is used to initialise the filter whilst moving, using the AHRS DCM solution
     // It should NOT be used to re-initialise after a timeout as DCM will also be corrupted
@@ -419,8 +424,8 @@ private:
     Matrix22 KH;                    // intermediate result used for covariance updates
     Matrix22 KHP;                   // intermediate result used for covariance updates
     Matrix22 P;                     // covariance matrix
-    VectorN<state_elements,50> storedStates;       // state vectors stored for the last 50 time steps
-    uint32_t statetimeStamp[50];    // time stamp for each state vector stored
+    VectorN<state_elements,BUFFER_SIZE> storedStates;       // state vectors stored for the last 50 time steps  // sean increase buffer length from 50 to BUFFER_SIZE
+    uint32_t statetimeStamp[BUFFER_SIZE];    // time stamp for each state vector stored  // sean increase buffer length from 50 to BUFFER_SIZE
     Vector3f correctedDelAng;       // delta angles about the xyz body axes corrected for errors (rad)
     Vector3f correctedDelVel12;     // delta velocities along the XYZ body axes for weighted average of IMU1 and IMU2 corrected for errors (m/s)
     Vector3f correctedDelVel1;      // delta velocities along the XYZ body axes for IMU1 corrected for errors (m/s)
@@ -494,7 +499,7 @@ private:
     uint32_t velFailTime;           // time stamp when GPS velocity measurement last failed covaraiance consistency check (msec)
     uint32_t posFailTime;           // time stamp when GPS position measurement last failed covaraiance consistency check (msec)
     uint32_t hgtFailTime;           // time stamp when height measurement last failed covaraiance consistency check (msec)
-    uint8_t storeIndex;             // State vector storage index
+    uint16_t storeIndex;             // State vector storage index
     uint32_t lastStateStoreTime_ms; // time of last state vector storage
     uint32_t lastFixTime_ms;        // time of last GPS fix used to determine if new data has arrived
     uint32_t secondLastFixTime_ms;  // time of second last GPS fix used to determine how long since last update
@@ -538,6 +543,10 @@ private:
     Vector3f v_hat; // prediction of current velocity
     Vector3f d_p;
     Vector3f p_hat; // prediction of current position
+    Vector3f v_hat_m; // prediction of current velocity mixed-invariant
+    Vector3f d_p_m;
+    Vector3f p_hat_m; // prediction of current position mixed-invariant
+    Vector3f d_v_m;  // mixed-invariant
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     // Used by smoothing of state corrections
@@ -576,7 +585,7 @@ private:
         ftype magXbias;
         ftype magYbias;
         ftype magZbias;
-        uint8_t obsIndex;
+        uint16_t obsIndex;
         Matrix3f DCM;
         Vector3f MagPred;
         ftype R_MAG;

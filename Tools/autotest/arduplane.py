@@ -578,3 +578,5 @@ def fly_ArduPlane(viewerip=None, map=False):
         print("FAILED: %s" % e)
         return False
     return True
+
+
