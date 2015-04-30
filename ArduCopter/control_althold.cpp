@@ -28,7 +28,11 @@ void Copter::althold_run()
     float target_climb_rate;
     float takeoff_climb_rate = 0.0f;
 
-    // if not auto armed or motor interlock not enabled set throttle to zero and exit immediately
+    // initialize vertical speeds and leash lengths
+    pos_control.set_speed_z(-g.pilot_velocity_z_max, g.pilot_velocity_z_max);
+    pos_control.set_accel_z(g.pilot_accel_z);
+
+    // if not auto armed set throttle to zero and exit immediately
     if(!ap.auto_armed || !motors.get_interlock()) {
         attitude_control.set_throttle_out_unstabilized(0,true,g.throttle_filt);
         pos_control.relax_alt_hold_controllers(get_throttle_pre_takeoff(channel_throttle->control_in)-throttle_average);
