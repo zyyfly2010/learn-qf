@@ -132,6 +132,8 @@ AP_AHRS_NavEKF(AP_InertialSensor &ins, AP_Baro &baro, AP_GPS &gps, RangeFinder &
 
 private:
     bool using_EKF(void) const;
+
+    // update an attitude reference that filters out correction steps from the EKF
     void update_attitude_for_control(float dt);
 
     NavEKF &EKF;
