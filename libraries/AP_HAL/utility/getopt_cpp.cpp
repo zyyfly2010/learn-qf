@@ -48,7 +48,7 @@ GetOptLong::GetOptLong(int _argc, char *const _argv[], const char *_optstring, c
     optstring(_optstring),
     longopts(_longopts),
     opterr(0),
-    optind(0),
+    optind(1),
     optopt(0),
     longindex(-1),
     optarg(NULL),

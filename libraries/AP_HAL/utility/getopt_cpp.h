@@ -11,11 +11,13 @@
 #ifndef GETOPT_LONG_H
 #define GETOPT_LONG_H
 
+#include <stdbool.h>
+
 class GetOptLong {
 public:
     struct option {
 	const char *name;
-	int         has_arg;
+	bool        has_arg;
 	int        *flag;
 	int         val;
     };
@@ -27,11 +29,6 @@ public:
     int   optopt;
     int   longindex;
     const char *optarg;
-
-    enum { 
-        no_argument=0,
-        required_argument=1
-    };
 
     enum error_return {
         BADCH='?',
