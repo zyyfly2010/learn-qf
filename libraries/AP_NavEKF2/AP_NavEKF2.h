@@ -27,6 +27,7 @@ int16
 #include <AP_Airspeed.h>
 #include <AP_Compass.h>
 #include <AP_Param.h>
+#include <AP_Predictors.h>
 
 
 
@@ -89,7 +90,7 @@ public:
     VectorN<Vector3f,BUFFER_SIZE> storeddVelIMU1; //sean
     VectorN<Vector3f,BUFFER_SIZE>  storeddVelIMU2; //sean
     uint32_t angRateTimeStamp[BUFFER_SIZE];    		  // sean
- 
+
    uint16_t storeIndexMag;
     uint32_t lastMagStoreTime_ms;
     VectorN<Vector3f,BUFFER_SIZE> storedMag;       //  sean
@@ -117,7 +118,10 @@ public:
    VectorN<Vector3f,BUFFER_SIZE> storedd_p_m;       //  sean buffer for delta corrsponding to position prediction mixed-invariant
     VectorN<Vector3f,BUFFER_SIZE> storedd_v_m;       //  sean buffer for delta corrsponding to velocity prediction mixed-invariant
    uint32_t ctr_rst;  // reset predictor cntr
-   
+
+    AP_Predictors test_Predictor;
+    AP_Predictors &get_Predictor(void) {return test_Predictor;}
+
    float init_reset;   //sean reset initial quaternions
 
     // This function is used to initialise the filter whilst moving, using the AHRS DCM solution
@@ -487,7 +491,7 @@ private:
     Vector3f velDotNEDfilt;         // low pass filtered velDotNED
     uint32_t lastAirspeedUpdate;    // last time airspeed was updated
     uint32_t imuSampleTime_ms;      // time that the last IMU value was taken
-    ftype gpsCourse;                // GPS ground course angle(rad) 
+    ftype gpsCourse;                // GPS ground course angle(rad)
     ftype gpsGndSpd;                // GPS ground speed (m/s)
     bool newDataGps;                // true when new GPS data has arrived
     bool newDataMag;                // true when new magnetometer data has arrived
@@ -526,7 +530,7 @@ private:
     bool inhibitMagStates;          // true when magnetic field states and covariances are to remain constant
 
     /////////////////////////// Sean: (12 - 15)/12/2014 -- Predictor ///////////////////////////////////////////////////////////
-    
+
     Matrix3f D;
     Matrix3f D_T;
     Quaternion D_q;
@@ -602,7 +606,7 @@ private:
     perf_counter_t  _perf_FuseAirspeed;
     perf_counter_t  _perf_FuseSideslip;
 #endif
-    
+
     // should we assume zero sideslip?
     bool assume_zero_sideslip(void) const;
 };
