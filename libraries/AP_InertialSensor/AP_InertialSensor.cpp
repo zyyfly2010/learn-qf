@@ -289,7 +289,8 @@ AP_InertialSensor::AP_InertialSensor() :
     _accel_vibe_floor_filter(AP_INERTIAL_SENSOR_ACCEL_VIBE_FLOOR_FILT_HZ),
     _accel_vibe_filter(AP_INERTIAL_SENSOR_ACCEL_VIBE_FILT_HZ),
 #endif
-    _dataflash(NULL)
+    _dataflash(NULL),
+    _startup_error_counts_set(false)
 {
     AP_Param::setup_object_defaults(this, var_info);        
     for (uint8_t i=0; i<INS_MAX_BACKENDS; i++) {
@@ -304,6 +305,8 @@ AP_InertialSensor::AP_InertialSensor() :
     }
     memset(_delta_velocity_valid,0,sizeof(_delta_velocity_valid));
     memset(_delta_angle_valid,0,sizeof(_delta_angle_valid));
+    memset(_accel_startup_error_count,0,sizeof(_accel_startup_error_count));
+    memset(_gyro_startup_error_count,0,sizeof(_gyro_startup_error_count));
 }
 
 
