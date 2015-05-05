@@ -14,37 +14,13 @@ class AP_Predictors
 {
     public:
         AP_Predictors();
+        typedef float ftype;
         void AttitudePredictor(Vector3f dAngIMU, Vector3f gyro_bias, AP_Int16 _msecPosDelay, Quaternion quat);
-    //    virtual ~AP_Predictors();
-//        typedef float ftype;
-//    #if MATH_CHECK_INDEXES
-//        typedef VectorN<ftype,2> Vector2;
-//        typedef VectorN<ftype,3> Vector3;
-//        typedef VectorN<ftype,6> Vector6;
-//        typedef VectorN<ftype,8> Vector8;
-//        typedef VectorN<ftype,11> Vector11;
-//        typedef VectorN<ftype,13> Vector13;
-//        typedef VectorN<ftype,14> Vector14;
-//        typedef VectorN<ftype,15> Vector15;
-//        typedef VectorN<ftype,22> Vector22;
-//        typedef VectorN<VectorN<ftype,3>,3> Matrix3;
-//        typedef VectorN<VectorN<ftype,22>,22> Matrix22;
-//        typedef VectorN<VectorN<ftype,50>,22> Matrix22_50;
-//    #else
-//        typedef ftype Vector2[2];
-//        typedef ftype Vector3[3];
-//        typedef ftype Vector6[6];
-//        typedef ftype Vector8[8];
-//        typedef ftype Vector11[11];
-//        typedef ftype Vector13[13];
-//        typedef ftype Vector14[14];
-//        typedef ftype Vector15[15];
-//        typedef ftype Vector22[22];
-//        typedef ftype Vector31[31];
-//        typedef ftype Matrix3[3][3];
-//        typedef ftype Matrix22[22][22];
-//        typedef ftype Matrix31_50[31][50];
-//    #endif
+        void VelocityPredictor(Quaternion quat, Vector3f dVelIMU1, Vector3f dVelIMU2, float IMU1_weighting, ftype dtIMU, AP_Int16 _msecPosDelay, float accel_zbias1, float accel_zbias2, Vector3f velocity, Vector3f position);   //    virtual ~AP_Predictors();
+        void PositionPredictor(ftype dtIMU, AP_Int16 _msecPosDelay, Vector3f position);
+        void VelocityPredictor2(Quaternion quat, Vector3f dVelIMU1, Vector3f dVelIMU2, float IMU1_weighting, ftype dtIMU, AP_Int16 _msecPosDelay, float accel_zbias1, float accel_zbias2, Vector3f velocity, Vector3f position);
+        void PositionPredictor2(ftype dtIMU, AP_Int16 _msecPosDelay, Vector3f position);
+        void CascadedPredictor(Vector3f dAngIMU, Vector3f gyro_bias, Quaternion quat, Vector3f dVelIMU1, Vector3f dVelIMU2, float IMU1_weighting, ftype dtIMU, AP_Int16 _msecPosDelay, float accel_zbias1, float accel_zbias2, Vector3f velocity, Vector3f position);
 
     private:
         uint32_t imuSampleTime_ms;
@@ -68,6 +44,8 @@ class AP_Predictors
         Vector3f d_p_m;
         Vector3f p_hat_m; // prediction of current position mixed-invariant
         Vector3f d_v_m;  // mixed-invariant
+        Quaternion D_Delay;
+        uint16_t bestStoreIndex;
 
         uint16_t storeIndexIMU;						// arash
         uint32_t lastAngRateStoreTime_ms;		 // sean
@@ -109,6 +87,18 @@ class AP_Predictors
         float rotScaler;
         Vector3f D_q_tmp;
         Quaternion q_tmp;
+
+        Vector3f tilde_Vel;
+        Vector3f corrected_tilde_Vel1;
+        Vector3f corrected_tilde_Vel2;
+        Vector3f corrected_tilde_Vel12;
+
+        Matrix3f prevTnb_pred;
+        Matrix3f Tbn_temp;
+
+        Vector3f d_p_Delay;
+        Vector3f d_v_Delay;
+
 };
 
 #endif // AP_PREDICTORS_H
