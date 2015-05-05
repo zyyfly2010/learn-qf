@@ -27,7 +27,7 @@ int16
 #include <AP_Airspeed.h>
 #include <AP_Compass.h>
 #include <AP_Param.h>
-#include <AP_Predictors.h>
+#include "AP_Predictors.h"
 
 
 

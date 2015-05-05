@@ -18,7 +18,7 @@
 #include <AP_AHRS.h>
 #include <AP_Param.h>
 #include <AP_Vehicle.h>
-#include <AP_Predictors.h>
+#include "AP_Predictors.h"
 
 #include <stdio.h>
 
@@ -1061,7 +1061,9 @@ dVelIMU2_Delay=storeddVelIMU2[bestStoreIndex];
 // retreive previous calculations
 // D_T = D;
 
-get_Predictor().AttitudePredictor(dAngIMU, state.gyro_bias);
+printf("test3 \n");
+
+test_Predictor.AttitudePredictor(dAngIMU, state.gyro_bias, _msecPosDelay, state.quat);
 
 D_q = D_q_k1;
 // q_hat = q_hat_T_k1;
@@ -1289,14 +1291,14 @@ v_hat_m = state.velocity + gravityNED*(0.001f*constrain_int16(_msecPosDelay, 0, 
    p_hat_m = state.position + d_p_m- d_p_Delay;
 
 
-static FILE *mylog;
-if (mylog==NULL){
-	mylog = fopen("logtmp.txt", "w");
-}
-if (mylog!=NULL){
-// fputs ("Ali",  mylog);
-fprintf (mylog, "{%lu;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f}\n", hal.scheduler->millis(), q_hat[0], q_hat[1],q_hat[2],q_hat[3],v_hat[0],v_hat[1],v_hat[2],d_v[0],d_v[1],d_v[2],d_v_Delay[0],d_v_Delay[1],d_v_Delay[2],p_hat[0],p_hat[1],p_hat[2],v_hat_m[0],v_hat_m[1],v_hat_m[2],p_hat_m[0],p_hat_m[1],p_hat_m[2]);
-}
+//static FILE *mylog;
+//if (mylog==NULL){
+//	mylog = fopen("logtmp.txt", "w");
+//}
+//if (mylog!=NULL){
+//// fputs ("Ali",  mylog);
+//fprintf (mylog, "{%lu;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f}\n", hal.scheduler->millis(), q_hat[0], q_hat[1],q_hat[2],q_hat[3],v_hat[0],v_hat[1],v_hat[2],d_v[0],d_v[1],d_v[2],d_v_Delay[0],d_v_Delay[1],d_v_Delay[2],p_hat[0],p_hat[1],p_hat[2],v_hat_m[0],v_hat_m[1],v_hat_m[2],p_hat_m[0],p_hat_m[1],p_hat_m[2]);
+//}
 /*
 if (mylog){
 	fprintf("%f", q_hat[0]);
