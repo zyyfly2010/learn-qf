@@ -530,7 +530,7 @@ bool AP_AHRS_NavEKF::get_relative_position_NED(Vector3f &vec) const
 AP_AHRS_NavEKF::AHRS_selected AP_AHRS_NavEKF::using_EKF(void) const
 {
     nav_filter_status filt_state;
-    switch (using_EKF()) {
+    switch ((AP_AHRS_NavEKF::AHRS_selected)_ekf_use.get()) {
     case AHRS_SELECTED_EKF1:
         if (!ekf1.started || !EKF1.healthy()) {
             return AHRS_SELECTED_DCM;
