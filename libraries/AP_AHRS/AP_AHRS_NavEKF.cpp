@@ -102,10 +102,10 @@ void AP_AHRS_NavEKF::_update_ekf1(void)
 {
     if (!ekf1.started) {
         // wait 1 second for DCM to output a valid tilt error estimate
-        if (start_time_ms == 0) {
-            start_time_ms = hal.scheduler->millis();
+        if (ekf1.start_time_ms == 0) {
+            ekf1.start_time_ms = hal.scheduler->millis();
         }
-        if (hal.scheduler->millis() - start_time_ms > startup_delay_ms) {
+        if (hal.scheduler->millis() - ekf1.start_time_ms > startup_delay_ms) {
             ekf1.started = EKF1.InitialiseFilterDynamic();
         }
     }
@@ -172,22 +172,106 @@ void AP_AHRS_NavEKF::_update_ekf1(void)
 }
 
 
+void AP_AHRS_NavEKF::_update_ekf2(void)
+{
+    if (!ekf2.started) {
+        // wait 1 second for DCM to output a valid tilt error estimate
+        if (ekf2.start_time_ms == 0) {
+            ekf2.start_time_ms = hal.scheduler->millis();
+        }
+        if (hal.scheduler->millis() - ekf2.start_time_ms > startup_delay_ms) {
+            ekf2.started = EKF2.InitialiseFilterDynamic();
+        }
+    }
+    if (ekf2.started) {
+        EKF2.UpdateFilter();
+        EKF2.getRotationBodyToNED(ekf2._dcm_matrix);
+        if (using_EKF() == AHRS_SELECTED_EKF2) {
+            ekf2._gyro_estimate += ekf2._gyro_bias;
+
+            float abias1, abias2;
+            EKF2.getAccelZBias(abias1, abias2);
+
+            // update _accel_ef_ekf
+            for (uint8_t i=0; i<_ins.get_accel_count(); i++) {
+                Vector3f accel = _ins.get_accel(i);
+                if (i==0) {
+                    accel.z -= abias1;
+                } else if (i==1) {
+                    accel.z -= abias2;
+                }
+                if (_ins.get_accel_health(i)) {
+                    ekf2._accel_ef_ekf[i] = ekf2._dcm_matrix * accel;
+                }
+            }
+
+            if(_ins.get_accel_health(0) && _ins.get_accel_health(1)) {
+                float IMU1_weighting;
+                EKF2.getIMU1Weighting(IMU1_weighting);
+                ekf2._accel_ef_ekf_blended = ekf2._accel_ef_ekf[0] * IMU1_weighting + ekf2._accel_ef_ekf[1] * (1.0f-IMU1_weighting);
+            } else {
+                ekf2._accel_ef_ekf_blended = ekf2._accel_ef_ekf[0];
+            }
+
+
+            Vector3f eulers;
+            EKF2.getEulerAngles(eulers);
+            roll  = eulers.x;
+            pitch = eulers.y;
+            yaw   = eulers.z;
+
+            update_cd_values();
+            update_trig();
+
+            // keep _gyro_bias for get_gyro_drift()
+            EKF2.getGyroBias(ekf2._gyro_bias);
+            ekf2._gyro_bias = -ekf2._gyro_bias;
+
+            // calculate corrected gryo estimate for get_gyro()
+            ekf2._gyro_estimate.zero();
+            uint8_t healthy_count = 0;    
+            for (uint8_t i=0; i<_ins.get_gyro_count(); i++) {
+                if (_ins.get_gyro_health(i)) {
+                    ekf2._gyro_estimate += _ins.get_gyro(i);
+                    healthy_count++;
+                }
+            }
+            if (healthy_count > 1) {
+                ekf2._gyro_estimate /= healthy_count;
+            }
+
+            ekf2._gyro_estimate += ekf2._gyro_bias;
+        }
+    }
+}
+
+
 // accelerometer values in the earth frame in m/s/s
 const Vector3f &AP_AHRS_NavEKF::get_accel_ef(uint8_t i) const
 {
-    if(!using_EKF()) {
+    switch (using_EKF()) {
+    case AHRS_SELECTED_EKF1:
+        return ekf1._accel_ef_ekf[i];
+    case AHRS_SELECTED_EKF2:
+        return ekf2._accel_ef_ekf[i];
+    case AHRS_SELECTED_DCM:
+    default:
         return AP_AHRS_DCM::get_accel_ef(i);
     }
-    return _accel_ef_ekf[i];
 }
 
 // blended accelerometer values in the earth frame in m/s/s
 const Vector3f &AP_AHRS_NavEKF::get_accel_ef_blended(void) const
 {
-    if(!using_EKF()) {
+    switch (using_EKF()) {
+    case AHRS_SELECTED_EKF1:
+        return ekf1._accel_ef_ekf_blended;
+    case AHRS_SELECTED_EKF2:
+        return ekf2._accel_ef_ekf_blended;
+    case AHRS_SELECTED_DCM:
+    default:
         return AP_AHRS_DCM::get_accel_ef_blended();
     }
-    return _accel_ef_ekf_blended;
 }
 
 void AP_AHRS_NavEKF::reset(bool recover_eulers)
@@ -237,8 +321,9 @@ bool AP_AHRS_NavEKF::get_position(struct Location &loc) const
         break;
     case AHRS_SELECTED_DCM:
     default:
-        return AP_AHRS_DCM::get_position(loc);
+        break;
     }
+    return AP_AHRS_DCM::get_position(loc);
 }
 
 // status reporting of estimated errors
@@ -444,50 +529,37 @@ bool AP_AHRS_NavEKF::get_relative_position_NED(Vector3f &vec) const
 
 AP_AHRS_NavEKF::AHRS_selected AP_AHRS_NavEKF::using_EKF(void) const
 {
+    nav_filter_status filt_state;
     switch (using_EKF()) {
     case AHRS_SELECTED_EKF1:
         if (!ekf1.started || !EKF1.healthy()) {
-            return false;
+            return AHRS_SELECTED_DCM;
         }
 #if APM_BUILD_TYPE(APM_BUILD_ArduPlane) || APM_BUILD_TYPE(APM_BUILD_APMrover2)
-        nav_filter_status filt_state;
         EKF1.getFilterStatus(filt_state);
         if (hal.util->get_soft_armed() && filt_state.flags.const_pos_mode) {
-            return false;
+            return AHRS_SELECTED_DCM;
         }
         if (!filt_state.flags.attitude ||
             !filt_state.flags.horiz_vel ||
             !filt_state.flags.vert_vel ||
             !filt_state.flags.horiz_pos_abs ||
             !filt_state.flags.vert_pos) {
-            return false;
+            return AHRS_SELECTED_DCM;
         }
 #endif
-        return true;
+        return AHRS_SELECTED_EKF1;
 
     case AHRS_SELECTED_EKF2:
         if (!ekf2.started || !EKF2.healthy()) {
-            return false;
+            return AHRS_SELECTED_DCM;
         }
-#if APM_BUILD_TYPE(APM_BUILD_ArduPlane) || APM_BUILD_TYPE(APM_BUILD_APMrover2)
-        nav_filter_status filt_state;
-        EKF2.getFilterStatus(filt_state);
-        if (hal.util->get_soft_armed() && filt_state.flags.const_pos_mode) {
-            return false;
-        }
-        if (!filt_state.flags.attitude ||
-            !filt_state.flags.horiz_vel ||
-            !filt_state.flags.vert_vel ||
-            !filt_state.flags.horiz_pos_abs ||
-            !filt_state.flags.vert_pos) {
-            return false;
-        }
-#endif
-        return true;
+        return AHRS_SELECTED_EKF2;
 
     case AHRS_SELECTED_DCM:
     default:
-        return false;
+        return AHRS_SELECTED_DCM;
+    }
 }
 
 /*

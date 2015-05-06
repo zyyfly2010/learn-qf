@@ -39,11 +39,12 @@ public:
     AP_AHRS_DCM(ins, baro, gps),
     EKF1(this, baro, rng),
     EKF2(this, baro, rng),
-    startup_delay_ms(10000),
-    start_time_ms(0)
+    startup_delay_ms(10000)
         {
             ekf1.started = false;
             ekf2.started = false;
+            ekf1.start_time_ms = 0;
+            ekf2.start_time_ms = 0;
         }
 
     // return the smoothed gyro vector corrected for drift
