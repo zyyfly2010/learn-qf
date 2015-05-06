@@ -91,10 +91,6 @@ public:
     // Constructor
     NavEKF(const AP_AHRS *ahrs, AP_Baro &baro, const RangeFinder &rng);
 
-
-#define BUFFER_SIZE  200   // sean buffer size for sensors
-#define MAX_MSDELAY  2000   // maximum allowed delay
-
     // This function is used to initialise the filter whilst moving, using the AHRS DCM solution
     // It should NOT be used to re-initialise after a timeout as DCM will also be corrupted
     bool InitialiseFilterDynamic(void);
