@@ -92,7 +92,7 @@ public:
     VectorN<Vector3f,BUFFER_SIZE>  storeddVelIMU2; //sean
     uint32_t angRateTimeStamp[BUFFER_SIZE];    		  // sean
 
-   uint16_t storeIndexMag;
+    uint16_t storeIndexMag;
     uint32_t lastMagStoreTime_ms;
     VectorN<Vector3f,BUFFER_SIZE> storedMag;       //  sean
     uint32_t MagTimeStamp[BUFFER_SIZE];    		  // sean
@@ -116,14 +116,16 @@ public:
     uint32_t DTimeStamp[BUFFER_SIZE];    		  // sean
     VectorN<Vector3f,BUFFER_SIZE> storedd_v;       //  sean buffer for delta corrsponding to velocity prediction
     VectorN<Vector3f,BUFFER_SIZE> storedd_p;       //  sean buffer for delta corrsponding to position prediction
-   VectorN<Vector3f,BUFFER_SIZE> storedd_p_m;       //  sean buffer for delta corrsponding to position prediction mixed-invariant
+    VectorN<Vector3f,BUFFER_SIZE> storedd_p_m;       //  sean buffer for delta corrsponding to position prediction mixed-invariant
     VectorN<Vector3f,BUFFER_SIZE> storedd_v_m;       //  sean buffer for delta corrsponding to velocity prediction mixed-invariant
-   uint32_t ctr_rst;  // reset predictor cntr
+    uint32_t ctr_rst;  // reset predictor cntr
 
     AP_Predictors test_Predictor;
-    AP_Predictors &get_Predictor(void) {return test_Predictor;}
+    AP_Predictors &get_Predictor(void) {
+        return test_Predictor;
+    }
 
-   float init_reset;   //sean reset initial quaternions
+    float init_reset;   //sean reset initial quaternions
 
     // This function is used to initialise the filter whilst moving, using the AHRS DCM solution
     // It should NOT be used to re-initialise after a timeout as DCM will also be corrupted
@@ -179,7 +181,7 @@ public:
     // return the Euler roll, pitch and yaw angle in radians
     void getEulerAngles(Vector3f &eulers) const;
 
- // sean return v1
+// sean return v1
 //    void getv1(float &v1) const;
 
     // return the transformation matrix from XYZ (body) to NED axes
@@ -195,7 +197,9 @@ public:
     void  getVariances(float &velVar, float &posVar, float &hgtVar, Vector3f &magVar, float &tasVar, Vector2f &offset) const;
 
     // return StaticMode state
-    bool getStaticMode(void) const { return staticMode; }
+    bool getStaticMode(void) const {
+        return staticMode;
+    }
 
     // should we use the compass? This is public so it can be used for
     // reporting via ahrs.use_compass()
@@ -437,7 +441,7 @@ private:
     Vector3f correctedDelVel2;      // delta velocities along the XYZ body axes for IMU2 corrected for errors (m/s)
     Vector3f summedDelAng;          // corrected & summed delta angles about the xyz body axes (rad)
     Vector3f summedDelVel;          // corrected & summed delta velocities along the XYZ body axes (m/s)
-	Vector3f prevDelAng;            // previous delta angle use for INS coning error compensation
+    Vector3f prevDelAng;            // previous delta angle use for INS coning error compensation
     Vector3f lastGyroBias;          // previous gyro bias vector used by filter divergence check
     Matrix3f prevTnb;               // previous nav to body transformation used for INS earth rotation compensation
     ftype accNavMag;                // magnitude of navigation accel - used to adjust GPS obs variance (m/s^2)
@@ -580,7 +584,7 @@ private:
     // magnetometer X,Y,Z measurements are fused across three time steps
     // to level computational load as this is an expensive operation
     struct {
-    	ftype q0;
+        ftype q0;
         ftype q1;
         ftype q2;
         ftype q3;
@@ -595,7 +599,7 @@ private:
         Vector3f MagPred;
         ftype R_MAG;
         ftype SH_MAG[9];
-	} mag_state;
+    } mag_state;
 
 
 #if CONFIG_HAL_BOARD == HAL_BOARD_PX4 || CONFIG_HAL_BOARD == HAL_BOARD_VRBRAIN
