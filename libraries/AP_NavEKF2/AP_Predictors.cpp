@@ -83,15 +83,15 @@ D_q_k1[3] = D_q_k1[3]/n_D_q_k1;
 //        cout << imuSampleTime_ms << "   " << storedAngRate[storeIndexIMU] << "\n";
     }
 
-    int timeD;
+    uint32_t timeD;
     uint32_t bestTimeD = 200;
     bestStoreIndex = 0;
 
     for (uint16_t i=0; i<=(BUFFER_SIZE-1); i++)
     {
-        timeD = abs( (int) imuSampleTime_ms- DTimeStamp[i] - constrain_int16(_msecPosDelay, 0, MAX_MSDELAY));
+        timeD = abs( (imuSampleTime_ms - DTimeStamp[i]) - constrain_int16(_msecPosDelay, 0, MAX_MSDELAY));
         //       printf("%u \n",_msecPosDelay);
-	if (timeD < bestTimeD)
+        if (timeD < bestTimeD)
         {
             bestStoreIndex = i;
             bestTimeD = timeD;
@@ -140,6 +140,8 @@ q_hat=q_tmp;
 void AP_Predictors::VelocityPredictor(Quaternion q_h, Vector3f dVelIMU1, Vector3f dVelIMU2, float IMU1_weighting, ftype dtIMU, AP_Int16 _msecPosDelay, float accel_zbias1, float accel_zbias2, Vector3f velocity, Vector3f position)
 {
 // velocity prediction
+    Matrix3f Tbn_temp;
+
     q_h.rotation_matrix(Tbn_temp);
     prevTnb_pred = Tbn_temp.transposed();
 
@@ -266,7 +268,9 @@ void AP_Predictors::CascadedPredictor(Vector3f dAngIMU, Vector3f gyro_bias, Quat
     }
     if (mylog!=NULL){
     // fputs ("Ali",  mylog);
-    fprintf (mylog, "{%lu;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f}\n", hal.scheduler->millis(), q_hat[0], q_hat[1],q_hat[2],q_hat[3],v_hat[0],v_hat[1],v_hat[2],d_v[0],d_v[1],d_v[2],d_v_Delay[0],d_v_Delay[1],d_v_Delay[2],p_hat[0],p_hat[1],p_hat[2],v_hat_m[0],v_hat_m[1],v_hat_m[2],p_hat_m[0],p_hat_m[1],p_hat_m[2]);
+    fprintf (mylog, "{%lu;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f}\n", 
+             (unsigned long)hal.scheduler->millis(), 
+             q_hat[0], q_hat[1],q_hat[2],q_hat[3],v_hat[0],v_hat[1],v_hat[2],d_v[0],d_v[1],d_v[2],d_v_Delay[0],d_v_Delay[1],d_v_Delay[2],p_hat[0],p_hat[1],p_hat[2],v_hat_m[0],v_hat_m[1],v_hat_m[2],p_hat_m[0],p_hat_m[1],p_hat_m[2]);
     }
 
 }

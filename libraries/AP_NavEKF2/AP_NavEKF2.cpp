@@ -324,7 +324,7 @@ const AP_Param::GroupInfo NavEKF2::var_info[] PROGMEM = {
 
 
 // constructor
-NavEKF2::NavEKF2(const AP_AHRS *ahrs, AP_Baro &baro) :
+NavEKF2::NavEKF2(const AP_AHRS *ahrs, AP_Baro &baro, RangeFinder &rng) :
     _ahrs(ahrs),
     _baro(baro),
     state(*reinterpret_cast<struct state_elements *>(&states)),
@@ -486,7 +486,7 @@ void NavEKF2::ResetHeight(void)
 
 // this function is used to initialise the filter whilst moving, using the AHRS DCM solution
 // it should NOT be used to re-initialise after a timeout as DCM will also be corrupted
-void NavEKF2::InitialiseFilterDynamic(void)
+bool NavEKF2::InitialiseFilterDynamic(void)
 {
     // this forces healthy() to be false so that when we ask for ahrs
     // attitude we get the DCM attitude regardless of the state of AHRS_EKF_USE
@@ -530,11 +530,13 @@ void NavEKF2::InitialiseFilterDynamic(void)
 
     // initialise IMU pre-processing states
     readIMUData();
+
+    return true;
 }
 
 // Initialise the states from accelerometer and magnetometer data (if present)
 // This method can only be used when the vehicle is static
-void NavEKF2::InitialiseFilterBootstrap(void)
+bool NavEKF2::InitialiseFilterBootstrap(void)
 {
     // set re-used variables to zero
     ZeroVariables();
@@ -603,6 +605,8 @@ void NavEKF2::InitialiseFilterBootstrap(void)
 
     // initialise IMU pre-processing states
     readIMUData();
+
+    return true;
 }
 
 // Update Filter States - this should be called whenever new IMU data is available
@@ -930,7 +934,7 @@ if (init_reset==0){
     }
 
 //    int GPS_delay_AngRate = ;
-    int timeDeltaAngRate;
+    uint32_t timeDeltaAngRate;
     uint32_t bestTimeDeltaAngRate = 200;
     uint16_t bestStoreIndex = 0;
 //    state_elements state_delay;
@@ -941,7 +945,7 @@ if (init_reset==0){
 
     for (uint16_t i=0; i<=(BUFFER_SIZE-1); i++)
     {
-        timeDeltaAngRate = abs( (int) imuSampleTime_ms- angRateTimeStamp[i] - constrain_int16(_msecPosDelay, 0, MAX_MSDELAY));
+        timeDeltaAngRate = abs( (imuSampleTime_ms - angRateTimeStamp[i]) - constrain_int16(_msecPosDelay, 0, MAX_MSDELAY));
         if (timeDeltaAngRate < bestTimeDeltaAngRate)
         {
             bestStoreIndex = i;
@@ -2196,7 +2200,7 @@ void NavEKF2::FuseVelPosNED()
     }
 
 
-    int timeDeltaHgt;
+    uint32_t timeDeltaHgt;
     uint32_t bestTimeDeltaHgt = 200;
     uint16_t bestStoreIndex = 0;
 
@@ -2204,7 +2208,7 @@ void NavEKF2::FuseVelPosNED()
 
     for (uint16_t i=0; i<=(BUFFER_SIZE-1); i++)
     {
-        timeDeltaHgt = abs( (int) imuSampleTime_ms- HgtTimeStamp[i] - constrain_int16(_msecPosDelay, 0, MAX_MSDELAY) + _msecHgtDelay);
+        timeDeltaHgt = abs( (imuSampleTime_ms - HgtTimeStamp[i]) - constrain_int16(_msecPosDelay, 0, MAX_MSDELAY) + _msecHgtDelay);
         if (timeDeltaHgt < bestTimeDeltaHgt)
         {
             bestStoreIndex = i;
@@ -2726,7 +2730,7 @@ void NavEKF2::FuseMagnetometer()
 //        cout << imuSampleTime_ms << "   " << storedAngRate[storeIndexIMU] << "\n";
     }
 
-    int timeDeltaMag;
+    uint32_t timeDeltaMag;
     uint32_t bestTimeDeltaMag = 200;
     uint16_t bestStoreIndex = 0;
     float Mag_Delay;
@@ -2734,7 +2738,7 @@ void NavEKF2::FuseMagnetometer()
 
     for (uint16_t i=0; i<=(BUFFER_SIZE-1); i++)
     {
-        timeDeltaMag = abs( (int) imuSampleTime_ms- MagTimeStamp[i] -constrain_int16(_msecPosDelay, 0, MAX_MSDELAY) + _msecMagDelay);
+        timeDeltaMag = abs( (imuSampleTime_ms - MagTimeStamp[i]) -constrain_int16(_msecPosDelay, 0, MAX_MSDELAY) + _msecMagDelay);
         if (timeDeltaMag < bestTimeDeltaMag)
         {
             bestStoreIndex = i;
@@ -2944,7 +2948,7 @@ void NavEKF2::FuseAirspeed()
 //        cout << imuSampleTime_ms << "   " << storedAngRate[storeIndexIMU] << "\n";
     }
 
-    int timeDeltaTas;
+    uint32_t timeDeltaTas;
     uint32_t bestTimeDeltaTas = 200;
     uint16_t bestStoreIndex = 0;
 
@@ -2952,7 +2956,7 @@ void NavEKF2::FuseAirspeed()
 
     for (uint16_t i=0; i<=(BUFFER_SIZE-1); i++)
     {
-        timeDeltaTas = abs( (int) imuSampleTime_ms- TasTimeStamp[i] - constrain_int16(_msecPosDelay, 0, MAX_MSDELAY) + _msecTasDelay);
+        timeDeltaTas = abs( (imuSampleTime_ms - TasTimeStamp[i]) - constrain_int16(_msecPosDelay, 0, MAX_MSDELAY) + _msecTasDelay);
         if (timeDeltaTas < bestTimeDeltaTas)
         {
             bestStoreIndex = i;
@@ -3740,9 +3744,9 @@ void NavEKF2::readHgtData()
 // check for new magnetometer data and update store measurements if available
 void NavEKF2::readMagData()
 {
-    if (use_compass() && _ahrs->get_compass()->last_update != lastMagUpdate) {
+    if (use_compass() && _ahrs->get_compass()->last_update_usec() != lastMagUpdate) {
         // store time of last measurement update
-        lastMagUpdate = _ahrs->get_compass()->last_update;
+        lastMagUpdate = _ahrs->get_compass()->last_update_usec();
 
         // Read compass data
         // We scale compass data to improve numerical conditioning
@@ -3968,7 +3972,7 @@ void NavEKF2::ZeroVariables()
     lastHealthyMagTime_ms = imuSampleTime_ms;
     TASmsecPrev = imuSampleTime_ms;
     BETAmsecPrev = imuSampleTime_ms;
-    lastMagUpdate = imuSampleTime_ms;
+    lastMagUpdate = imuSampleTime_ms*1000UL;
     lastHgtMeasTime = imuSampleTime_ms;
     lastHgtTime_ms = imuSampleTime_ms;
     velFailTime = imuSampleTime_ms;
@@ -4065,7 +4069,7 @@ bool NavEKF2::useAirspeed(void) const
 // reference to be initialised and maintained when on the ground and without GPS lock
 bool NavEKF2::static_mode_demanded(void) const
 {
-    return !_ahrs->get_armed() || !_ahrs->get_correct_centrifugal();
+    return !hal.util->get_soft_armed() || !_ahrs->get_correct_centrifugal();
 }
 
 // return true if we should use the compass

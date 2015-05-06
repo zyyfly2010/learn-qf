@@ -26,6 +26,7 @@ int16
 #include <AP_Baro.h>
 #include <AP_Airspeed.h>
 #include <AP_Compass.h>
+#include <AP_RangeFinder.h>
 #include <AP_Param.h>
 #include "AP_Predictors.h"
 
@@ -79,7 +80,7 @@ public:
 #endif
 
     // Constructor
-    NavEKF2(const AP_AHRS *ahrs, AP_Baro &baro);
+    NavEKF2(const AP_AHRS *ahrs, AP_Baro &baro, RangeFinder &rng);
 
 #define BUFFER_SIZE  200   // sean buffer size for sensors
 #define MAX_MSDELAY  2000   // maximum allowed delay
@@ -126,11 +127,11 @@ public:
 
     // This function is used to initialise the filter whilst moving, using the AHRS DCM solution
     // It should NOT be used to re-initialise after a timeout as DCM will also be corrupted
-    void InitialiseFilterDynamic(void);
+    bool InitialiseFilterDynamic(void);
 
     // Initialise the states from accelerometer and magnetometer data (if present)
     // This method can only be used when the vehicle is static
-    void InitialiseFilterBootstrap(void);
+    bool InitialiseFilterBootstrap(void);
 
     // Update Filter States - this should be called whenever new IMU data is available
     void UpdateFilter(void);

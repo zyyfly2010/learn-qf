@@ -94,7 +94,6 @@ class AP_Predictors
         Vector3f corrected_tilde_Vel12;
 
         Matrix3f prevTnb_pred;
-        Matrix3f Tbn_temp;
 
         Vector3f d_p_Delay;
         Vector3f d_v_Delay;
