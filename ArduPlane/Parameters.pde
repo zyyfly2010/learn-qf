@@ -1162,6 +1162,12 @@ const AP_Param::Info var_info[] PROGMEM = {
     GOBJECTN(ahrs.get_NavEKF(), NavEKF, "EKF_", NavEKF),
 #endif
 
+#if AP_AHRS_NAVEKF_AVAILABLE
+    // @Group: EK2_
+    // @Path: ../libraries/AP_NavEKF/AP_NavEKF.cpp
+    GOBJECTN(ahrs.get_NavEKF2(), NavEKF2, "EK2_", NavEKF2),
+#endif
+
 #if OPTFLOW == ENABLED
     // @Group: FLOW
     // @Path: ../libraries/AP_OpticalFlow/OpticalFlow.cpp
