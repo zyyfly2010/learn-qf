@@ -284,6 +284,8 @@ AP_InertialSensor::AP_InertialSensor() :
     _primary_accel(0),
     _hil_mode(false),
     _calibrating(false),
+    _startup_error_counts_set(false),
+    _startup_ms(0),
     _log_raw_data(false),
 #if INS_VIBRATION_CHECK
     _accel_vibe_floor_filter(AP_INERTIAL_SENSOR_ACCEL_VIBE_FLOOR_FILT_HZ),
@@ -1163,7 +1165,12 @@ void AP_InertialSensor::update(void)
                 _accel_startup_error_count[i] = _accel_error_count[i];
                 _gyro_startup_error_count[i] = _gyro_error_count[i];
             }
-            _startup_error_counts_set = true;
+
+            if (_startup_ms == 0) {
+                _startup_ms = hal.scheduler->millis();
+            } else if (hal.scheduler->millis()-_startup_ms > 2000) {
+                _startup_error_counts_set = true;
+            }
         }
 
         for (uint8_t i=0; i<INS_MAX_INSTANCES; i++) {
