@@ -159,17 +159,24 @@ bool Copter::init_arm_motors(bool arming_from_gcs)
     }
     calc_distance_and_bearing();
 
+    uint32_t gyro_cal_time = 0;
     if(did_ground_start == false) {
+        uint32_t gyro_cal_begin = millis();
+
         startup_ground(true);
+
+        gyro_cal_time = millis()-gyro_cal_begin;
+
+        did_ground_start = !(((g.arming_check == ARMING_CHECK_ALL) || (g.arming_check & ARMING_CHECK_INS)) && !ins.gyro_calibrated_ok_all());
+
         // final check that gyros calibrated successfully
-        if (((g.arming_check == ARMING_CHECK_ALL) || (g.arming_check & ARMING_CHECK_INS)) && !ins.gyro_calibrated_ok_all()) {
+        if ((gyro_cal_time > MAX_GYR_CAL_TIME_MS) || !did_ground_start) {
             gcs_send_text_P(SEVERITY_HIGH,PSTR("Arm: Gyro calibration failed"));
             AP_Notify::flags.armed = false;
             failsafe_enable();
             in_arm_motors = false;
             return false;
         }
-        did_ground_start = true;
     }
 
     // check if we are using motor interlock control on an aux switch
@@ -193,6 +200,10 @@ bool Copter::init_arm_motors(bool arming_from_gcs)
         return false;
     }
 
+    // pad time out to 2 seconds. minimum of 30ms delay so that RC inputs can be read
+    uint32_t delay_time = max(30,MAX_GYR_CAL_TIME_MS-gyro_cal_time);
+    delay(delay_time);
+
     // enable gps velocity based centrefugal force compensation
     ahrs.set_correct_centrifugal(true);
     hal.util->set_soft_armed(true);
@@ -204,9 +215,6 @@ bool Copter::init_arm_motors(bool arming_from_gcs)
     // turn off sprayer's test if on
     sprayer.test_pump(false);
 #endif
-
-    // short delay to allow reading of rc inputs
-    delay(30);
 
     // enable output to motors
     enable_motor_output();
