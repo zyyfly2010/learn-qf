@@ -26,6 +26,7 @@
 
 #if HAL_CPU_CLASS >= HAL_CPU_CLASS_150
 #include <AP_NavEKF.h>
+#include <AP_NavEKF2.h>
 
 #define AP_AHRS_NAVEKF_AVAILABLE 1
 #define AP_AHRS_NAVEKF_SETTLE_TIME_MS 20000     // time in milliseconds the ekf needs to settle after being started
@@ -36,11 +37,14 @@ public:
     // Constructor
     AP_AHRS_NavEKF(AP_InertialSensor &ins, AP_Baro &baro, AP_GPS &gps, RangeFinder &rng) :
     AP_AHRS_DCM(ins, baro, gps),
-        EKF(this, baro, rng),
-        ekf_started(false),
-        startup_delay_ms(1000),
-        start_time_ms(0)
+    EKF1(this, baro, rng),
+    EKF2(this, baro, rng),
+    startup_delay_ms(10000)
         {
+            ekf1.started = false;
+            ekf2.started = false;
+            ekf1.start_time_ms = 0;
+            ekf2.start_time_ms = 0;
         }
 
     // return the smoothed gyro vector corrected for drift
@@ -77,14 +81,18 @@ public:
     // true if compass is being used
     bool use_compass(void);
 
-    NavEKF &get_NavEKF(void) { return EKF; }
-    const NavEKF &get_NavEKF_const(void) const { return EKF; }
+    NavEKF &get_NavEKF(void) { return EKF1; }
+    NavEKF2 &get_NavEKF2(void) { return EKF2; }
+    const NavEKF &get_NavEKF_const(void) const { return EKF1; }
+    const NavEKF2 &get_NavEKF2_const(void) const { return EKF2; }
 
     // return secondary attitude solution if available, as eulers in radians
-    bool get_secondary_attitude(Vector3f &eulers);
+    bool get_secondary_attitude(Vector3f &eulers, uint8_t instance=0);
 
+ //   void get_v(float &v1);
+    
     // return secondary position solution if available
-    bool get_secondary_position(struct Location &loc);
+    bool get_secondary_position(struct Location &loc, uint8_t instance=0);
 
     // EKF has a better ground speed vector estimate
     Vector2f groundspeed_vector(void);
@@ -125,18 +133,30 @@ public:
     bool getMagOffsets(Vector3f &magOffsets);
 
 private:
-    bool using_EKF(void) const;
+    enum AHRS_selected {
+        AHRS_SELECTED_DCM              = 0,
+        AHRS_SELECTED_EKF1             = 1,
+        AHRS_SELECTED_EKF1_NO_FALLBACK = 2,
+        AHRS_SELECTED_EKF2             = 3
+    };
 
-    NavEKF EKF;
-    bool ekf_started;
-    Matrix3f _dcm_matrix;
+    AHRS_selected using_EKF(void) const;
+    void _update_ekf1(void);
+    void _update_ekf2(void);
+
+    NavEKF EKF1;
+    NavEKF2 EKF2;
     Vector3f _dcm_attitude;
-    Vector3f _gyro_bias;
-    Vector3f _gyro_estimate;
-    Vector3f _accel_ef_ekf[INS_MAX_INSTANCES];
-    Vector3f _accel_ef_ekf_blended;
+    struct {
+        bool started;
+        Matrix3f _dcm_matrix;
+        Vector3f _gyro_bias;
+        Vector3f _gyro_estimate;
+        uint32_t start_time_ms;
+        Vector3f _accel_ef_ekf[INS_MAX_INSTANCES];
+        Vector3f _accel_ef_ekf_blended;
+    } ekf1, ekf2;
     const uint16_t startup_delay_ms;
-    uint32_t start_time_ms;
 };
 #endif
 
