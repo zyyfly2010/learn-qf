@@ -61,7 +61,7 @@ private:
         uint16_t crc;
         uint16_t blockid;
         uint16_t length;
-        uint8_t data[256];
+        uint8_t data[2048];
         uint16_t read;
     } sbf_msg;
 

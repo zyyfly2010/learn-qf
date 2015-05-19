@@ -60,7 +60,7 @@ private:
       uint16_t crc;
       uint8_t msg_len;
       uint8_t n_read;
-      uint8_t msg_buff[256];
+      uint8_t msg_buff[2048];
     } parser_state;
 
     static const uint8_t SBP_PREAMBLE = 0x55;

@@ -248,6 +248,11 @@ AP_GPS::detect_instance(uint8_t instance)
             hal.console->print_P(PSTR(" SBP "));
             new_gps = new AP_GPS_SBP(*this, state[instance], _port[instance]);
         }
+        else if ((_type[instance] == GPS_TYPE_AUTO || _type[instance] == GPS_TYPE_SBF) &&
+                 AP_GPS_SBF::_detect(dstate->sbf_detect_state, data)) {
+            hal.console->print_P(PSTR(" SBF "));
+            new_gps = new AP_GPS_SBF(*this, state[instance], _port[instance]);
+        }
 #endif // HAL_CPU_CLASS
 #if !defined(GPS_SKIP_SIRF_NMEA)
 		// save a bit of code space on a 1280

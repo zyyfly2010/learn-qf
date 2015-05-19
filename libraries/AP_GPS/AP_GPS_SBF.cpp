@@ -55,15 +55,14 @@ AP_GPS_SBF::AP_GPS_SBF(AP_GPS &_gps, AP_GPS::GPS_State &_state,
 bool
 AP_GPS_SBF::read(void)
 {
+    bool ret = false;
     while (port->available() > 0)
     {
         uint8_t temp = port->read();
-        bool ret = parse(temp);
-        if (ret == true)
-            return true;
+        ret |= parse(temp);
     }
     
-    return false;
+    return ret;
 }
 
 bool
@@ -114,6 +113,12 @@ AP_GPS_SBF::parse(uint8_t temp)
                 sbf_msg.sbf_state = sbf_msg_parser_t::PREAMBLE1;
             break;
         case sbf_msg_parser_t::DATA:
+            if (sbf_msg.read >= sizeof(sbf_msg.data)) {
+                Debug("parse overflow length=%u\n", (unsigned)sbf_msg.read);
+                sbf_msg.sbf_state = sbf_msg_parser_t::PREAMBLE1;
+                sbf_msg.read = 0;
+                break;
+            }
             sbf_msg.data[sbf_msg.read] = temp;
             sbf_msg.read++;
             if (sbf_msg.read > (sbf_msg.length - 8))
@@ -179,6 +184,7 @@ AP_GPS_SBF::process_message(void)
         state.location.alt = (int32_t)(temp->Height * 1e2);
         state.num_sats = temp->NrSV;
 
+        Debug("temp->Mode=0x%02x\n", (unsigned)temp->Mode);
         switch (temp->Mode & 7)
         {
             case 0:
@@ -283,10 +289,18 @@ AP_GPS_SBF::_detect(struct SBF_detect_state &state, uint8_t temp)
         case SBF_detect_state::LENGTH2:
             state.length += (uint16_t)(temp << 8);
 			state.sbf_state = SBF_detect_state::DATA;
-            if (state.length % 4 != 0)
+            if (state.length % 4 != 0) {
+                Debug("state.length=%u\n", (unsigned)state.length);
                 state.sbf_state = SBF_detect_state::PREAMBLE1;
+            }
             break;
         case SBF_detect_state::DATA:
+            if (state.read >= sizeof(state.data)) {
+                Debug("read overflow length=%u\n", (unsigned)state.length);
+                state.sbf_state = SBF_detect_state::PREAMBLE1;
+                state.read = 0;
+                break;
+            }
             state.data[state.read] = temp;
             state.read++;
             if (state.read > (state.length - 8))
