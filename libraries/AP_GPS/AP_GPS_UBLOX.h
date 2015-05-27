@@ -225,6 +225,10 @@ private:
         } svinfo[UBLOX_MAX_RXM_RAW_SATS];
     };
 #endif
+    struct PACKED ubx_ack_ack {
+        uint8_t clsID;
+        uint8_t msgID;
+    };
     // Receive buffer
     union PACKED {
         ubx_nav_posllh posllh;
@@ -240,6 +244,7 @@ private:
 #if UBLOX_RXM_RAW_LOGGING
         ubx_rxm_raw rxm_raw;
 #endif
+        ubx_ack_ack ack;
         uint8_t bytes[];
     } _buffer;
 
@@ -337,6 +342,9 @@ private:
     void log_mon_hw2(void);
     void log_accuracy(void);
     void log_rxm_raw(const struct ubx_rxm_raw &raw);
+    void log_ack(uint8_t class_id, uint8_t msg_id);
+    void log_nak(uint8_t class_id, uint8_t msg_id);
+    void log_nav_settings(uint8_t nav_eng, int8_t min_elev);
 };
 
 #endif // __AP_GPS_UBLOX_H__
