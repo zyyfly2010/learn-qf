@@ -34,6 +34,8 @@ bool Copter::set_mode(uint8_t mode)
         case STABILIZE:
             #if FRAME_CONFIG == HELI_FRAME
                 success = heli_stabilize_init(ignore_checks);
+            #elif FRAME_CONFIG == TILTROTOR_Y6_FRAME
+                success = stabilize_TR_Y6_init(ignore_checks);
             #else
                 success = stabilize_init(ignore_checks);
             #endif
@@ -147,7 +149,9 @@ void Copter::update_flight_mode()
         case STABILIZE:
             #if FRAME_CONFIG == HELI_FRAME
                 heli_stabilize_run();
-            #else
+               #elif FRAME_CONFIG == TILTROTOR_Y6_FRAME
+                stabilize_TR_Y6_run();
+             #else
                 stabilize_run();
             #endif
             break;

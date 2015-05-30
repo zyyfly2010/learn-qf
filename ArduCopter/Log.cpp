@@ -478,6 +478,16 @@ struct PACKED log_Event {
     uint8_t id;
 };
 
+#if FRAME_CONFIG == TILTROTOR_Y6_FRAME
+// Write a AIRSPEED packet
+void Copter::Log_Write_Airspeed(void)
+{
+    DataFlash.Log_Write_Airspeed(airspeed);
+}
+#endif // FRAME_CONFIG == TILTROTOR_Y6_FRAME
+
+
+
 // Wrote an event packet
 void Copter::Log_Write_Event(uint8_t id)
 {

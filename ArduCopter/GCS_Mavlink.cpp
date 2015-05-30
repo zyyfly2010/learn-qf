@@ -96,6 +96,8 @@ NOINLINE void Copter::send_heartbeat(mavlink_channel_t chan)
         MAV_TYPE_ROCKET,
 #elif (FRAME_CONFIG == COAX_FRAME)  //because mavlink did not define a singlecopter, we use a rocket
         MAV_TYPE_ROCKET,
+#elif (FRAME_CONFIG == TILTROTOR_Y6_FRAME)  //because mavlink did not define a Tiltrotor_Y6, we use a Hexarotor to be consistent with a Y6
+        MAV_TYPE_HEXAROTOR,
 #else
   #error Unrecognised frame type
 #endif
@@ -385,9 +387,17 @@ void NOINLINE Copter::send_radio_out(mavlink_channel_t chan)
 
 void NOINLINE Copter::send_vfr_hud(mavlink_channel_t chan)
 {
+    float aspeed = 0;
+#if FRAME_CONFIG == TILTROTOR_Y6_FRAME
+    if (airspeed.enabled()) {
+        aspeed = airspeed.get_airspeed();
+    } else if (!ahrs.airspeed_estimate(&aspeed)) {
+        aspeed = 0;
+    }
+#endif // FRAME_CONFIG == TILTROTOR_Y6_FRAME
     mavlink_msg_vfr_hud_send(
         chan,
-        gps.ground_speed(),
+        aspeed,
         gps.ground_speed(),
         (ahrs.yaw_sensor / 100) % 360,
         (int16_t)(motors.get_throttle())/10,

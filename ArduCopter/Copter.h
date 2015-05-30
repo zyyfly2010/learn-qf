@@ -66,6 +66,7 @@
 #include <AC_P.h>               // P library
 #include <AC_AttitudeControl.h> // Attitude control library
 #include <AC_AttitudeControl_Heli.h> // Attitude control library for traditional helicopter
+#include <AC_AttitudeControl_Tiltrotor_Y6.h> // Attitude control library for Tiltrotor Y6
 #include <AC_PosControl.h>      // Position control library
 #include <RC_Channel.h>         // RC Channel Library
 #include <AP_Motors.h>          // AP Motors library
@@ -129,6 +130,10 @@ private:
     // key aircraft parameters passed to multiple libraries
     AP_Vehicle::MultiCopter aparm;
 
+    // for a Tiltrotor ALSO pass these parameters
+#if FRAME_CONFIG == TILTROTOR_Y6_FRAME
+    AP_Vehicle::FixedWing aparmTR;
+#endif
 
     // cliSerial isn't strictly necessary - it is an alias for hal.console. It may
     // be deprecated in favor of hal.console in later releases.
@@ -164,6 +169,13 @@ private:
 
     // the rate we run the main loop at
     const AP_InertialSensor::Sample_rate ins_sample_rate;
+
+#if FRAME_CONFIG == TILTROTOR_Y6_FRAME
+    // if you are a tiltrotor - scaled roll limit based on pitch
+    int32_t roll_limit_cd;
+    int32_t pitch_limit_min_cd;
+    float last_tvec_deg;
+#endif
 
     AP_GPS gps;
 
@@ -205,6 +217,10 @@ private:
     static const uint8_t num_gcs = MAVLINK_COMM_NUM_BUFFERS;
 
     GCS_MAVLINK gcs[MAVLINK_COMM_NUM_BUFFERS];
+
+#if FRAME_CONFIG == TILTROTOR_Y6_FRAME
+    AP_Airspeed airspeed;
+#endif
 
     // User variables
 #ifdef USERHOOK_VARIABLES
@@ -296,6 +312,8 @@ private:
  #define MOTOR_CLASS AP_MotorsSingle
 #elif FRAME_CONFIG == COAX_FRAME
  #define MOTOR_CLASS AP_MotorsCoax
+#elif FRAME_CONFIG == TILTROTOR_Y6_FRAME
+ #define MOTOR_CLASS AP_MotorsTiltrotor_Y6
 #else
  #error Unrecognised frame type
 #endif
@@ -413,6 +431,8 @@ private:
     // To-Do: move inertial nav up or other navigation variables down here
 #if FRAME_CONFIG == HELI_FRAME
     AC_AttitudeControl_Heli attitude_control;
+#elif FRAME_CONFIG == TILTROTOR_Y6_FRAME
+    AC_AttitudeControl_Tiltrotor_Y6 attitude_control;
 #else
     AC_AttitudeControl attitude_control;
 #endif
@@ -926,6 +946,18 @@ private:
     void print_flight_mode(AP_HAL::BetterStream *port, uint8_t mode);
     void log_init(void);
     void run_cli(AP_HAL::UARTDriver *port);
+
+#if FRAME_CONFIG == TILTROTOR_Y6_FRAME
+    void read_airspeed(void);
+    void airspeed_ratio_update(void);
+    bool stabilize_TR_Y6_init(bool ignore_checks);
+    int16_t tvec_angle_to_pwm(float angle);
+    void stabilize_TR_Y6_run();
+    float tvec_pwm_to_angle();
+    void set_tvec_angle(float req_angle);
+    void zero_airspeed(bool in_startup);
+    void Log_Write_Airspeed(void);
+#endif // FRAME_CONFIG == TILTROTOR_Y6_FRAME
 
 public:
     void mavlink_delay_cb();

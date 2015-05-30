@@ -26,6 +26,11 @@ Copter::Copter(void) :
     DataFlash(HAL_BOARD_LOG_DIRECTORY),
 #endif
     ins_sample_rate(AP_InertialSensor::RATE_400HZ),
+#if FRAME_CONFIG == TILTROTOR_Y6_FRAME
+    roll_limit_cd(4500),
+    pitch_limit_min_cd(-2500),
+    last_tvec_deg(90.0f),
+#endif
     flight_modes(&g.flight_mode1),
     sonar_enabled(true),
     ahrs(ins, barometer, gps, sonar),
@@ -33,6 +38,9 @@ Copter::Copter(void) :
             FUNCTOR_BIND_MEMBER(&Copter::start_command, bool, const AP_Mission::Mission_Command &),
             FUNCTOR_BIND_MEMBER(&Copter::verify_command, bool, const AP_Mission::Mission_Command &),
             FUNCTOR_BIND_MEMBER(&Copter::exit_mission, void)),
+#if FRAME_CONFIG == TILTROTOR_Y6_FRAME
+    airspeed(aparmTR),
+#endif
     control_mode(STABILIZE),
 #if FRAME_CONFIG == HELI_FRAME  // helicopter constructor requires more arguments
     motors(g.rc_7, g.rc_8, g.heli_servo_1, g.heli_servo_2, g.heli_servo_3, g.heli_servo_4, MAIN_LOOP_RATE),
@@ -42,6 +50,8 @@ Copter::Copter(void) :
     motors(g.single_servo_1, g.single_servo_2, g.single_servo_3, g.single_servo_4, MAIN_LOOP_RATE),
 #elif FRAME_CONFIG == COAX_FRAME  // single constructor requires extra servos for flaps
     motors(g.single_servo_1, g.single_servo_2, MAIN_LOOP_RATE),
+#elif FRAME_CONFIG == TILTROTOR_Y6_FRAME  // single constructor for Tiltrotor_y6
+    motors(g.single_servo_1, g.single_servo_2, g.single_servo_3, g.single_servo_4, MAIN_LOOP_RATE),
 #else
     motors(MAIN_LOOP_RATE),
 #endif
@@ -58,6 +68,10 @@ Copter::Copter(void) :
 #if FRAME_CONFIG == HELI_FRAME
     attitude_control(ahrs, aparm, motors, g.p_stabilize_roll, g.p_stabilize_pitch, g.p_stabilize_yaw,
                      g.pid_rate_roll, g.pid_rate_pitch, g.pid_rate_yaw),
+#elif FRAME_CONFIG == TILTROTOR_Y6_FRAME
+    attitude_control(ahrs, aparm, motors, g.p_stabilize_roll, g.p_stabilize_pitch, g.p_stabilize_yaw,
+                     g.pid_rate_roll, g.pid_rate_pitch, g.pid_rate_yaw, g.pid_rate_pit_aero, 
+                     g.pid_rate_roll_aero, g.pid_rate_yaw_mot, airspeed),
 #else
     attitude_control(ahrs, aparm, motors, g.p_stabilize_roll, g.p_stabilize_pitch, g.p_stabilize_yaw,
                      g.pid_rate_roll, g.pid_rate_pitch, g.pid_rate_yaw),

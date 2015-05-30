@@ -113,6 +113,10 @@ const AP_Scheduler::Task Copter::scheduler_tasks[] PROGMEM = {
 #if FRAME_CONFIG == HELI_FRAME
     { SCHED_TASK(check_dynamic_flight),  8,     75 },
 #endif
+#if FRAME_CONFIG == TILTROTOR_Y6_FRAME
+    { SCHED_TASK(read_airspeed),        40,   1200 },
+    { SCHED_TASK(airspeed_ratio_update),400,  1000 },
+#endif
     { SCHED_TASK(update_notify),         8,     90 },   // 14
     { SCHED_TASK(one_hz_loop),         400,    100 },   // 15
     { SCHED_TASK(ekf_check),            40,     75 },   // 16
@@ -517,6 +521,39 @@ void Copter::update_GPS(void)
     }
 }
 
+
+/*
+ If your a tiltrotor, once a second update the airspeed calibration ratio
+ */
+#if FRAME_CONFIG == TILTROTOR_Y6_FRAME
+void Copter::airspeed_ratio_update(void)
+{
+    if (!airspeed.enabled() ||
+        gps.status() < AP_GPS::GPS_OK_FIX_3D ||
+        gps.ground_speed() < 4) {
+        // don't calibrate when not moving
+        return;
+    }
+    if (airspeed.get_airspeed() < aparmTR.airspeed_min &&
+        gps.ground_speed() < (uint32_t)aparmTR.airspeed_min) {
+        //don't calibrate when flying below the minimum airspeed. We
+        // check both airspeed and ground speed to catch cases where
+        // the airspeed ratio is way too low, which could lead to it
+        // never coming up again
+        return;
+    }
+    if (abs(ahrs.roll_sensor) > roll_limit_cd ||
+        ahrs.pitch_sensor > aparmTR.pitch_limit_max_cd ||
+        ahrs.pitch_sensor < pitch_limit_min_cd) {
+        // don't calibrate when going beyond normal flight envelope
+        return;
+    }
+    const Vector3f &vg = gps.velocity();
+    airspeed.update_calibration(vg);
+}
+#endif // FRAME_CONFIG == TILTROTOR_Y6_FRAME
+
+
 void Copter::init_simple_bearing()
 {
     // capture current cos_yaw and sin_yaw values
@@ -603,6 +640,12 @@ void Copter::update_altitude()
     if (should_log(MASK_LOG_CTUN)) {
         Log_Write_Control_Tuning();
     }
+
+#if FRAME_CONFIG == TILTROTOR_Y6_FRAME
+    // calculate a scaled roll limit based on current pitch
+    roll_limit_cd = g.roll_limit_cd * cosf(ahrs.pitch);
+    pitch_limit_min_cd = aparmTR.pitch_limit_min_cd * fabsf(cosf(ahrs.roll));
+#endif
 }
 
 /*

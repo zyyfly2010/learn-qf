@@ -196,6 +196,18 @@ public:
         k_param_gcs3,            // 125
         k_param_gcs_pid_mask,
 
+        // 120: Tiltrotor Vehicle stuff from aparmTR
+         k_param_airspeed_min = 120,
+         k_param_airspeed_max,
+         k_param_airspeed,
+         k_param_pitch_limit_max_cd,
+         k_param_pitch_limit_min_cd,
+         k_param_throttle_cruise, //126
+         k_param_throttle_slewrate,
+         k_param_roll_limit_cd, //127
+
+
+
         //
         // 140: Sensor parameters
         //
@@ -329,7 +341,9 @@ public:
         k_param_autotune_axis_bitmask,  // 245
         k_param_autotune_aggressiveness,  // 246
         k_param_pi_vel_xy,  // 247
-
+        k_param_pid_rate_roll_aero,
+        k_param_pid_rate_pit_aero,
+        k_param_pid_rate_yaw_mot,
         // 254,255: reserved
     };
 
@@ -433,6 +447,14 @@ public:
     RC_Channel      single_servo_1, single_servo_2; // servos for two flaps
 #endif
 
+#if FRAME_CONFIG ==     TILTROTOR_Y6_FRAME          //(interm copy of Single Frame)
+  											  // Single
+    RC_Channel      single_servo_1, single_servo_2, single_servo_3, single_servo_4;     // servos for four flaps
+    AP_Int16        roll_limit_cd;
+    AP_Int32        airspeed_cruise_cm;
+
+#endif
+
     // RC channels
     RC_Channel              rc_1;
     RC_Channel              rc_2;
@@ -488,6 +510,13 @@ public:
     AP_Int8                 autotune_axis_bitmask;
     AP_Float                autotune_aggressiveness;
 
+#if FRAME_CONFIG == TILTROTOR_Y6_FRAME
+    // Pitch and Roll Rate P for the aerodynamic surfaces of a TILTROTOR_Y6_FRAME
+    AC_PID          		pid_rate_roll_aero;
+    AC_PID          		pid_rate_pit_aero;
+    AC_PID                  pid_rate_yaw_mot;
+#endif // FRAME_CONFIG == TILTROTOR_Y6_FRAME
+
     // Note: keep initializers here in the same order as they are declared
     // above.
     Parameters() :
@@ -509,6 +538,14 @@ public:
         single_servo_1        (CH_1),
         single_servo_2        (CH_2),
 #endif
+#if FRAME_CONFIG ==     TILTROTOR_Y6_FRAME    //(Interim Copy of Single Frame)
+      	single_servo_1        (CH_1),
+      	single_servo_2        (CH_2),
+      	single_servo_3        (CH_3),
+      	single_servo_4        (CH_4),
+#endif
+
+
 
         rc_1                (CH_1),
         rc_2                (CH_2),
@@ -555,6 +592,13 @@ public:
         p_stabilize_yaw         (STABILIZE_YAW_P),
 
         p_alt_hold              (ALT_HOLD_P)
+
+#if FRAME_CONFIG ==     TILTROTOR_Y6_FRAME
+        ,pid_rate_roll_aero      (RATE_ROLL_P_AERO,      RATE_ROLL_I_AERO,       RATE_ROLL_D_AERO,       RATE_ROLL_IMAX_AERO, RATE_ROLL_FILT_HZ,  MAIN_LOOP_SECONDS ),
+        pid_rate_pit_aero       (RATE_PITCH_P_AERO,     RATE_PITCH_I_AERO,      RATE_PITCH_D_AERO,      RATE_PITCH_IMAX_AERO, RATE_PITCH_FILT_HZ, MAIN_LOOP_SECONDS),
+        pid_rate_yaw_mot        (RATE_YAW_P_MOT,        RATE_YAW_I_MOT,         RATE_YAW_D_MOT,         RATE_YAW_IMAX_MOT, RATE_YAW_FILT_HZ,   MAIN_LOOP_SECONDS)
+#endif
+
     {
     }
 };

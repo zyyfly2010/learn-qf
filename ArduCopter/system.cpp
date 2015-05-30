@@ -132,6 +132,12 @@ void Copter::init_ardupilot()
 
     barometer.init();
 
+// if you are a tiltrotor initialise airspeed sensor
+#if FRAME_CONFIG == TILTROTOR_Y6_FRAME
+    airspeed.init();
+#endif // FRAME_CONFIG == TILTROTOR_Y6_FRAME
+
+
     // Register the mavlink service callback. This will run
     // anytime there are more than 5ms remaining in a call to
     // hal.scheduler->delay.
@@ -309,6 +315,17 @@ void Copter::startup_ground(bool force_gyro_cal)
     // set landed flag
     set_land_complete(true);
     set_land_complete_maybe(true);
+
+#if FRAME_CONFIG == TILTROTOR_Y6_FRAME
+    if (airspeed.enabled()) {
+        // initialize airspeed sensor
+        // --------------------------
+        zero_airspeed(true);
+    } else {
+        gcs_send_text_P(SEVERITY_LOW,PSTR("NO airspeed"));
+    }
+#endif // FRAME_CONFIG == TILTROTOR_Y6_FRAME
+
 }
 
 // position_ok - returns true if the horizontal absolute position is ok and home position is set
