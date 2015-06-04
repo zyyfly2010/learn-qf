@@ -317,6 +317,13 @@ bool Copter::pre_arm_checks(bool display_failure)
                 return false;
             }
         }
+        // Check EKF has a vertical position estimate
+        if (!filt_status.flags.vert_pos) {
+            if (display_failure) {
+                gcs_send_text_P(SEVERITY_HIGH,PSTR("Arm: waiting for Alt estimate"));
+            }
+            return false;
+        }
     }
 
     // check Compass
@@ -691,6 +698,13 @@ bool Copter::arm_checks(bool display_failure, bool arming_from_gcs)
             }
             return false;
         }
+    }
+    // Check EKF has a vertical position estimate
+    if (!filt_status.flags.vert_pos) {
+        if (display_failure) {
+            gcs_send_text_P(SEVERITY_HIGH,PSTR("Arm: waiting for Alt estimate"));
+        }
+        return false;
     }
 
     // check gps
