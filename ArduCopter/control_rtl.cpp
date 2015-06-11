@@ -274,6 +274,15 @@ void Copter::rtl_descent_run()
 
     // process pilot's input
     if (!failsafe.radio) {
+        if(rc_throttle_control_in_filter.get() > 700){
+            // exit land
+            if (position_ok()) {
+                set_mode(LOITER);
+            } else {
+                set_mode(ALT_HOLD);
+            }
+        }
+
         if (g.land_repositioning) {
             // apply SIMPLE mode transform to pilot inputs
             update_simple_mode();
@@ -356,6 +365,15 @@ void Copter::rtl_land_run()
 
     // process pilot's input
     if (!failsafe.radio) {
+        if(rc_throttle_control_in_filter.get() > 700){
+            // exit land
+            if (position_ok()) {
+                set_mode(LOITER);
+            } else {
+                set_mode(ALT_HOLD);
+            }
+        }
+
         if (g.land_repositioning) {
             // apply SIMPLE mode transform to pilot inputs
             update_simple_mode();

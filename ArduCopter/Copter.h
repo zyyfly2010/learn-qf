@@ -381,6 +381,8 @@ private:
     float baro_climbrate;        // barometer climbrate in cm/s
     LowPassFilterVector3f land_accel_ef_filter; // accelerations for land detector test
 
+    LowPassFilterFloat rc_throttle_control_in_filter{1.0f};
+
     // 3D Location vectors
     // Current location of the copter (altitude is relative to home)
     struct Location current_loc;
