@@ -4098,7 +4098,6 @@ void NavEKF::readIMUData()
 // check for new valid GPS data and update stored measurement if available
 void NavEKF::readGpsData()
 {
-    bool goodToAlign = false;
     // check for new GPS data
     if ((_ahrs->get_gps().last_message_time_ms() != lastFixTime_ms) &&
             (_ahrs->get_gps().status() >= AP_GPS::GPS_OK_FIX_3D))
@@ -4148,14 +4147,14 @@ void NavEKF::readGpsData()
         }
 
         // Monitor quality of the GPS velocity data for alignment
-        goodToAlign = calcGpsGoodToAlign();
+        gpsGoodToAlign = calcGpsGoodToAlign();
 
         // read latitutde and longitude from GPS and convert to local NE position relative to the stored origin
         // If we don't have an origin, then set it to the current GPS coordinates
         const struct Location &gpsloc = _ahrs->get_gps().location();
         if (validOrigin) {
             gpsPosNE = location_diff(EKF_origin, gpsloc);
-        } else if (goodToAlign){
+        } else if (gpsGoodToAlign){
             // Set the NE origin to the current GPS position
             setOrigin();
             // Now we know the location we have an estimate for the magnetic field declination and adjust the earth field accordingly
@@ -4781,7 +4780,7 @@ void  NavEKF::getFilterStatus(nav_filter_status &status) const
     bool someVertRefData = (!velTimeout && useGpsVertVel) || !hgtTimeout;
     bool someHorizRefData = !(velTimeout && posTimeout && tasTimeout) || doingFlowNav;
     bool optFlowNavPossible = flowDataValid && (_fusionModeGPS == 3);
-    bool gpsNavPossible = !gpsNotAvailable && (_fusionModeGPS <= 2);
+    bool gpsNavPossible = !gpsNotAvailable && (_fusionModeGPS <= 2) && gpsGoodToAlign;
     bool filterHealthy = healthy();
 
     // set individual flags
