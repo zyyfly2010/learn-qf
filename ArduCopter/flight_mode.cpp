@@ -267,7 +267,7 @@ bool Copter::mode_requires_GPS(uint8_t mode) {
     return false;
 }
 
-static bool mode_disarms_on_land(uint8_t mode) {
+bool Copter::mode_disarms_on_land(uint8_t mode) {
     return mode_allows_arming(mode, false) && !mode_has_manual_throttle(mode);
 }
 
