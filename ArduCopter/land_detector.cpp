@@ -129,7 +129,7 @@ void Copter::update_throttle_thr_mix()
     }
 }
 
-static void update_ground_effect_detector(void)
+void Copter::update_ground_effect_detector(void)
 {
     if(!motors.armed()) {
         // disarmed - disable ground effect and return

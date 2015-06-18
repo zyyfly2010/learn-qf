@@ -955,6 +955,7 @@ private:
     void print_flight_mode(AP_HAL::BetterStream *port, uint8_t mode);
     void log_init(void);
     void run_cli(AP_HAL::UARTDriver *port);
+    void update_ground_effect_detector(void);
 
 public:
     void mavlink_delay_cb();

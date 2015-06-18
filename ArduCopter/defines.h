@@ -155,6 +155,7 @@ enum tuning_func {
 };
 
 #define DEPRECATED_MODES_MASK ((1UL<<8)|(1UL<<10)|(1UL<<12))
+#define NUM_MODES 18
 
 // Acro Trainer types
 #define ACRO_TRAINER_DISABLED   0

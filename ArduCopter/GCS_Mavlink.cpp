@@ -724,15 +724,15 @@ bool GCS_MAVLINK::try_send_message(enum ap_message id)
         break; // just here to prevent a warning
 
     case MSG_MAG_CAL_PROGRESS:
-        compass.send_mag_cal_progress(chan);
+        copter.compass.send_mag_cal_progress(chan);
         break;
 
     case MSG_MAG_CAL_REPORT:
-        compass.send_mag_cal_report(chan);
+        copter.compass.send_mag_cal_report(chan);
         break;
 
     case MSG_ARMMASK:
-        mavlink_msg_named_value_int_send(chan, millis(), "ARMMASK", get_ready_to_arm_mode_mask());
+        mavlink_msg_named_value_int_send(chan, copter.millis(), "ARMMASK", copter.get_ready_to_arm_mode_mask());
         break;
     }
 
@@ -1026,7 +1026,7 @@ void GCS_MAVLINK::handleMessage(mavlink_message_t* msg)
 
     case MAVLINK_MSG_ID_PARAM_VALUE:{
         if(msg->compid == MAV_COMP_ID_GIMBAL){
-            camera_mount._externalParameters.handle_param_value(msg);
+            copter.camera_mount._externalParameters.handle_param_value(msg);
         }
         break;
     }
@@ -1089,7 +1089,7 @@ void GCS_MAVLINK::handleMessage(mavlink_message_t* msg)
     case MAVLINK_MSG_ID_GIMBAL_REPORT:
     {
 #if MOUNT == ENABLED
-        handle_gimbal_report(camera_mount, msg);
+        handle_gimbal_report(copter.camera_mount, msg);
 #endif
         //gimbal.receive_feedback(chan, msg);
         //Log_Write_Gimbal();
@@ -1172,7 +1172,7 @@ void GCS_MAVLINK::handleMessage(mavlink_message_t* msg)
             break;
 
         case MAV_CMD_DO_LAND_START:
-            if (packet.param5 == 0.0f && packet.param5 == 0.0f && set_mode(LAND)) {
+            if (packet.param5 == 0.0f && packet.param5 == 0.0f && copter.set_mode(LAND)) {
                 result = MAV_RESULT_ACCEPTED;
             }
             break;
@@ -1455,7 +1455,7 @@ void GCS_MAVLINK::handleMessage(mavlink_message_t* msg)
 
         case MAV_CMD_DO_START_MAG_CAL: {
             result = MAV_RESULT_ACCEPTED;
-            if(motors.armed() || packet.param1 < 0 || packet.param1 > 255) {
+            if(copter.motors.armed() || packet.param1 < 0 || packet.param1 > 255) {
                 result = MAV_RESULT_FAILED;
                 break;
             }
@@ -1466,11 +1466,11 @@ void GCS_MAVLINK::handleMessage(mavlink_message_t* msg)
             float delay = packet.param4;
 
             if (mag_mask == 0) { // 0 means all
-                if (!compass.start_calibration_all(retry, autosave, delay)) {
+                if (!copter.compass.start_calibration_all(retry, autosave, delay)) {
                     result = MAV_RESULT_FAILED;
                 }
             } else {
-                if (!compass.start_calibration_mask(mag_mask, retry, autosave, delay)) {
+                if (!copter.compass.start_calibration_mask(mag_mask, retry, autosave, delay)) {
                     result = MAV_RESULT_FAILED;
                 }
             }
@@ -1488,13 +1488,13 @@ void GCS_MAVLINK::handleMessage(mavlink_message_t* msg)
             uint8_t mag_mask = packet.param1;
 
             if (mag_mask == 0) { // 0 means all
-                if(!compass.accept_calibration_all()) {
+                if(!copter.compass.accept_calibration_all()) {
                     result = MAV_RESULT_FAILED;
                 }
                 break;
             }
 
-            if(!compass.accept_calibration_mask(mag_mask)) {
+            if(!copter.compass.accept_calibration_mask(mag_mask)) {
                 result = MAV_RESULT_FAILED;
             }
             break;
@@ -1510,11 +1510,11 @@ void GCS_MAVLINK::handleMessage(mavlink_message_t* msg)
             uint8_t mag_mask = packet.param1;
 
             if (mag_mask == 0) { // 0 means all
-                compass.cancel_calibration_all();
+                copter.compass.cancel_calibration_all();
                 break;
             }
 
-            compass.cancel_calibration_mask(mag_mask);
+            copter.compass.cancel_calibration_mask(mag_mask);
             break;
         }
 
