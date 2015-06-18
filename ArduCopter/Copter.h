@@ -469,8 +469,6 @@ private:
     AC_Fence    fence;
 #endif
 
-    AP_Gimbal gimbal{ahrs, g.sysid_this_mav, MAV_COMP_ID_GIMBAL};
-
     // Rally library
 #if AC_RALLY == ENABLED
     AP_Rally rally;
@@ -534,6 +532,7 @@ private:
     void throttle_loop();
     void update_mount();
     void update_batt_compass(void);
+    void compass_cal_update();
     void ten_hz_logging_loop();
     void fifty_hz_logging_loop();
     void full_rate_logging_loop();
