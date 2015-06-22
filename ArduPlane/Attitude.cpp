@@ -415,6 +415,12 @@ void Plane::calc_nav_yaw_coordinated(float speed_scaler)
         disable_integrator = true;
     }
     steering_control.rudder = yawController.get_servo_out(speed_scaler, disable_integrator);
+    if (g.rudder_only) {
+        // reduce yaw damping when demanding roll in rudder only
+        // aircraft. This allows the yaw damper to smooth out level
+        // flight, while not impeding turns
+        steering_control.rudder *= (roll_limit_cd - abs(nav_roll_cd)) / (float)roll_limit_cd;
+    }
 
     // add in rudder mixing from roll
     steering_control.rudder += channel_roll->servo_out * g.kff_rudder_mix;
