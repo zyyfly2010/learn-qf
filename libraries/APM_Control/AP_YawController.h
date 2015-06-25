@@ -21,7 +21,7 @@ public:
 		_pid_info.P = 0;
 	}
 
-	int32_t get_servo_out(float scaler, bool disable_integrator);
+	int32_t get_servo_out(float scaler, float demanded_bank_deg, bool disable_integrator);
 
 	void reset_I();
 
