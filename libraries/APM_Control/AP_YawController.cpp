@@ -67,6 +67,15 @@ const AP_Param::GroupInfo AP_YawController::var_info[] PROGMEM = {
 	// @User: Advanced
 	AP_GROUPINFO("IMAX",  5, AP_YawController, _imax,        1500),
 
+	// @Param: TCONST
+	// @DisplayName: Yaw damp time constant
+	// @Description: Time constant for yaw damper. This needs to be larger for larger airframes.
+	// @Range: 0 20
+	// @Increment: 0.1
+    // @Units: Seconds
+	// @User: Advanced
+	AP_GROUPINFO("TCONST",  6, AP_YawController, _tconst,    5),
+
 	AP_GROUPEND
 };
 
@@ -115,7 +124,9 @@ int32_t AP_YawController::get_servo_out(float scaler, bool disable_integrator)
 	// due to bias errors in rate_offset
 	// Use a cut-off frequency of omega = 0.2 rad/sec
 	// Could make this adjustable by replacing 0.9960080 with (1 - omega * dt)
-	float rate_hp_out = 0.9960080f * _last_rate_hp_out + rate_hp_in - _last_rate_hp_in;
+    float omega = 1.0 / _tconst;
+    float filter_constant = 1.0f - omega * delta_time;
+	float rate_hp_out = filter_constant * _last_rate_hp_out + rate_hp_in - _last_rate_hp_in;
 	_last_rate_hp_out = rate_hp_out;
 	_last_rate_hp_in = rate_hp_in;
 
