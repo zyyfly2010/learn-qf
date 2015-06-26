@@ -362,7 +362,7 @@
                     <property>metrics/Sw-sqft</property>
                     <property>metrics/bw-ft</property>
                     <property>aero/beta-rad</property>
-                    <value>-0.1000</value>
+                    <value>-0.200</value>
                 </product>
             </function>
             <function name="aero/coefficient/Clp">
@@ -410,7 +410,7 @@
                     <property>metrics/Sw-sqft</property>
                     <property>metrics/bw-ft</property>
                     <property>fcs/rudder-pos-rad</property>
-                    <value>0.0100</value>
+                    <value>0.0200</value>
                 </product>
             </function>
         </axis>
@@ -474,7 +474,7 @@
                     <property>metrics/Sw-sqft</property>
                     <property>metrics/bw-ft</property>
                     <property>aero/beta-rad</property>
-                    <value>0.1200</value>
+                    <value>0.0100</value>
                 </product>
             </function>
             <function name="aero/coefficient/Cnr">
