@@ -52,6 +52,11 @@ void Helicopter::update(const struct sitl_input &input)
     float swash3 = (input.servos[2]-1000) / 1000.0f;
     float tail_rotor = (input.servos[3]-1000) / 1000.0f;
     float rsc = (input.servos[7]-1000) / 1000.0f;
+    if (input.servos[7] > 1170) {
+        rsc = 0.9;
+    } else {
+        rsc = 0;
+    }
 
     // how much time has passed?
     float delta_time = frame_time_us * 1.0e-6f;
