@@ -311,6 +311,7 @@
         <entry name="EKF_CONST_POS_MODE" value="128"> <description>EKF is in constant position mode and does not know it's absolute or relative position</description></entry>
         <entry name="EKF_PRED_POS_HORIZ_REL" value="256"> <description>set if EKF's predicted horizontal position (relative) estimate is good</description></entry>
         <entry name="EKF_PRED_POS_HORIZ_ABS" value="512"> <description>set if EKF's predicted horizontal position (absolute) estimate is good</description></entry>
+        <entry name="EKF_GPS_GLITCHING" value="32768"> <description>set if EKF's thinks GPS is glitching</description></entry>
 	</enum>
 
     <enum name="MAG_CAL_STATUS">
