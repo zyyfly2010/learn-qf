@@ -169,6 +169,21 @@ void AP_Compass_HMC5843::accumulate(void)
 	  // for ease of calculation. We expect to do reads at 10Hz, and
 	  // we get new data at most 75Hz, so we don't expect to
 	  // accumulate more than 8 before a read
+       // get raw_field - sensor frame, uncorrected
+       Vector3f raw_field = Vector3f(_mag_x, _mag_y, _mag_z);
+
+       // rotate raw_field from sensor frame to body frame
+       rotate_field(raw_field, _compass_instance);
+
+       // publish raw_field (uncorrected point sample) for calibration use
+       publish_raw_field(raw_field, tnow, _compass_instance);
+
+       // correct raw_field for known errors
+       correct_field(raw_field, _compass_instance);
+
+       // publish raw_field (corrected point sample) for EKF use
+       publish_unfiltered_field(raw_field, tnow, _compass_instance);
+
 	  _mag_x_accum += _mag_x;
 	  _mag_y_accum += _mag_y;
 	  _mag_z_accum += _mag_z;
