@@ -502,6 +502,7 @@ private:
     void do_digicam_configure(const AP_Mission::Mission_Command& cmd);
     void do_digicam_control(const AP_Mission::Mission_Command& cmd);
     void init_capabilities(void);
+    void compass_cal_update();
 
 public:
     bool print_log_menu(void);
