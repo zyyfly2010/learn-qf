@@ -806,6 +806,14 @@ bool GCS_MAVLINK::try_send_message(enum ap_message id)
         CHECK_PAYLOAD_SIZE(MISSION_ITEM_REACHED);
         mavlink_msg_mission_item_reached_send(chan, mission_item_reached_index);
         break;
+
+    case MSG_MAG_CAL_PROGRESS:
+        plane.compass.send_mag_cal_progress(chan);
+        break;
+
+    case MSG_MAG_CAL_REPORT:
+        plane.compass.send_mag_cal_report(chan);
+        break;
     }
     return true;
 }
@@ -1037,6 +1045,8 @@ GCS_MAVLINK::data_stream_send(void)
 #if AP_TERRAIN_AVAILABLE
         send_message(MSG_TERRAIN);
 #endif
+        send_message(MSG_MAG_CAL_REPORT);
+        send_message(MSG_MAG_CAL_PROGRESS);
         send_message(MSG_BATTERY2);
         send_message(MSG_MOUNT_STATUS);
         send_message(MSG_OPTICAL_FLOW);
@@ -1386,6 +1396,71 @@ void GCS_MAVLINK::handleMessage(mavlink_message_t* msg)
             // param1 : enable/disable
             plane.autotune_enable(!is_zero(packet.param1));
             break;
+
+        case MAV_CMD_DO_START_MAG_CAL: {
+            result = MAV_RESULT_ACCEPTED;
+            if(plane.arming.is_armed() || packet.param1 < 0 || packet.param1 > 255) {
+                result = MAV_RESULT_FAILED;
+                break;
+            }
+
+            uint8_t mag_mask = packet.param1;
+            bool retry = packet.param2;
+            bool autosave = packet.param3;
+            float delay = packet.param4;
+
+            if (mag_mask == 0) { // 0 means all
+                if (!plane.compass.start_calibration_all(retry, autosave, delay)) {
+                    result = MAV_RESULT_FAILED;
+                }
+            } else {
+                if (!plane.compass.start_calibration_mask(mag_mask, retry, autosave, delay)) {
+                    result = MAV_RESULT_FAILED;
+                }
+            }
+
+            break;
+        }
+
+        case MAV_CMD_DO_ACCEPT_MAG_CAL: {
+            result = MAV_RESULT_ACCEPTED;
+            if(packet.param1 < 0 || packet.param1 > 255) {
+                result = MAV_RESULT_FAILED;
+                break;
+            }
+
+            uint8_t mag_mask = packet.param1;
+
+            if (mag_mask == 0) { // 0 means all
+                if(!plane.compass.accept_calibration_all()) {
+                    result = MAV_RESULT_FAILED;
+                }
+                break;
+            }
+
+            if(!plane.compass.accept_calibration_mask(mag_mask)) {
+                result = MAV_RESULT_FAILED;
+            }
+            break;
+        }
+
+        case MAV_CMD_DO_CANCEL_MAG_CAL: {
+            result = MAV_RESULT_ACCEPTED;
+            if(packet.param1 < 0 || packet.param1 > 255) {
+                result = MAV_RESULT_FAILED;
+                break;
+            }
+
+            uint8_t mag_mask = packet.param1;
+
+            if (mag_mask == 0) { // 0 means all
+                plane.compass.cancel_calibration_all();
+                break;
+            }
+
+            plane.compass.cancel_calibration_mask(mag_mask);
+            break;
+        }
 
         default:
             break;
