@@ -349,6 +349,7 @@ private:
     int16_t         _yaw_radio_passthrough;     // yaw control PWM direct from radio, used for manual control
     int16_t         _throttle_range;            // range of throttle movement
     int16_t         _collective_range;          // range of collective movement
+    uint32_t        _last_recalc_ms=0;          // last time scalers were recalculated
 };
 
 #endif  // AP_MOTORSHELI

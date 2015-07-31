@@ -622,9 +622,16 @@ void AP_MotorsHeli::move_swash(int16_t roll_out, int16_t pitch_out, int16_t coll
         coll_out_scaled = coll_in * _collective_scalar + _throttle_radio_min - 1000;
     }else{      // regular flight mode
 
+        // recalculate scaling factors once a second to allow for
+        // changes without a reboot
+        if (hal.scheduler->millis() - _last_recalc_ms > 1000 || 
+            !_heliflags.swash_initialised) {
+            _last_recalc_ms = hal.scheduler->millis();
+            recalc_scalers();
+        }
+
         // check if we need to reinitialise the swash
         if (!_heliflags.swash_initialised) {
-            recalc_scalers();
             init_swash();
         }
 
