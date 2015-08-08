@@ -292,6 +292,7 @@ private:
     Vector3f _gyro[INS_MAX_INSTANCES];
     Vector3f _delta_angle[INS_MAX_INSTANCES];
     bool _delta_angle_valid[INS_MAX_INSTANCES];
+    Vector3f _last_gyro[INS_MAX_INSTANCES];
 
     // product id
     AP_Int16 _product_id;
@@ -314,6 +315,7 @@ private:
     AP_Int8     _accel_filter_cutoff;
     AP_Int8     _gyro_filter_cutoff;
     AP_Int8     _gyro_cal_timing;
+    AP_Float    _gyro_filter2;
 
     // use for attitude, velocity, position estimates
     AP_Int8     _use[INS_MAX_INSTANCES];
