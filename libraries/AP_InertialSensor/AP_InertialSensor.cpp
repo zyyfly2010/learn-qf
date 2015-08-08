@@ -289,6 +289,14 @@ const AP_Param::GroupInfo AP_InertialSensor::var_info[] PROGMEM = {
     AP_GROUPINFO("USE3", 22, AP_InertialSensor, _use[2],  0),
 #endif
 
+    // @Param: GYRO_FILTER2
+    // @DisplayName: 2nd gyro low pass
+    // @Description: This filter converts delta-angles to gyro values
+    // @Range: 0 1
+    // @Increment: 0.01
+    // @User: Advanced
+    AP_GROUPINFO("GYRO_FILTER2", 23, AP_InertialSensor, _gyro_filter2,  0.0f),
+
     /*
       NOTE: parameter indexes have gaps above. When adding new
       parameters check for conflicts carefully
@@ -1235,6 +1243,18 @@ void AP_InertialSensor::update(void)
                 _primary_accel = i;
                 break;
             }
+        }
+    }
+
+    /*
+      if possible re-calculate reported gyro using delta-angle values
+     */
+    for (uint8_t i=0; i<INS_MAX_INSTANCES; i++) {
+        float filter2 = constrain_float(_gyro_filter2, 0, 1);
+        float dt = get_delta_time();
+        if (_gyro_healthy[i] && _delta_angle_valid[i] && filter2 > 0 && dt > 0) {
+            Vector3f new_gyro = _delta_angle[i] / dt;
+            _gyro[i] = _last_gyro[i] * filter2 + new_gyro * (1.0f - filter2);
         }
     }
 
