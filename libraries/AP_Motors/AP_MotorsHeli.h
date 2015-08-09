@@ -174,6 +174,7 @@ public:
 
     // ext_gyro_gain - gets and sets external gyro gain as a pwm (1000~2000)
     int16_t ext_gyro_gain() const { return _ext_gyro_gain; }
+    int16_t ext_gyro_gain_acro() const { return _ext_gyro_gain_acro; }
     void ext_gyro_gain(int16_t pwm) { _ext_gyro_gain = pwm; }
 
     // has_flybar - returns true if we have a mechical flybar
@@ -234,6 +235,8 @@ public:
 
     // output - sends commands to the motors
     void    output();
+
+    void set_acro_tail(bool set) { _acro_tail = set; }
 
 protected:
 
@@ -309,6 +312,7 @@ private:
     AP_Int16        _tail_type;                 // Tail type used: Servo, Servo with external gyro, direct drive variable pitch or direct drive fixed pitch
     AP_Int8         _swash_type;                // Swash Type Setting - either 3-servo CCPM or H1 Mechanical Mixing
     AP_Int16        _ext_gyro_gain;             // PWM sent to external gyro on ch7 when tail type is Servo w/ ExtGyro
+    AP_Int16        _ext_gyro_gain_acro;        // PWM sent to external gyro on ch7 when tail type is Servo w/ ExtGyro in acro
     AP_Int8         _servo_manual;              // Pass radio inputs directly to servos during set-up through mission planner
     AP_Int16        _phase_angle;               // Phase angle correction for rotor head.  If pitching the swash forward induces a roll, this can be correct the problem
     AP_Float        _collective_yaw_effect;     // Feed-forward compensation to automatically add rudder input when collective pitch is increased. Can be positive or negative depending on mechanics.
@@ -350,6 +354,8 @@ private:
     int16_t         _throttle_range;            // range of throttle movement
     int16_t         _collective_range;          // range of collective movement
     uint32_t        _last_recalc_ms=0;          // last time scalers were recalculated
+
+    bool _acro_tail = false;
 };
 
 #endif  // AP_MOTORSHELI

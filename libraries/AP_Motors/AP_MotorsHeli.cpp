@@ -259,6 +259,15 @@ const AP_Param::GroupInfo AP_MotorsHeli::var_info[] PROGMEM = {
     // @User: Standard
     AP_GROUPINFO("THROTTLE_MAX", 27, AP_MotorsHeli, _throttle_max_pwm, AP_MOTORS_HELI_THROTTLE_MAX),
 
+    // @Param: GYR_GAIN_ACRO
+    // @DisplayName: External Gyro Gain for ACRO
+    // @Description: PWM sent to external gyro on ch7 when tail type is Servo w/ ExtGyro
+    // @Range: 0 1000
+    // @Units: PWM
+    // @Increment: 1
+    // @User: Standard
+    AP_GROUPINFO("GYR_GAIN_ACRO", 28, AP_MotorsHeli,  _ext_gyro_gain_acro, AP_MOTORS_HELI_EXT_GYRO_GAIN),
+
     AP_GROUPEND
 };
 
@@ -373,7 +382,7 @@ void AP_MotorsHeli::output_test(uint8_t motor_seq, int16_t pwm)
         case 4:
             // external gyro & tail servo
             if (_tail_type == AP_MOTORS_HELI_TAILTYPE_SERVO_EXTGYRO) {
-                write_aux(_ext_gyro_gain);
+                write_aux(_acro_tail?_ext_gyro_gain_acro:_ext_gyro_gain);
             }
             hal.rcout->write(pgm_read_byte(&_motor_to_channel_map[AP_MOTORS_MOT_4]), pwm);
             break;
@@ -725,7 +734,7 @@ void AP_MotorsHeli::move_swash(int16_t roll_out, int16_t pitch_out, int16_t coll
 
     // output gain to exernal gyro
     if (_tail_type == AP_MOTORS_HELI_TAILTYPE_SERVO_EXTGYRO) {
-        write_aux(_ext_gyro_gain);
+        write_aux(_acro_tail?_ext_gyro_gain_acro:_ext_gyro_gain);
     }
 }
 
