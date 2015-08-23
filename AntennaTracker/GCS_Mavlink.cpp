@@ -283,6 +283,8 @@ bool GCS_MAVLINK::try_send_message(enum ap_message id)
     case MSG_VIBRATION:
     case MSG_RPM:
     case MSG_MISSION_ITEM_REACHED:
+    case MSG_MAG_CAL_PROGRESS:
+    case MSG_MAG_CAL_REPORT:
         break; // just here to prevent a warning
     }
     return true;
