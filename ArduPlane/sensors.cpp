@@ -90,3 +90,12 @@ void Plane::read_receiver_rssi(void)
     receiver_rssi = rssi.read_receiver_rssi_uint8();
 }
 
+/*
+  update compass calibration (if needed)
+ */
+void Plane::compass_cal_update(void)
+{
+    if (!hal.util->get_soft_armed()) {
+        compass.compass_cal_update();
+    }
+}
