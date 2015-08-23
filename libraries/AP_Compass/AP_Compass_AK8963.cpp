@@ -212,7 +212,9 @@ void AP_Compass_AK8963::read()
     field.rotate(ROTATION_YAW_90);
 #endif
 
-    publish_field(field, _compass_instance);
+    rotate_field(field, _compass_instance);
+    correct_field(field, _compass_instance);
+    publish_filtered_field(field, _compass_instance);
 }
 
 Vector3f AP_Compass_AK8963::_get_filtered_field() const
