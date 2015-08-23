@@ -61,7 +61,10 @@ void AP_Compass_HIL::read()
 {
     for (uint8_t i=0; i < ARRAY_SIZE(_compass_instance); i++) {
         if (_compass._hil.healthy[i]) {
-            publish_field(_compass._hil.field[_compass_instance[i]], _compass_instance[i]);
+            Vector3f field = _compass._hil.field[_compass_instance[i]];
+            rotate_field(field, _compass_instance[i]);
+            correct_field(field, _compass_instance[i]);
+            publish_filtered_field(field, _compass_instance[i]);
         }
     }
 }
