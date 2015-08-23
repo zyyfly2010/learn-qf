@@ -181,3 +181,13 @@ void Copter::epm_update()
     epm.update();
 }
 #endif
+
+/*
+  update compass calibration (if needed)
+ */
+void Copter::compass_cal_update(void)
+{
+    if (!hal.util->get_soft_armed()) {
+        compass.compass_cal_update();
+    }
+}
