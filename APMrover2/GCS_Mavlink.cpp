@@ -589,6 +589,14 @@ bool GCS_MAVLINK::try_send_message(enum ap_message id)
         mavlink_msg_mission_item_reached_send(chan, mission_item_reached_index);
         break;
 
+    case MSG_MAG_CAL_PROGRESS:
+        rover.compass.send_mag_cal_progress(chan);
+        break;
+
+    case MSG_MAG_CAL_REPORT:
+        rover.compass.send_mag_cal_report(chan);
+        break;
+
     case MSG_RETRY_DEFERRED:
     case MSG_TERRAIN:
     case MSG_OPTICAL_FLOW:
@@ -822,6 +830,8 @@ GCS_MAVLINK::data_stream_send(void)
         send_message(MSG_BATTERY2);
         send_message(MSG_MOUNT_STATUS);
         send_message(MSG_EKF_STATUS_REPORT);
+        send_message(MSG_MAG_CAL_REPORT);
+        send_message(MSG_MAG_CAL_PROGRESS);
     }
 }
 
@@ -1035,6 +1045,12 @@ void GCS_MAVLINK::handleMessage(mavlink_message_t* msg)
             }
             break;
         }
+
+        case MAV_CMD_DO_START_MAG_CAL:
+        case MAV_CMD_DO_ACCEPT_MAG_CAL:
+        case MAV_CMD_DO_CANCEL_MAG_CAL:
+            result = rover.compass.handle_mag_cal_command(packet);
+            break;
 
         default:
                 break;

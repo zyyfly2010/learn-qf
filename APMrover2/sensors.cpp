@@ -94,3 +94,13 @@ void Rover::read_sonars(void)
         obstacle.turn_angle = 0;
     }
 }
+
+/*
+  update compass calibration (if needed)
+ */
+void Rover::compass_cal_update(void)
+{
+    if (!hal.util->get_soft_armed()) {
+        compass.compass_cal_update();
+    }
+}

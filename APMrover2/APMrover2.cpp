@@ -80,6 +80,7 @@ const AP_Scheduler::Task Rover::scheduler_tasks[] PROGMEM = {
 #if FRSKY_TELEM_ENABLED == ENABLED
     SCHED_TASK(frsky_telemetry_send,   10,    100),
 #endif
+    SCHED_TASK(compass_cal_update),     1,    100),
 };
 
 /*
