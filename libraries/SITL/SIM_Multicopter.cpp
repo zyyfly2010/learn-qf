@@ -105,8 +105,8 @@ static const Frame supported_frames[] =
 MultiCopter::MultiCopter(const char *home_str, const char *frame_str) :
     Aircraft(home_str, frame_str),
     frame(NULL),
-    hover_throttle(0.51),
-    terminal_velocity(15.0),
+    hover_throttle(0.6),
+    terminal_velocity(60.0),
     terminal_rotation_rate(4*radians(360.0))
 {
     for (uint8_t i=0; i < ARRAY_SIZE(supported_frames); i++) {
