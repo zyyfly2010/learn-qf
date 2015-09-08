@@ -50,6 +50,7 @@ public:
 	void update_heading_hold(int32_t navigation_heading_cd);
 	void update_level_flight(void);
 	bool reached_loiter_target(void);
+    Location adjust_wind(const Location &next_WP, const Vector2f &groundspeed_vector);
 
     // set the default NAVL1_PERIOD
     void set_default_period(float period) {
