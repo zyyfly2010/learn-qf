@@ -316,7 +316,7 @@ const AP_Param::GroupInfo AP_InertialSensor::var_info[] PROGMEM = {
     // @Range: 0 1
     // @Increment: 0.01
     // @User: Advanced
-    AP_GROUPINFO("GYRO_FILTER2", 25, AP_InertialSensor, _gyro_filter2,  0.0f),
+    AP_GROUPINFO("GYRO_FILTER2", 25, AP_InertialSensor, _gyro_filter2_hz,  0.0f),
 
     /*
       NOTE: parameter indexes have gaps above. When adding new
@@ -1333,11 +1333,11 @@ void AP_InertialSensor::update(void)
       if possible re-calculate reported gyro using delta-angle values
      */
     for (uint8_t i=0; i<INS_MAX_INSTANCES; i++) {
-        float filter2 = constrain_float(_gyro_filter2, 0, 1);
         float dt = get_delta_time();
-        if (_gyro_healthy[i] && _delta_angle_valid[i] && filter2 > 0 && dt > 0) {
+        if (_gyro_healthy[i] && _delta_angle_valid[i] && _gyro_filter2_hz > 0 && dt > 0) {
             Vector3f new_gyro = _delta_angle[i] / dt;
-            _gyro[i] = _last_gyro[i] * filter2 + new_gyro * (1.0f - filter2);
+            _gyro_filter2[i].set_cutoff_frequency(_gyro_filter2_hz);
+            _gyro[i] = _gyro_filter2[i].apply(new_gyro, dt);
         }
     }
 
