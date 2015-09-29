@@ -25,7 +25,7 @@ public:
 
 private:
     /* override state */
-    uint16_t _override[RC_INPUT_MAX_CHANNELS];
+    uint16_t _override[input_rc_s::RC_INPUT_MAX_CHANNELS];
     struct rc_input_values _rcin;
     int _rc_sub;
     uint64_t _last_read;

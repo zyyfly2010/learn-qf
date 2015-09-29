@@ -43,7 +43,7 @@ uint8_t PX4RCInput::num_channels()
 
 uint16_t PX4RCInput::read(uint8_t ch) 
 {
-	if (ch >= RC_INPUT_MAX_CHANNELS) {
+    if (ch >= input_rc_s::RC_INPUT_MAX_CHANNELS) {
 		return 0;
 	}
         pthread_mutex_lock(&rcin_mutex);
@@ -63,8 +63,8 @@ uint16_t PX4RCInput::read(uint8_t ch)
 
 uint8_t PX4RCInput::read(uint16_t* periods, uint8_t len) 
 {
-	if (len > RC_INPUT_MAX_CHANNELS) {
-		len = RC_INPUT_MAX_CHANNELS;
+	if (len > input_rc_s::RC_INPUT_MAX_CHANNELS) {
+		len = input_rc_s::RC_INPUT_MAX_CHANNELS;
 	}
 	for (uint8_t i = 0; i < len; i++){
 		periods[i] = read(i);
@@ -85,7 +85,7 @@ bool PX4RCInput::set_override(uint8_t channel, int16_t override) {
 	if (override < 0) {
 		return false; /* -1: no change. */
 	}
-	if (channel >= RC_INPUT_MAX_CHANNELS) {
+	if (channel >= input_rc_s::RC_INPUT_MAX_CHANNELS) {
 		return false;
 	}
 	_override[channel] = override;
@@ -98,7 +98,7 @@ bool PX4RCInput::set_override(uint8_t channel, int16_t override) {
 
 void PX4RCInput::clear_overrides()
 {
-	for (uint8_t i = 0; i < RC_INPUT_MAX_CHANNELS; i++) {
+	for (uint8_t i = 0; i < input_rc_s::RC_INPUT_MAX_CHANNELS; i++) {
 		set_override(i, 0);
 	}
 }
