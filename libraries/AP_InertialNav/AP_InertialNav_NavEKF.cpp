@@ -177,7 +177,7 @@ bool AP_InertialNav_NavEKF::get_hgt_ctrl_limit(float& limit) const
  */
 float AP_InertialNav_NavEKF::get_velocity_z() const
 {
-    return _velocity_cm.z;
+    return _pos_z_rate;
 }
 
 #endif // AP_AHRS_NAVEKF_AVAILABLE
