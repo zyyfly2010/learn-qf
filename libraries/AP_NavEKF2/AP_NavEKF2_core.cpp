@@ -637,7 +637,7 @@ void  NavEKF2_core::calcOutputStatesFast() {
 /*
  * Calculate the predicted state covariance matrix using algebraic equations generated with Matlab symbolic toolbox.
  * The script file used to generate these and otehr equations in this filter can be found here:
- * https://github.com/priseborough/InertialNav/blob/master/derivations/RotationVectorAttitudeParameterisation/GenerateNavFilterEquations.m*/
+ * https://github.com/priseborough/InertialNav/blob/master/derivations/RotationVectorAttitudeParameterisation/GenerateNavFilterEquations.m
 */
 void NavEKF2_core::CovariancePrediction()
 {
