@@ -97,7 +97,11 @@
 
 #include <AP_Declination/AP_Declination.h> // ArduPilot Mega Declination Helper Library
 
-class Rover {
+struct TestClass {
+    virtual void setup(void) = 0;
+};
+
+class Rover : public TestClass {
 public:
     friend class GCS_MAVLINK;
     friend class Parameters;
