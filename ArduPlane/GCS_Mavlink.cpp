@@ -836,6 +836,13 @@ bool GCS_MAVLINK::try_send_message(enum ap_message id)
         CHECK_PAYLOAD_SIZE(MAG_CAL_REPORT);
         plane.compass.send_mag_cal_report(chan);
         break;
+
+    case MSG_ADSB_VEHICLE:
+#if ADSB_ENABLE == ENABLED
+        CHECK_PAYLOAD_SIZE(ADSB_REQUEST);
+        plane.adsb.send_vehicle(chan);
+#endif
+        break;
     }
     return true;
 }
@@ -1902,6 +1909,15 @@ void GCS_MAVLINK::handleMessage(mavlink_message_t* msg)
                                 (uint32_t)(new_home_loc.alt*0.01f));
         break;
     }
+
+    case MAVLINK_MSG_ID_ADSB_VEHICLE:
+    {
+#if ADSB_ENABLED == ENABLED
+        mavlink_adsb_vehicle_t adsb_vehicle;
+        mavlink_msg_adsb_vehicle_decode(msg, &adsb_vehicle);
+#endif
+    }
+
     } // end switch
 } // end handle mavlink
 

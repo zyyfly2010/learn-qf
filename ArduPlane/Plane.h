@@ -559,6 +559,10 @@ private:
     AP_Terrain terrain {ahrs, mission, rally};
 #endif
 
+#if ADSB_ENABLED == ENABLED
+    AP_ADSB adsb {};
+#endif
+
     // Outback Challenge Failsafe Support
 #if OBC_FAILSAFE == ENABLED
     APM_OBC obc {mission, barometer, gps, rcmap};
@@ -909,6 +913,7 @@ private:
     void update_logging1(void);
     void update_logging2(void);
     void terrain_update(void);
+    void adsb_update(void);
     void update_flight_mode(void);
     void stabilize();
     void set_servos_idle(void);

@@ -423,6 +423,11 @@
  # define GEOFENCE_ENABLED ENABLED
 #endif
 
+// use this to disable ads-b
+#ifndef ADSB_ENABLED
+ # define ADSB_ENABLED ENABLED
+#endif
+
 // pwm value on FENCE_CHANNEL to use to enable fenced mode
 #ifndef FENCE_ENABLE_PWM
  # define FENCE_ENABLE_PWM 1750
