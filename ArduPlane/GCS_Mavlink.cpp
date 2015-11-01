@@ -110,6 +110,14 @@ void Plane::send_attitude(mavlink_channel_t chan)
         omega.z);
 }
 
+void Plane::send_adsb_vehicle(mavlink_channel_t chan)
+{
+
+//    mavlink_msg_adsb_vehicle_send(
+//        chan,
+//        );
+}
+
 #if GEOFENCE_ENABLED == ENABLED
 void Plane::send_fence_status(mavlink_channel_t chan)
 {
@@ -1913,8 +1921,7 @@ void GCS_MAVLINK::handleMessage(mavlink_message_t* msg)
     case MAVLINK_MSG_ID_ADSB_VEHICLE:
     {
 #if ADSB_ENABLED == ENABLED
-        mavlink_adsb_vehicle_t adsb_vehicle;
-        mavlink_msg_adsb_vehicle_decode(msg, &adsb_vehicle);
+        plane.adsb.update_vehicle(msg);
 #endif
     }
 

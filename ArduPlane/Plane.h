@@ -94,6 +94,7 @@
 #include <AP_OpticalFlow/AP_OpticalFlow.h>     // Optical Flow library
 #include <AP_RSSI/AP_RSSI.h>                   // RSSI Library
 #include <AP_Parachute/AP_Parachute.h>
+#include <AP_ADSB/AP_ADSB.h>
 
 // Configuration
 #include "config.h"
@@ -560,7 +561,8 @@ private:
 #endif
 
 #if ADSB_ENABLED == ENABLED
-    AP_ADSB adsb {};
+    AP_ADSB adsb {ahrs, mission};
+    uint32_t time_last_alt_change_ms = 0;
 #endif
 
     // Outback Challenge Failsafe Support
@@ -703,6 +705,7 @@ private:
     void update_load_factor(void);
     void send_heartbeat(mavlink_channel_t chan);
     void send_attitude(mavlink_channel_t chan);
+    void send_adsb_vehicle(mavlink_channel_t chan);
     void send_fence_status(mavlink_channel_t chan);
     void send_extended_status1(mavlink_channel_t chan);
     void send_location(mavlink_channel_t chan);

@@ -376,7 +376,37 @@ void Plane::terrain_update(void)
 void Plane::adsb_update(void)
 {
 #if ADSB_ENABLED == ENABLED
+    uint32_t now = millis();
+
     adsb.update();
+
+    adsb.perform_threat_detection();
+
+    switch (control_mode) {
+    case AUTO:
+        if (adsb.get_another_vehicle_within_radius() && !adsb.get_is_evading_threat()) {
+            adsb.set_is_evading_threat(true);
+            set_mode(LOITER);
+            time_last_alt_change_ms = now;
+        }
+        break;
+
+    case LOITER:
+        if (adsb.get_is_evading_threat()) {
+            if (!adsb.get_another_vehicle_within_radius()) {
+                adsb.set_is_evading_threat(false);
+                set_mode(AUTO);
+            } else if (now - time_last_alt_change_ms >= 1000) {
+               // slowly reduce altitude 1m/s while loitering. Drive into the ground if threat persists
+                time_last_alt_change_ms = now;
+                next_WP_loc.alt -= 100;
+            }
+        }
+        break;
+
+    default:
+        break;
+    }
 #endif
 }
 
