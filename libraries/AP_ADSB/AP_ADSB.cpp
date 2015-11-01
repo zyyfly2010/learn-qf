@@ -23,7 +23,6 @@
 
 #include <AP_HAL/AP_HAL.h>
 #include "AP_ADSB.h"
-#include <GCS_MAVLink/GCS.h>
 
 extern const AP_HAL::HAL& hal;
 
@@ -44,41 +43,159 @@ const AP_Param::GroupInfo AP_ADSB::var_info[] PROGMEM = {
     AP_GROUPEND
 };
 
-bool AP_ADSB::set_vehicle(uint16_t index, mavlink_adsb_vehicle_t vehicle)
+void AP_ADSB::update(void)
+{
+    uint16_t index = 0;
+
+    while (index < _vehicle_count) {
+        // check list and drop stale vehicles
+        if (hal.scheduler->millis() - _vehicle_list[index].last_update_ms > VEHCILE_TIMEOUT_MS) {
+             // don't increment index, we want to check this same index again because the contents changed
+            delete_vehicle(index);
+        } else {
+            index++;
+        }
+    }
+}
+
+void AP_ADSB::perform_threat_detection(void)
+{
+    Location my_loc;
+    if (_ahrs.get_position(my_loc) == false) {
+        // current location is unknown so we can't calculate any collisions
+        return;
+    }
+
+    for (uint16_t index = 0; index < _vehicle_count; index++) {
+        // TODO: perform more advanced threat detection
+        Location vehicle_loc = get_location(_vehicle_list[index]);
+        if (get_distance(vehicle_loc, my_loc) <= 200) {
+            _another_vehicle_within_radius = true;
+        } // if get
+    } // for
+
+}
+
+Location AP_ADSB::get_location(const adsb_vehicle_t vehicle)
+{
+    Location loc;
+    loc.alt = vehicle.info.altitude * 100;
+    loc.lat = vehicle.info.lat * 1e7;
+    loc.lng = vehicle.info.lon * 1e7;
+    loc.flags.relative_alt = false;
+    return loc;
+}
+
+/*
+ *  delete a vehicle by copying last vehicle to
+ *  current index then decrementing count
+ */
+void AP_ADSB::delete_vehicle(const uint16_t index)
+{
+    if (index < _vehicle_count) {
+        memcpy(&_vehicle_list[index], &_vehicle_list[_vehicle_count-1], sizeof(adsb_vehicle_t));
+        memset(&_vehicle_list[_vehicle_count-1], 0, sizeof(adsb_vehicle_t));
+         _vehicle_count--;
+    }
+}
+
+/*
+ * Search _vehicle_list for the given vehicle. A match
+ * depends on ICAO_ADDRESS. Returns index of vehicle.
+ * If not found it returns an invalid index of -1
+ */
+int16_t AP_ADSB::find_index(const adsb_vehicle_t vehicle)
+{
+    for (uint16_t i = 0; i < _vehicle_count; i++) {
+        if (_vehicle_list[i].info.ICAO_ADDRESS == vehicle.info.ICAO_ADDRESS) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+/*
+ * Update the vehicle list. If the vehicle is already in the
+ * list then it will update it, otherwise it will be added.
+ */
+void AP_ADSB::update_vehicle(mavlink_message_t* packet)
+{
+    adsb_vehicle_t vehicle;
+    mavlink_msg_adsb_vehicle_decode(packet, &vehicle.info);
+
+    int32_t index = find_index(vehicle);
+    if (index >= 0) {
+        // found, update it
+        set_vehicle((uint16_t)index, vehicle);
+    } else if (_vehicle_count < VEHCILE_LIST_LENGTH-1) {
+        // not found, add it if there's room
+        set_vehicle(_vehicle_count, vehicle);
+        _vehicle_count++;
+    }
+}
+
+/*
+ * Copy a vehicle's data into the list
+ */
+void AP_ADSB::set_vehicle(const uint16_t index, const adsb_vehicle_t vehicle)
+{
+    if (index < VEHCILE_LIST_LENGTH) {
+        memcpy(&_vehicle_list[index], &vehicle, sizeof(adsb_vehicle_t));
+        _vehicle_list[index].last_update_ms = hal.scheduler->millis();
+    }
+}
+
+void AP_ADSB::print_vehicle(const adsb_vehicle_t vehicle)
+{
+    // TODO vehicle as human readable text
+}
+
+bool AP_ADSB::send_next_vehicle(const mavlink_channel_t chan)
+{
+    if (_send_index[chan] == 0) {
+        // start of list, for debugging purposes lets print out the list
+        // TODO: if sending on multiple mavlink channels, this will print our multiple times
+        for (uint16_t i=0; i<_vehicle_count; i++) {
+            print_vehicle(_vehicle_list[i]);
+        }
+    }
+
+    if (send_vehicle(chan, _send_index[chan])) {
+        if (_send_index[chan]+1 >= _vehicle_count) {
+            _send_index[chan] = 0;
+        } else {
+            _send_index[chan]++;
+        }
+        return true;
+    }
+    return false;
+}
+
+bool AP_ADSB::send_vehicle(const mavlink_channel_t chan, const uint16_t index)
 {
     if (index >= VEHCILE_LIST_LENGTH) {
         return false;
     }
-    memcpy(vehicle_list[index], vehicle, sizeof(vehicle));
-}
 
-void AP_ADSB::send_vehicle(mavlink_channel_t chan)
-{
-uint8_t cal_mask = get_cal_mask();
-
-for (uint8_t compass_id=0; compass_id<COMPASS_MAX_INSTANCES; compass_id++) {
-    uint8_t cal_status = _calibrator[compass_id].get_status();
-
-    if (cal_status == COMPASS_CAL_WAITING_TO_START  ||
-        cal_status == COMPASS_CAL_RUNNING_STEP_ONE ||
-        cal_status == COMPASS_CAL_RUNNING_STEP_TWO) {
-        uint8_t completion_pct = _calibrator[compass_id].get_completion_percent();
-        uint8_t completion_mask[10];
-        Vector3f direction(0.0f,0.0f,0.0f);
-        uint8_t attempt = _calibrator[compass_id].get_attempt();
-
-        memset(completion_mask, 0, sizeof(completion_mask));
-
-        // ensure we don't try to send with no space available
-        if (!HAVE_PAYLOAD_SPACE(chan, MAG_CAL_PROGRESS)) {
-            return;
-        }
-
-        mavlink_msg_adsb_vehicle_send(
-            chan,
-
-        );
+    // ensure we don't try to send with no space available
+    if (!HAVE_PAYLOAD_SPACE(chan, ADSB_VEHICLE)) {
+        return false;
     }
-}
+
+    mavlink_msg_adsb_vehicle_send(chan,
+            _vehicle_list[index].info.ICAO_ADDRESS,
+            _vehicle_list[index].info.lat,
+            _vehicle_list[index].info.lon,
+            _vehicle_list[index].info.altitude_type,
+            _vehicle_list[index].info.altitude,
+            _vehicle_list[index].info.heading,
+            _vehicle_list[index].info.hor_velocity,
+            _vehicle_list[index].info.ver_velocity,
+            _vehicle_list[index].info.callsign,
+            _vehicle_list[index].info.emitterType,
+            _vehicle_list[index].info.tslc,
+            _vehicle_list[index].info.validFlags);
+
+    return true;
 }
 
