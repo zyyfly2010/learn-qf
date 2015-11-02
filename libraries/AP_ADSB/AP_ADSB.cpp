@@ -107,7 +107,7 @@ void AP_ADSB::delete_vehicle(const uint16_t index)
 int16_t AP_ADSB::find_index(const adsb_vehicle_t vehicle)
 {
     for (uint16_t i = 0; i < _vehicle_count; i++) {
-        if (_vehicle_list[i].info.ICAO_ADDRESS == vehicle.info.ICAO_ADDRESS) {
+        if (_vehicle_list[i].info.ICAO_address == vehicle.info.ICAO_address) {
             return i;
         }
     }
@@ -176,26 +176,6 @@ bool AP_ADSB::send_vehicle(const mavlink_channel_t chan, const uint16_t index)
     if (index >= VEHCILE_LIST_LENGTH) {
         return false;
     }
-
-    // ensure we don't try to send with no space available
-    if (!HAVE_PAYLOAD_SPACE(chan, ADSB_VEHICLE)) {
-        return false;
-    }
-
-    mavlink_msg_adsb_vehicle_send(chan,
-            _vehicle_list[index].info.ICAO_ADDRESS,
-            _vehicle_list[index].info.lat,
-            _vehicle_list[index].info.lon,
-            _vehicle_list[index].info.altitude_type,
-            _vehicle_list[index].info.altitude,
-            _vehicle_list[index].info.heading,
-            _vehicle_list[index].info.hor_velocity,
-            _vehicle_list[index].info.ver_velocity,
-            _vehicle_list[index].info.callsign,
-            _vehicle_list[index].info.emitterType,
-            _vehicle_list[index].info.tslc,
-            _vehicle_list[index].info.validFlags);
-
     return true;
 }
 
