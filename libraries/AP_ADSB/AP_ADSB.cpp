@@ -27,7 +27,7 @@
 extern const AP_HAL::HAL& hal;
 
 // table of user settable parameters
-const AP_Param::GroupInfo AP_ADSB::var_info[] PROGMEM = {
+const AP_Param::GroupInfo AP_ADSB::var_info[] = {
     // @Param: ENABLE
     // @DisplayName: Enable
     // @Description: Enable ADS-B
