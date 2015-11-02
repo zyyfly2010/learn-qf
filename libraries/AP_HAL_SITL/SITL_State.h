@@ -23,6 +23,7 @@
 #include <AP_Terrain/AP_Terrain.h>
 #include <SITL/SITL.h>
 #include <SITL/SIM_Gimbal.h>
+#include <SITL/SIM_ADSB.h>
 
 class HAL_SITL;
 
@@ -205,6 +206,10 @@ private:
     bool enable_gimbal;
     SITL::Gimbal *gimbal;
 
+    // simulated gimbal
+    bool enable_ADSB;
+    SITL::ADSB *adsb;
+    
     // TCP address to connect uartC to
     const char *_client_address;
 };

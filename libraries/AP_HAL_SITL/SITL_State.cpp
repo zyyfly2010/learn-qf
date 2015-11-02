@@ -93,6 +93,9 @@ void SITL_State::_sitl_setup(void)
         if (enable_gimbal) {
             gimbal = new Gimbal(_sitl->state);
         }
+        if (enable_ADSB) {
+            adsb = new ADSB(_sitl->state);
+        }
     }
 
     if (_synthetic_clock_mode) {
@@ -318,6 +321,9 @@ void SITL_State::_fdm_input_local(void)
 
     if (gimbal != NULL) {
         gimbal->update();
+    }
+    if (adsb != NULL) {
+        adsb->update();
     }
 
     // update simulation time
