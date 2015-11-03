@@ -400,7 +400,7 @@ void Plane::adsb_handle_vehicle_threats(void)
         case AP_ADSB::BEHAVIOR_LOITER_TO_GROUND:
             if (adsb.get_another_vehicle_within_radius() && !adsb.get_is_evading_threat()) {
                 adsb.set_is_evading_threat(true);
-                gcs_send_text_P(MAV_SEVERITY_CRITICAL, PSTR("ADS-B threat found, performing LOITER"));
+                gcs_send_text(MAV_SEVERITY_CRITICAL, "ADS-B threat found, performing LOITER");
                 set_mode(LOITER);
                 adsb_time_last_alt_change_ms = now;
             }
@@ -417,7 +417,7 @@ void Plane::adsb_handle_vehicle_threats(void)
             if (adsb.get_is_evading_threat()) {
                 if (!adsb.get_another_vehicle_within_radius()) {
                     adsb.set_is_evading_threat(false);
-                    gcs_send_text_P(MAV_SEVERITY_CRITICAL, PSTR("ADS-B threat gone, continuing mission"));
+                    gcs_send_text(MAV_SEVERITY_CRITICAL, "ADS-B threat gone, continuing mission");
                     set_mode(AUTO);
                 } else if (now - adsb_time_last_alt_change_ms >= 1000) {
                    // slowly reduce altitude 1m/s while loitering. Drive into the ground if threat persists
