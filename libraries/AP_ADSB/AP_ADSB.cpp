@@ -159,7 +159,7 @@ void AP_ADSB::set_vehicle(const uint16_t index, const adsb_vehicle_t vehicle)
 void AP_ADSB::print_vehicle(const adsb_vehicle_t vehicle)
 {
     hal.console->printf("%d, %.4f, %.4f, %.1f, %.1f, %.1f, %d, %d, %s, %d  %d  %d",
-          vehicle.info.ICAO_ADDRESS,
+          vehicle.info.ICAO_address,
           (double)vehicle.info.lat,
           (double)vehicle.info.lon,
           (double)vehicle.info.altitude,
