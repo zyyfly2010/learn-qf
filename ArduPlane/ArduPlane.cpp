@@ -375,7 +375,6 @@ void Plane::terrain_update(void)
 
 void Plane::adsb_update(void)
 {
-#if ADSB_ENABLED == ENABLED
     uint32_t now = millis();
 
     adsb.update();
@@ -407,7 +406,6 @@ void Plane::adsb_update(void)
     default:
         break;
     }
-#endif
 }
 
 void Plane::dataflash_periodic(void)

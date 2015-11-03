@@ -560,10 +560,8 @@ private:
     AP_Terrain terrain {ahrs, mission, rally};
 #endif
 
-#if ADSB_ENABLED == ENABLED
     AP_ADSB adsb {ahrs, mission};
     uint32_t time_last_alt_change_ms = 0;
-#endif
 
     // Outback Challenge Failsafe Support
 #if OBC_FAILSAFE == ENABLED
