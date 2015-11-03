@@ -44,8 +44,8 @@ void ADSB_Vehicle::update(float delta_t)
         initialised = true;
         ICAO_address = (uint32_t)(rand() % 10000);
         snprintf(callsign, sizeof(callsign), "SIM%u", ICAO_address);
-        position.x = Aircraft::rand_normal(0, 6000);
-        position.y = Aircraft::rand_normal(0, 6000);
+        position.x = Aircraft::rand_normal(0, 1000);
+        position.y = Aircraft::rand_normal(0, 1000);
         position.z = -fabsf(Aircraft::rand_normal(3000, 1000));
         velocity_ef.x = Aircraft::rand_normal(0, 100);
         velocity_ef.y = Aircraft::rand_normal(0, 100);
@@ -164,7 +164,7 @@ void ADSB::send_report(void)
             location_offset(loc, vehicle.position.x, vehicle.position.y);
 
             // re-init when over 50km from home
-            if (get_distance(home, loc) > 20000) {
+            if (get_distance(home, loc) > 2000) {
                 vehicle.initialised = false;
             }
             
