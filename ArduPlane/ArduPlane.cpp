@@ -388,7 +388,6 @@ void Plane::adsb_update(void)
 void Plane::adsb_handle_vehicle_threats(void)
 {
     uint32_t now = millis();
-    adsb.perform_threat_detection();
 
     switch (control_mode) {
     case AUTO:
