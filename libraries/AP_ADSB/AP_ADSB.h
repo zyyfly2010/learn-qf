@@ -55,20 +55,15 @@ public:
         for (uint16_t i=0; i< VEHCILE_LIST_LENGTH; i++) {
             memset(&_vehicle_list[i], 0, sizeof(_vehicle_list[i]));
         }
-        memset(&_send_index, 0, sizeof(_send_index));
     }
 
     // for holding parameters
     static const struct AP_Param::GroupInfo var_info[];
 
-    bool send_vehicle(const mavlink_channel_t chan, const uint16_t index);
-
     void update(void);
     void perform_threat_detection(void);
 
     uint16_t get_vehicle_count() { return _vehicle_count; }
-
-    bool send_next_vehicle(const mavlink_channel_t chan);
 
     void update_vehicle(mavlink_message_t* msg);
 
@@ -102,7 +97,6 @@ private:
     AP_Int8     _enable;
     AP_Int8     _behavior;
     adsb_vehicle_t _vehicle_list[VEHCILE_LIST_LENGTH];
-    uint16_t    _send_index[MAVLINK_COMM_NUM_BUFFERS]; // allows sending over multiple serial ports
     uint16_t    _vehicle_count = 0;
     bool        _another_vehicle_within_radius = false;
     bool        _is_evading_threat = false;

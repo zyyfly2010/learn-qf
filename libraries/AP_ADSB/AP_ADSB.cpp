@@ -150,32 +150,4 @@ void AP_ADSB::print_vehicle(const adsb_vehicle_t vehicle)
     // TODO vehicle as human readable text
 }
 
-bool AP_ADSB::send_next_vehicle(const mavlink_channel_t chan)
-{
-    if (_send_index[chan] == 0) {
-        // start of list, for debugging purposes lets print out the list
-        // TODO: if sending on multiple mavlink channels, this will print our multiple times
-        for (uint16_t i=0; i<_vehicle_count; i++) {
-            print_vehicle(_vehicle_list[i]);
-        }
-    }
-
-    if (send_vehicle(chan, _send_index[chan])) {
-        if (_send_index[chan]+1 >= _vehicle_count) {
-            _send_index[chan] = 0;
-        } else {
-            _send_index[chan]++;
-        }
-        return true;
-    }
-    return false;
-}
-
-bool AP_ADSB::send_vehicle(const mavlink_channel_t chan, const uint16_t index)
-{
-    if (index >= VEHCILE_LIST_LENGTH) {
-        return false;
-    }
-    return true;
-}
 
