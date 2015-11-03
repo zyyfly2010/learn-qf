@@ -46,23 +46,27 @@ const AP_Param::GroupInfo AP_ADSB::var_info[] = {
 void AP_ADSB::update(void)
 {
     uint16_t index = 0;
-
     while (index < _vehicle_count) {
         // check list and drop stale vehicles
-        if (hal.scheduler->millis() - _vehicle_list[index].last_update_ms > VEHCILE_TIMEOUT_MS) {
+        if (!_enable ||
+            hal.scheduler->millis() - _vehicle_list[index].last_update_ms > VEHCILE_TIMEOUT_MS) {
              // don't increment index, we want to check this same index again because the contents changed
+            // also, if we're disabled then clear the list
             delete_vehicle(index);
         } else {
             index++;
         }
     }
+
+    perform_threat_detection();
 }
 
 void AP_ADSB::perform_threat_detection(void)
 {
     Location my_loc;
     if (_ahrs.get_position(my_loc) == false) {
-        // current location is unknown so we can't calculate any collisions
+        // nothing to do or current location is unknown so we can't calculate any collisions
+        _another_vehicle_within_radius = false;
         return;
     }
 
@@ -129,8 +133,12 @@ int16_t AP_ADSB::find_index(const adsb_vehicle_t vehicle)
  * Update the vehicle list. If the vehicle is already in the
  * list then it will update it, otherwise it will be added.
  */
-void AP_ADSB::update_vehicle(mavlink_message_t* packet)
+void AP_ADSB::update_vehicle(const mavlink_message_t* packet)
 {
+    if (!_enable) {
+        return;
+    }
+
     adsb_vehicle_t vehicle;
     mavlink_msg_adsb_vehicle_decode(packet, &vehicle.info);
 

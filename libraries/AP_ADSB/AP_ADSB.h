@@ -60,12 +60,11 @@ public:
     // for holding parameters
     static const struct AP_Param::GroupInfo var_info[];
 
+    // periodic task that maintains vehicle_list
     void update(void);
-    void perform_threat_detection(void);
 
-    uint16_t get_vehicle_count() { return _vehicle_count; }
-
-    void update_vehicle(mavlink_message_t* msg);
+    // add or update vehicle_list from inbounc mavlink msg
+    void update_vehicle(const mavlink_message_t* msg);
 
     bool get_another_vehicle_within_radius()  { return _another_vehicle_within_radius; }
 
@@ -75,6 +74,10 @@ public:
 
 private:
 
+    // compares current vector against vehicle_list to detect threats
+    void perform_threat_detection(void);
+
+    // extract a location out of a vehicle item
     Location get_location(const adsb_vehicle_t vehicle);
 
     // return index of given vehicle if ICAO_ADDRESS matches. return -1 if no match
@@ -83,7 +86,7 @@ private:
     // remove a vehicle from the list
     void delete_vehicle(const uint16_t index);
 
-    void set_vehicle(const uint16_t index, adsb_vehicle_t vehicle);
+    void set_vehicle(const uint16_t index, const adsb_vehicle_t vehicle);
 
     void print_vehicle(const adsb_vehicle_t vehicle);
 
@@ -91,8 +94,7 @@ private:
     // heading and speed
     AP_AHRS &_ahrs;
 
-    // reference to AP_Mission, so we can ask preload terrain data for
-    // all waypoints
+    // reference to AP_Mission, so we can access current and future mission path for object avoidance
     const AP_Mission &_mission;
 
     AP_Int8     _enable;
