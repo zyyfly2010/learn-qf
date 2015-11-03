@@ -66,13 +66,24 @@ void AP_ADSB::perform_threat_detection(void)
         return;
     }
 
+    bool no_threat_within_radius = true;
     for (uint16_t index = 0; index < _vehicle_count; index++) {
         // TODO: perform more advanced threat detection
         Location vehicle_loc = get_location(_vehicle_list[index]);
-        if (get_distance(vehicle_loc, my_loc) <= 200) {
-            _another_vehicle_within_radius = true;
+
+        // if within radius, set flag and enforce a double radius to clear flag
+        float threat_distance = get_distance(vehicle_loc, my_loc);
+        if (threat_distance <= 2*VEHCILE_THREADT_RADIUS_M) {
+            no_threat_within_radius = false;
+            if (threat_distance <= VEHCILE_THREADT_RADIUS_M) {
+                _another_vehicle_within_radius = true;
+            }
         } // if get
     } // for
+
+    if (no_threat_within_radius) {
+        _another_vehicle_within_radius = false;
+    }
 
 }
 
@@ -147,7 +158,19 @@ void AP_ADSB::set_vehicle(const uint16_t index, const adsb_vehicle_t vehicle)
 
 void AP_ADSB::print_vehicle(const adsb_vehicle_t vehicle)
 {
-    // TODO vehicle as human readable text
+    hal.console->printf("%d, %.4f, %.4f, %.1f, %.1f, %.1f, %d, %d, %s, %d  %d  %d",
+          vehicle.info.ICAO_ADDRESS,
+          (double)vehicle.info.lat,
+          (double)vehicle.info.lon,
+          (double)vehicle.info.altitude,
+          (double)vehicle.info.hor_velocity,
+          (double)vehicle.info.ver_velocity,
+          vehicle.info.heading,
+          vehicle.info.altitude_type,
+          vehicle.info.callsign,
+          vehicle.info.emitterType,
+          vehicle.info.tslc,
+          vehicle.info.validFlags);
 }
 
 

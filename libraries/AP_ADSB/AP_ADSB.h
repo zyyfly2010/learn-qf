@@ -27,15 +27,16 @@
 #include <AP_Param/AP_Param.h>
 #include <GCS_MAVLink/GCS.h>
 
-#define VEHCILE_LIST_LENGTH     200
-#define VEHCILE_TIMEOUT_MS      10000
+#define VEHCILE_THREADT_RADIUS_M        200
+#define VEHCILE_LIST_LENGTH             200
+#define VEHCILE_TIMEOUT_MS              10000
 
 class AP_ADSB
 {
 public:
-    enum behavior {
+    enum BEHAVIOR {
         BEHAVIOR_NONE = 0,
-        BEHAVIOR_LOITER_1_TURN = 1
+        BEHAVIOR_LOITER_TO_GROUND = 1
     };
 
     struct adsb_vehicle_t {
@@ -68,6 +69,7 @@ public:
 
     bool get_another_vehicle_within_radius()  { return _another_vehicle_within_radius; }
 
+    BEHAVIOR get_behavior()  { return (BEHAVIOR)(_behavior.get()); }
     bool get_is_evading_threat()  { return _is_evading_threat; }
     void set_is_evading_threat(bool is_evading) { _is_evading_threat = is_evading; }
 
