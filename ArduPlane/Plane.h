@@ -561,7 +561,7 @@ private:
 #endif
 
     AP_ADSB adsb {ahrs, mission};
-    uint32_t time_last_alt_change_ms = 0;
+    uint32_t adsb_time_last_alt_change_ms = 0;
 
     // Outback Challenge Failsafe Support
 #if OBC_FAILSAFE == ENABLED
@@ -914,6 +914,7 @@ private:
     void update_logging2(void);
     void terrain_update(void);
     void adsb_update(void);
+    void adsb_handle_vehicle_threats(void);
     void update_flight_mode(void);
     void stabilize();
     void set_servos_idle(void);

@@ -373,39 +373,64 @@ void Plane::terrain_update(void)
 #endif
 }
 
+/*
+  handle periodic adsb database maintenance and handle threats
+ */
 void Plane::adsb_update(void)
 {
-    uint32_t now = millis();
-
     adsb.update();
+    adsb_handle_vehicle_threats();
+}
 
+/*
+ * Handle ADS-B based threats which are platform dependent
+ */
+void Plane::adsb_handle_vehicle_threats(void)
+{
+    uint32_t now = millis();
     adsb.perform_threat_detection();
 
     switch (control_mode) {
     case AUTO:
-        if (adsb.get_another_vehicle_within_radius() && !adsb.get_is_evading_threat()) {
-            adsb.set_is_evading_threat(true);
-            set_mode(LOITER);
-            time_last_alt_change_ms = now;
-        }
-        break;
+        switch(adsb.get_behavior()) {
+        case AP_ADSB::BEHAVIOR_NONE:
+        default:
+            break;
+
+        case AP_ADSB::BEHAVIOR_LOITER_TO_GROUND:
+            if (adsb.get_another_vehicle_within_radius() && !adsb.get_is_evading_threat()) {
+                adsb.set_is_evading_threat(true);
+                gcs_send_text_P(MAV_SEVERITY_CRITICAL, PSTR("ADS-B threat found, performing LOITER"));
+                set_mode(LOITER);
+                adsb_time_last_alt_change_ms = now;
+            }
+        } // switch behavior
+        break; // case auto
 
     case LOITER:
-        if (adsb.get_is_evading_threat()) {
-            if (!adsb.get_another_vehicle_within_radius()) {
-                adsb.set_is_evading_threat(false);
-                set_mode(AUTO);
-            } else if (now - time_last_alt_change_ms >= 1000) {
-               // slowly reduce altitude 1m/s while loitering. Drive into the ground if threat persists
-                time_last_alt_change_ms = now;
-                next_WP_loc.alt -= 100;
-            }
-        }
-        break;
+        switch(adsb.get_behavior()) {
+        case AP_ADSB::BEHAVIOR_NONE:
+        default:
+            break;
+
+        case AP_ADSB::BEHAVIOR_LOITER_TO_GROUND:
+            if (adsb.get_is_evading_threat()) {
+                if (!adsb.get_another_vehicle_within_radius()) {
+                    adsb.set_is_evading_threat(false);
+                    gcs_send_text_P(MAV_SEVERITY_CRITICAL, PSTR("ADS-B threat gone, continuing mission"));
+                    set_mode(AUTO);
+                } else if (now - adsb_time_last_alt_change_ms >= 1000) {
+                   // slowly reduce altitude 1m/s while loitering. Drive into the ground if threat persists
+                    adsb_time_last_alt_change_ms = now;
+                    next_WP_loc.alt -= 100;
+                } // get_another_vehicle_within_radius
+            } // get_is_evading_threat
+        } // switch behavior
+        break; // case LOITER
 
     default:
         break;
-    }
+    } // switch control_mode
 }
 
 void Plane::dataflash_periodic(void)
