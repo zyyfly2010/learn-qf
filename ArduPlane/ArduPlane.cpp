@@ -404,6 +404,7 @@ void Plane::adsb_handle_vehicle_threats(void)
             if (adsb.get_another_vehicle_within_radius() && !adsb.get_is_evading_threat()) {
                 adsb.set_is_evading_threat(true);
                 gcs_send_text(MAV_SEVERITY_CRITICAL, "ADS-B threat found, performing LOITER");
+                adsb_prev_wp = prev_WP_loc;
                 set_mode(LOITER);
                 adsb_time_last_alt_change_ms = now;
             }
@@ -422,6 +423,8 @@ void Plane::adsb_handle_vehicle_threats(void)
                     adsb.set_is_evading_threat(false);
                     gcs_send_text(MAV_SEVERITY_CRITICAL, "ADS-B threat gone, continuing mission");
                     set_mode(AUTO);
+                    prev_WP_loc = adsb_prev_wp;
+                    auto_state.no_crosstrack = false;
                 } else if (now - adsb_time_last_alt_change_ms >= 1000) {
                    // slowly reduce altitude 1m/s while loitering. Drive into the ground if threat persists
                     adsb_time_last_alt_change_ms = now;

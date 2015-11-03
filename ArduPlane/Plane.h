@@ -562,6 +562,7 @@ private:
 
     AP_ADSB adsb {ahrs, mission};
     uint32_t adsb_time_last_alt_change_ms = 0;
+    Location adsb_prev_wp;
 
     // Outback Challenge Failsafe Support
 #if OBC_FAILSAFE == ENABLED
