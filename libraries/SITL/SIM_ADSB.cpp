@@ -27,18 +27,53 @@ extern const AP_HAL::HAL& hal;
 
 namespace SITL {
 
-ADSB::ADSB(const struct sitl_fdm &_fdm) : fdm(_fdm)
+ADSB::ADSB(const struct sitl_fdm &_fdm, const char *_home_str) :
+    fdm(_fdm)
 {
+    float yaw_degrees;
+    Aircraft::parse_home(_home_str, home, yaw_degrees);
 }
 
+
+/*
+  update a simulated vehicle
+ */
+void ADSB_Vehicle::update(float delta_t)
+{
+    if (!initialised) {
+        initialised = true;
+        ICAO_address = (uint32_t)(rand() % 10000);
+        snprintf(callsign, sizeof(callsign), "SIM%u", ICAO_address);
+        position.x = Aircraft::rand_normal(0, 6000);
+        position.y = Aircraft::rand_normal(0, 6000);
+        position.z = -fabsf(Aircraft::rand_normal(3000, 1000));
+        velocity_ef.x = Aircraft::rand_normal(0, 100);
+        velocity_ef.y = Aircraft::rand_normal(0, 100);
+        velocity_ef.z = Aircraft::rand_normal(0, 3);
+    }
+
+    position += velocity_ef * delta_t;
+    if (position.z > 0) {
+        // it has crashed! reset
+        initialised = false;
+    }
+}
 
 /*
   update the ADSB peripheral state
 */
 void ADSB::update(void)
 {
-    // TODO: add update of simulated ADSB vehicle positions
+    // calculate delta time in seconds
+    uint32_t now_us = hal.scheduler->micros();
 
+    float delta_t = (now_us - last_update_us) * 1.0e-6f;
+    last_update_us = now_us;
+
+    for (uint8_t i=0; i<num_vehicles; i++) {
+        vehicles[i].update(delta_t);
+    }
+    
     // see if we should do a report
     send_report();
 }
@@ -122,36 +157,48 @@ void ADSB::send_report(void)
      */
     uint32_t now_us = hal.scheduler->micros();
     if (now_us - last_report_us > reporting_period_ms*1000UL) {
-        mavlink_adsb_vehicle_t adsb_vehicle {};
-        last_report_us = now_us;
+        for (uint8_t i=0; i<num_vehicles; i++) {
+            ADSB_Vehicle &vehicle = vehicles[i];
+            Location loc = home;
 
-        adsb_vehicle.ICAO_address = 1234;
-        adsb_vehicle.lat = -35;
-        adsb_vehicle.lon = 149;
-        adsb_vehicle.altitude_type = ADSB_ALTITUDE_TYPE_PRESSURE_QNH;
-        adsb_vehicle.altitude = 800;
-        adsb_vehicle.heading = 120;
-        adsb_vehicle.hor_velocity = 30;
-        adsb_vehicle.ver_velocity = 1;
-        snprintf(adsb_vehicle.callsign, sizeof(adsb_vehicle.callsign), "SITL1234");
-        adsb_vehicle.emitterType = ADSB_EMITTER_TYPE_LARGE;
-        adsb_vehicle.tslc = 1;
-        adsb_vehicle.validFlags =
-            ADSB_DATA_VALID_FLAGS_VALID_COORDS |
-            ADSB_DATA_VALID_FLAGS_VALID_ALTITUDE |
-            ADSB_DATA_VALID_FLAGS_VALID_HEADING |
-            ADSB_DATA_VALID_FLAGS_VALID_VELOCITY |
-            ADSB_DATA_VALID_FLAGS_VALID_CALLSIGN;
+            location_offset(loc, vehicle.position.x, vehicle.position.y);
 
-        mavlink_status_t *chan0_status = mavlink_get_channel_status(MAVLINK_COMM_0);
-        uint8_t saved_seq = chan0_status->current_tx_seq;
-        chan0_status->current_tx_seq = mavlink.seq;
-        len = mavlink_msg_adsb_vehicle_encode(vehicle_system_id,
-                                              MAV_COMP_ID_ADSB,
-                                              &msg, &adsb_vehicle);
-        chan0_status->current_tx_seq = saved_seq;
+            // re-init when over 50km from home
+            if (get_distance(home, loc) > 20000) {
+                vehicle.initialised = false;
+            }
+            
+            mavlink_adsb_vehicle_t adsb_vehicle {};
+            last_report_us = now_us;
 
-        mav_socket.send(&msg.magic, len);
+            adsb_vehicle.ICAO_address = vehicle.ICAO_address;
+            adsb_vehicle.lat = loc.lat*1.0e-7f;
+            adsb_vehicle.lon = loc.lng*1.0e-7f;
+            adsb_vehicle.altitude_type = ADSB_ALTITUDE_TYPE_PRESSURE_QNH;
+            adsb_vehicle.altitude = -vehicle.position.z;
+            adsb_vehicle.heading = wrap_360_cd(100*degrees(atan2f(vehicle.velocity_ef.y, vehicle.velocity_ef.x))) / 100;
+            adsb_vehicle.hor_velocity = pythagorous2(vehicle.velocity_ef.x, vehicle.velocity_ef.y);
+            adsb_vehicle.ver_velocity = -vehicle.velocity_ef.z;
+            memcpy(adsb_vehicle.callsign, vehicle.callsign, sizeof(adsb_vehicle.callsign));
+            adsb_vehicle.emitterType = ADSB_EMITTER_TYPE_LARGE;
+            adsb_vehicle.tslc = 1;
+            adsb_vehicle.validFlags =
+                ADSB_DATA_VALID_FLAGS_VALID_COORDS |
+                ADSB_DATA_VALID_FLAGS_VALID_ALTITUDE |
+                ADSB_DATA_VALID_FLAGS_VALID_HEADING |
+                ADSB_DATA_VALID_FLAGS_VALID_VELOCITY |
+                ADSB_DATA_VALID_FLAGS_VALID_CALLSIGN;
+
+            mavlink_status_t *chan0_status = mavlink_get_channel_status(MAVLINK_COMM_0);
+            uint8_t saved_seq = chan0_status->current_tx_seq;
+            chan0_status->current_tx_seq = mavlink.seq;
+            len = mavlink_msg_adsb_vehicle_encode(vehicle_system_id,
+                                                  MAV_COMP_ID_ADSB,
+                                                  &msg, &adsb_vehicle);
+            chan0_status->current_tx_seq = saved_seq;
+            
+            mav_socket.send(&msg.magic, len);
+        }
     }
     
 }

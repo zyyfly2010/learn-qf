@@ -25,9 +25,25 @@
 
 namespace SITL {
 
+/*
+  a class for individual simulated vehicles
+*/
+class ADSB_Vehicle {
+    friend class ADSB;
+
+private:
+    void update(float delta_t);
+    
+    Vector3f position; // NED from origin
+    Vector3f velocity_ef; // NED
+    char callsign[9];
+    uint32_t ICAO_address;
+    bool initialised = false;
+};
+        
 class ADSB {
 public:
-    ADSB(const struct sitl_fdm &_fdm);
+    ADSB(const struct sitl_fdm &_fdm, const char *home_str);
     void update(void);
 
 private:
@@ -35,9 +51,14 @@ private:
     const char *target_address = "127.0.0.1";
     const uint16_t target_port = 5762;
 
+    Location home;
+    static const uint8_t num_vehicles = 6;
+    ADSB_Vehicle vehicles[num_vehicles];
+    
     // reporting period in ms
-    const float reporting_period_ms = 100;
+    const float reporting_period_ms = 500;
     uint32_t last_report_us = 0;
+    uint32_t last_update_us = 0;
     
     uint32_t last_heartbeat_ms = 0;
     bool seen_heartbeat = false;
