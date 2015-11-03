@@ -108,7 +108,7 @@ void SITL_State::_parse_command_line(int argc, char * const argv[])
         CMDLINE_UARTB,
         CMDLINE_UARTC,
         CMDLINE_UARTD,
-        CMDLINE_UARTE
+        CMDLINE_UARTE,
         CMDLINE_ADSB,
     };
 
@@ -237,7 +237,7 @@ void SITL_State::_parse_command_line(int argc, char * const argv[])
         }
     }
 
-    _sitl_setup();
+    _sitl_setup(home_str);
 }
 
 #endif
