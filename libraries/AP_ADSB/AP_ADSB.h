@@ -22,7 +22,6 @@
 
   Tom Pittenger, November 2015
 */
-#if ADSB_ENABLED == ENABLED
 
 #include <AP_Common/AP_Common.h>
 #include <AP_Param/AP_Param.h>
@@ -101,5 +100,4 @@ private:
     bool        _another_vehicle_within_radius = false;
     bool        _is_evading_threat = false;
 };
-#endif // ADSB_ENABLED
 #endif // AP_ADSB_H
