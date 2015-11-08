@@ -497,8 +497,8 @@ const AP_Param::Info Rover::var_info[] = {
 #endif
 
     // @Group: ARMING_
-    // @Path: ../libraries/AP_Arming/AP_Arming.cpp
-    GOBJECT(arming,                 "ARMING_", AP_Arming),
+    // @Path: arming_checks.cpp,../libraries/AP_Arming/AP_Arming.cpp
+    GOBJECT(arming,                 "ARMING_", AP_Arming_Rover),
 
     // @Group: BATT
     // @Path: ../libraries/AP_BattMonitor/AP_BattMonitor.cpp

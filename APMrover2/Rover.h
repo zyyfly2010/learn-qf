@@ -93,11 +93,30 @@
 #include <SITL/SITL.h>
 #endif
 
+/*
+  a rover specific arming class
+ */
+class AP_Arming_Rover : public AP_Arming
+{
+public:
+    AP_Arming_Rover(const AP_AHRS &ahrs_ref, const AP_Baro &baro, Compass &compass,
+                    const enum HomeState &home_set) :
+        AP_Arming(ahrs_ref, baro, compass, home_set) {
+            AP_Param::setup_object_defaults(this, var_info);
+    }
+    bool pre_arm_checks(bool report);
+
+    // var_info for holding Parameter information
+    static const struct AP_Param::GroupInfo var_info[];
+protected:
+    bool ins_checks(bool report);
+};
+
 class Rover : public AP_HAL::HAL::Callbacks {
 public:
     friend class GCS_MAVLINK;
     friend class Parameters;
-    friend class AP_Arming;
+    friend class AP_Arming_Rover;
 
     Rover(void);
 
@@ -157,7 +176,7 @@ private:
 #endif
 
     // Arming/Disarming mangement class
-    AP_Arming arming {ahrs, barometer, compass, home_is_set};
+    AP_Arming_Rover arming {ahrs, barometer, compass, home_is_set};
 
     AP_L1_Control L1_controller;
 
