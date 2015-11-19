@@ -154,31 +154,38 @@ void FlightAxis::exchange_data(const struct sitl_input &input)
         controller_started = true;
     }
 
-    const uint16_t *servos = input.servos;
+    float scaled_servos[8];
+    for (uint8_t i=0; i<8; i++) {
+        scaled_servos[i] = (input.servos[i] - 1000) / 1000.0f;
+    }
     char *reply = soap_request("ExchangeData", R"(<?xml version='1.0' encoding='UTF-8'?><soap:Envelope xmlns:soap='http://schemas.xmlsoap.org/soap/envelope/' xmlns:xsd='http://www.w3.org/2001/XMLSchema' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'>
 <soap:Body>
 <ExchangeData>
 <pControlInputs>
 <m-selectedChannels>255</m-selectedChannels>
 <m-channelValues-0to1>
-<item>%.3f</item>
-<item>%.3f</item>
-<item>%.3f</item>
-<item>%.3f</item>
-<item>%u</item>
-<item>%u</item>
-<item>%u</item>
-<item>%u</item>
+<item>%.4f</item>
+<item>%.4f</item>
+<item>%.4f</item>
+<item>%.4f</item>
+<item>%.4f</item>
+<item>%.4f</item>
+<item>%.4f</item>
+<item>%.4f</item>
 </m-channelValues-0to1>
 </pControlInputs>
 </ExchangeData>
 </soap:Body>
 </soap:Envelope>)",
-                               (servos[0]-1000)/1000.0,
-                               (servos[1]-1000)/1000.0,
-                               (servos[2]-1000)/1000.0,
-                               (servos[3]-1000)/1000.0,
-                               0, 0, 0, 0);
+                               scaled_servos[0],
+                               scaled_servos[1],
+                               scaled_servos[2],
+                               scaled_servos[3],
+                               scaled_servos[4],
+                               scaled_servos[5],
+                               scaled_servos[6],
+                               scaled_servos[7]);
+
     parse_reply(reply);
     free(reply);
 }
