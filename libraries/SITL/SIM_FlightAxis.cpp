@@ -42,9 +42,9 @@ namespace SITL {
 FlightAxis::FlightAxis(const char *home_str, const char *frame_str) :
     Aircraft(home_str, frame_str)
 {
-    start_time_us = get_wall_time_us();
+    last_time_us = get_wall_time_us();
     use_time_sync = false;
-    rate_hz = 250;
+    rate_hz = 250 / target_speedup;
 }
 
 /*
@@ -91,8 +91,8 @@ char *FlightAxis::soap_request(const char *action, const char *fmt, ...)
     asprintf(&req, R"(POST / HTTP/1.1
 soapaction: '%s'
 content-length: %u
-Connection: Keep-Alive                      
-content-type: text/xml; charset='UTF-8'
+content-type: text/xml;charset='UTF-8'
+Connection: Keep-Alive
 
 %s)",
              action,
@@ -144,7 +144,15 @@ void FlightAxis::exchange_data(const struct sitl_input &input)
 {
     if (!controller_started) {
         printf("Starting controller\n");
-        char *reply = soap_request("InjectUAVControllerInterface", R"(<?xml version='1.0' encoding='UTF-8'?>
+        // call a restore first. This allows us to connect after the aircraft is changed in RealFlight
+        char *reply = soap_request("RestoreOriginalControllerDevice", R"(<?xml version='1.0' encoding='UTF-8'?>
+<soap:Envelope xmlns:soap='http://schemas.xmlsoap.org/soap/envelope/' xmlns:xsd='http://www.w3.org/2001/XMLSchema' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'>
+<soap:Body>
+<RestoreOriginalControllerDevice><a>1</a><b>2</b></RestoreOriginalControllerDevice>
+</soap:Body>
+</soap:Envelope>)");
+        free(reply);
+        reply = soap_request("InjectUAVControllerInterface", R"(<?xml version='1.0' encoding='UTF-8'?>
 <soap:Envelope xmlns:soap='http://schemas.xmlsoap.org/soap/envelope/' xmlns:xsd='http://www.w3.org/2001/XMLSchema' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'>
 <soap:Body>
 <InjectUAVControllerInterface><a>1</a><b>2</b></InjectUAVControllerInterface>
@@ -186,8 +194,10 @@ void FlightAxis::exchange_data(const struct sitl_input &input)
                                scaled_servos[6],
                                scaled_servos[7]);
 
-    parse_reply(reply);
-    free(reply);
+    if (reply) {
+        parse_reply(reply);
+        free(reply);
+    }
 }
     
     
@@ -196,31 +206,54 @@ void FlightAxis::exchange_data(const struct sitl_input &input)
  */
 void FlightAxis::update(const struct sitl_input &input)
 {
+    Vector3f last_velocity_ef = velocity_ef;
+    Vector3f last_position = position;
+    
     exchange_data(input);
 
+    uint64_t now = get_wall_time_us();
+    uint64_t dt = (now - last_time_us) * target_speedup;
+    float dt_seconds = dt * 1.0e-6f;
+    
     dcm.from_euler(radians(state.m_roll_DEG),
                    radians(state.m_inclination_DEG),
                    -radians(state.m_azimuth_DEG));
     gyro = Vector3f(radians(state.m_rollRate_DEGpSEC),
                     radians(state.m_pitchRate_DEGpSEC),
-                    -radians(state.m_yawRate_DEGpSEC));
+                    -radians(state.m_yawRate_DEGpSEC)) * target_speedup;
     velocity_ef = Vector3f(state.m_velocityWorldU_MPS,
-                           state.m_velocityWorldV_MPS,
-                           state.m_velocityWorldW_MPS);
+                             state.m_velocityWorldV_MPS,
+                             state.m_velocityWorldW_MPS);
     position = Vector3f(state.m_aircraftPositionY_MTR,
                         state.m_aircraftPositionX_MTR,
                         -state.m_altitudeAGL_MTR);
-    accel_body = Vector3f(state.m_accelerationBodyAX_MPS2,
-                          state.m_accelerationBodyAY_MPS2,
-                          state.m_accelerationBodyAZ_MPS2);
+
+    // the accel values given in the state are very strange. Calculate
+    // it from delta-velocity instead, although this does introduce
+    // noise
+    Vector3f accel_ef = (velocity_ef - last_velocity_ef) / dt_seconds;
+    accel_ef.z -= GRAVITY_MSS;
+    accel_body = dcm.transposed() * accel_ef;
+
     airspeed = state.m_airspeed_MPS;
 
     update_position();
-    uint64_t dt = (get_wall_time_us() - start_time_us) - time_now_us;
     time_now_us += dt;
-    if (dt > 10000) {
+
+#if 0
+    static unsigned counter;
+    if (counter++ > 1000) {
         printf("dt=%u\n", (unsigned)dt);
+        Vector3f vel2 = (position - last_position) / dt_seconds;
+        printf("V1(%.3f,%.3f,%.3f) V2(%.3f,%.3f,%.3f)\n",
+               velocity_ef.x, velocity_ef.y, velocity_ef.z,
+               vel2.x, vel2.y, vel2.z);
+        counter = 0;
     }
+#endif
+
+    //velocity_ef = vel2;
+    last_time_us = now;
 }
 
 } // namespace SITL
