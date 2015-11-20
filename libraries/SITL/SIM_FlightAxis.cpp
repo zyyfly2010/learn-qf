@@ -178,8 +178,8 @@ void FlightAxis::exchange_data(const struct sitl_input &input)
         float roll_rate = swash1 - swash2;
         float pitch_rate = -((swash1+swash2) / 2.0f - swash3);
 
-        scaled_servos[0] = constrain_float(2*roll_rate + 0.5, 0, 1);
-        scaled_servos[1] = constrain_float(2*pitch_rate + 0.5, 0, 1);
+        scaled_servos[0] = constrain_float(roll_rate + 0.5, 0, 1);
+        scaled_servos[1] = constrain_float(pitch_rate + 0.5, 0, 1);
     }
     
     
