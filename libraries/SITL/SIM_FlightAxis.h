@@ -133,6 +133,7 @@ private:
     void parse_reply(const char *reply);
 
     uint64_t start_time_us;
+    uint64_t last_time_us;
     bool controller_started = false;
 };
 
