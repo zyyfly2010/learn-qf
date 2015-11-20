@@ -45,6 +45,7 @@ FlightAxis::FlightAxis(const char *home_str, const char *frame_str) :
     last_time_us = get_wall_time_us();
     use_time_sync = false;
     rate_hz = 250 / target_speedup;
+    heli_demix = strstr(frame_str, "heli") != NULL;
 }
 
 /*
@@ -166,6 +167,22 @@ void FlightAxis::exchange_data(const struct sitl_input &input)
     for (uint8_t i=0; i<8; i++) {
         scaled_servos[i] = (input.servos[i] - 1000) / 1000.0f;
     }
+
+    if (heli_demix) {
+        // FlightAxis expects "roll/pitch/collective/yaw" input
+        float swash1 = scaled_servos[0];
+        float swash2 = scaled_servos[1];
+        float swash3 = scaled_servos[2];
+        float collective = (swash1+swash2+swash3) / 3.0f;
+
+        float roll_rate = swash1 - swash2;
+        float pitch_rate = -((swash1+swash2) / 2.0f - swash3);
+
+        scaled_servos[0] = constrain_float(2*roll_rate + 0.5, 0, 1);
+        scaled_servos[1] = constrain_float(2*pitch_rate + 0.5, 0, 1);
+    }
+    
+    
     char *reply = soap_request("ExchangeData", R"(<?xml version='1.0' encoding='UTF-8'?><soap:Envelope xmlns:soap='http://schemas.xmlsoap.org/soap/envelope/' xmlns:xsd='http://www.w3.org/2001/XMLSchema' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'>
 <soap:Body>
 <ExchangeData>

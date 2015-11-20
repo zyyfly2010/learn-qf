@@ -135,6 +135,7 @@ private:
     uint64_t start_time_us;
     uint64_t last_time_us;
     bool controller_started = false;
+    bool heli_demix = false;
 };
 
 
