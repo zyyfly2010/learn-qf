@@ -235,9 +235,9 @@ void FlightAxis::update(const struct sitl_input &input)
     dcm.from_euler(radians(state.m_roll_DEG),
                    radians(state.m_inclination_DEG),
                    -radians(state.m_azimuth_DEG));
-    gyro = Vector3f(radians(state.m_rollRate_DEGpSEC),
-                    radians(state.m_pitchRate_DEGpSEC),
-                    -radians(state.m_yawRate_DEGpSEC)) * target_speedup;
+    gyro = Vector3f(radians(constrain_float(state.m_rollRate_DEGpSEC, -2000, 2000)),
+                    radians(constrain_float(state.m_pitchRate_DEGpSEC, -2000, 2000)),
+                    -radians(constrain_float(state.m_yawRate_DEGpSEC, -2000, 2000))) * target_speedup;
     velocity_ef = Vector3f(state.m_velocityWorldU_MPS,
                              state.m_velocityWorldV_MPS,
                              state.m_velocityWorldW_MPS);
@@ -251,6 +251,9 @@ void FlightAxis::update(const struct sitl_input &input)
     Vector3f accel_ef = (velocity_ef - last_velocity_ef) / dt_seconds;
     accel_ef.z -= GRAVITY_MSS;
     accel_body = dcm.transposed() * accel_ef;
+    accel_body.x = constrain_float(accel_body.x, -16, 16);
+    accel_body.y = constrain_float(accel_body.y, -16, 16);
+    accel_body.z = constrain_float(accel_body.z, -16, 16);
 
     airspeed = state.m_airspeed_MPS;
 
