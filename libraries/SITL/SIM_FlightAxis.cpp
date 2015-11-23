@@ -266,6 +266,14 @@ void FlightAxis::update(const struct sitl_input &input)
 
     airspeed = state.m_airspeed_MPS;
 
+    battery_voltage = state.m_batteryVoltage_VOLTS;
+    battery_current = state.m_batteryCurrentDraw_AMPS;
+    if (heli_demix) {
+        rpm1 = state.m_heliMainRotorRPM;
+    } else {
+        rpm1 = state.m_propRPM;
+    }
+    
     update_position();
     time_now_us += dt;
 
