@@ -182,7 +182,6 @@ void FlightAxis::exchange_data(const struct sitl_input &input)
         float swash1 = scaled_servos[0];
         float swash2 = scaled_servos[1];
         float swash3 = scaled_servos[2];
-        float collective = (swash1+swash2+swash3) / 3.0f;
 
         float roll_rate = swash1 - swash2;
         float pitch_rate = -((swash1+swash2) / 2.0f - swash3);
@@ -233,7 +232,6 @@ void FlightAxis::exchange_data(const struct sitl_input &input)
 void FlightAxis::update(const struct sitl_input &input)
 {
     Vector3f last_velocity_ef = velocity_ef;
-    Vector3f last_position = position;
     
     exchange_data(input);
 
@@ -253,6 +251,12 @@ void FlightAxis::update(const struct sitl_input &input)
     position = Vector3f(state.m_aircraftPositionY_MTR,
                         state.m_aircraftPositionX_MTR,
                         -state.m_altitudeAGL_MTR);
+
+    // offset based on first position to account for offset in RF world
+    if (position_offset.is_zero()) {
+        position_offset = position;
+    }
+    position -= position_offset;
 
     // the accel values given in the state are very strange. Calculate
     // it from delta-velocity instead, although this does introduce
@@ -277,17 +281,15 @@ void FlightAxis::update(const struct sitl_input &input)
     update_position();
     time_now_us += dt;
 
-#if 0
-    static unsigned counter;
-    if (counter++ > 1000) {
-        printf("dt=%u\n", (unsigned)dt);
-        Vector3f vel2 = (position - last_position) / dt_seconds;
-        printf("V1(%.3f,%.3f,%.3f) V2(%.3f,%.3f,%.3f)\n",
-               velocity_ef.x, velocity_ef.y, velocity_ef.z,
-               vel2.x, vel2.y, vel2.z);
-        counter = 0;
+    if (frame_counter++ % 1000 == 0) {
+        if (last_frame_count_us != 0) {
+            printf("%.2f FPS\n",
+                   1000 / ((time_now_us - last_frame_count_us)*1.0e-6f));
+        } else {
+            printf("Initial position %f %f %f\n", position.x, position.y, position.z);
+        }
+        last_frame_count_us = time_now_us;
     }
-#endif
 
     //velocity_ef = vel2;
     last_time_us = now;

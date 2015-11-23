@@ -137,6 +137,9 @@ private:
     bool controller_started = false;
     bool heli_demix = false;
     bool rev4_servos = false;
+    uint32_t frame_counter = 0;
+    uint64_t last_frame_count_us = 0;
+    Vector3f position_offset;
 };
 
 
