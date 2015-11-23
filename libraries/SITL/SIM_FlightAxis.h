@@ -136,6 +136,7 @@ private:
     uint64_t last_time_us;
     bool controller_started = false;
     bool heli_demix = false;
+    bool rev4_servos = false;
 };
 
 

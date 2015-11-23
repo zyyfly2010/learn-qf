@@ -46,6 +46,7 @@ FlightAxis::FlightAxis(const char *home_str, const char *frame_str) :
     use_time_sync = false;
     rate_hz = 250 / target_speedup;
     heli_demix = strstr(frame_str, "heli") != NULL;
+    rev4_servos = strstr(frame_str, "rev4") != NULL;
 }
 
 /*
@@ -168,6 +169,14 @@ void FlightAxis::exchange_data(const struct sitl_input &input)
         scaled_servos[i] = (input.servos[i] - 1000) / 1000.0f;
     }
 
+    if (rev4_servos) {
+        // swap first 4 and last 4 servos, for quadplane testing
+        float saved[4];
+        memcpy(saved, &scaled_servos[0], sizeof(saved));
+        memcpy(&scaled_servos[0], &scaled_servos[4], sizeof(saved));
+        memcpy(&scaled_servos[4], saved, sizeof(saved));
+    }
+    
     if (heli_demix) {
         // FlightAxis expects "roll/pitch/collective/yaw" input
         float swash1 = scaled_servos[0];
