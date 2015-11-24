@@ -45,7 +45,7 @@ FlightAxis::FlightAxis(const char *home_str, const char *frame_str) :
     last_time_us = get_wall_time_us();
     use_time_sync = false;
     rate_hz = 250 / target_speedup;
-    heli_demix = strstr(frame_str, "heli") != NULL;
+    heli_demix = strstr(frame_str, "helidemix") != NULL;
     rev4_servos = strstr(frame_str, "rev4") != NULL;
 }
 
@@ -272,11 +272,8 @@ void FlightAxis::update(const struct sitl_input &input)
 
     battery_voltage = state.m_batteryVoltage_VOLTS;
     battery_current = state.m_batteryCurrentDraw_AMPS;
-    if (heli_demix) {
-        rpm1 = state.m_heliMainRotorRPM;
-    } else {
-        rpm1 = state.m_propRPM;
-    }
+    rpm1 = state.m_propRPM;
+    rpm2 = state.m_heliMainRotorRPM;
     
     update_position();
     time_now_us += dt;
