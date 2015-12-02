@@ -2,7 +2,7 @@
 
 echo "Checking modules"
 
-MODULE_LIST="PX4Firmware PX4NuttX uavcan"
+MODULE_LIST="PX4Firmware PX4NuttX uavcan gbenchmark waf"
 
 NEED_INIT=0
 
