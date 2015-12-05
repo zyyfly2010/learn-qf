@@ -41,51 +41,58 @@ public:
     }
 
     struct state {
-        float m_airspeed_MPS;
-        float m_altitudeASL_MTR;
-        float m_altitudeAGL_MTR;
-        float m_groundspeed_MPS;
-        float m_pitchRate_DEGpSEC;
-        float m_rollRate_DEGpSEC;
-        float m_yawRate_DEGpSEC;
-        float m_azimuth_DEG;
-        float m_inclination_DEG;
-        float m_roll_DEG;
-        float m_aircraftPositionX_MTR;
-        float m_aircraftPositionY_MTR;
-        float m_velocityWorldU_MPS;
-        float m_velocityWorldV_MPS;
-        float m_velocityWorldW_MPS;
-        float m_velocityBodyU_MPS;
-        float m_velocityBodyV_MPS;
-        float m_velocityBodyW_MPS;
-        float m_accelerationWorldAX_MPS2;
-        float m_accelerationWorldAY_MPS2;
-        float m_accelerationWorldAZ_MPS2;
-        float m_accelerationBodyAX_MPS2;
-        float m_accelerationBodyAY_MPS2;
-        float m_accelerationBodyAZ_MPS2;
-        float m_windX_MPS;
-        float m_windY_MPS;
-        float m_windZ_MPS;
-        float m_propRPM;
-        float m_heliMainRotorRPM;
-        float m_batteryVoltage_VOLTS;
-        float m_batteryCurrentDraw_AMPS;
-        float m_batteryRemainingCapacity_MAH;
-        float m_fuelRemaining_OZ;
-        float m_isLocked;
-        float m_hasLostComponents;
-        float m_anEngineIsRunning;
-        float m_isTouchingGround;
-        float m_currentAircraftStatus;
+        double m_airspeed_MPS;
+        double m_altitudeASL_MTR;
+        double m_altitudeAGL_MTR;
+        double m_groundspeed_MPS;
+        double m_pitchRate_DEGpSEC;
+        double m_rollRate_DEGpSEC;
+        double m_yawRate_DEGpSEC;
+        double m_azimuth_DEG;
+        double m_inclination_DEG;
+        double m_roll_DEG;
+        double m_aircraftPositionX_MTR;
+        double m_aircraftPositionY_MTR;
+        double m_velocityWorldU_MPS;
+        double m_velocityWorldV_MPS;
+        double m_velocityWorldW_MPS;
+        double m_velocityBodyU_MPS;
+        double m_velocityBodyV_MPS;
+        double m_velocityBodyW_MPS;
+        double m_accelerationWorldAX_MPS2;
+        double m_accelerationWorldAY_MPS2;
+        double m_accelerationWorldAZ_MPS2;
+        double m_accelerationBodyAX_MPS2;
+        double m_accelerationBodyAY_MPS2;
+        double m_accelerationBodyAZ_MPS2;
+        double m_windX_MPS;
+        double m_windY_MPS;
+        double m_windZ_MPS;
+        double m_propRPM;
+        double m_heliMainRotorRPM;
+        double m_batteryVoltage_VOLTS;
+        double m_batteryCurrentDraw_AMPS;
+        double m_batteryRemainingCapacity_MAH;
+        double m_fuelRemaining_OZ;
+        double m_isLocked;
+        double m_hasLostComponents;
+        double m_anEngineIsRunning;
+        double m_isTouchingGround;
+        double m_currentAircraftStatus;
+        double m_currentPhysicsTime_SEC;
+        double m_currentPhysicsSpeedMultiplier;
+        double m_orientationQuaternion_X;
+        double m_orientationQuaternion_Y;
+        double m_orientationQuaternion_Z;
+        double m_orientationQuaternion_W;
+        double m_flightAxisControllerIsActive;
     } state;
 
-    static const uint16_t num_keys = sizeof(state)/sizeof(float);
+    static const uint16_t num_keys = sizeof(state)/sizeof(double);
     
     struct keytable {
         const char *key;
-        float &ref;
+        double &ref;
     } keytable[num_keys] = {
         { "m-airspeed-MPS", state.m_airspeed_MPS },
         { "m-altitudeASL-MTR", state.m_altitudeASL_MTR },
@@ -124,7 +131,14 @@ public:
         { "m-hasLostComponents", state.m_hasLostComponents },
         { "m-anEngineIsRunning", state.m_anEngineIsRunning },
         { "m-isTouchingGround", state.m_isTouchingGround },
-        { "m-currentAircraftStatus", state.m_currentAircraftStatus }
+        { "m-currentAircraftStatus", state.m_currentAircraftStatus },
+        { "m-currentPhysicsTime-SEC", state.m_currentPhysicsTime_SEC },
+        { "m-currentPhysicsSpeedMultiplier", state.m_currentPhysicsSpeedMultiplier },
+        { "m-orientationQuaternion-X", state.m_orientationQuaternion_X },
+        { "m-orientationQuaternion-Y", state.m_orientationQuaternion_Y },
+        { "m-orientationQuaternion-Z", state.m_orientationQuaternion_Z },
+        { "m-orientationQuaternion-W", state.m_orientationQuaternion_W },
+        { "m-flightAxisControllerIsActive", state.m_flightAxisControllerIsActive }
     };
     
 private:

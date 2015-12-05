@@ -54,10 +54,15 @@ FlightAxis::FlightAxis(const char *home_str, const char *frame_str) :
 */
 void FlightAxis::parse_reply(const char *reply)
 {
+    const char *reply0 = reply;
     for (uint16_t i=0; i<num_keys; i++) {
         const char *p = strstr(reply, keytable[i].key);
         if (p == nullptr) {
+            p = strstr(reply0, keytable[i].key);
+        }
+        if (p == nullptr) {
             printf("Failed to find key %s\n", keytable[i].key);
+            break;
         }
         p += strlen(keytable[i].key) + 1;
         keytable[i].ref = atof(p);
