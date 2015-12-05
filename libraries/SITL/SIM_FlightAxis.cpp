@@ -42,7 +42,6 @@ namespace SITL {
 FlightAxis::FlightAxis(const char *home_str, const char *frame_str) :
     Aircraft(home_str, frame_str)
 {
-    last_time_us = get_wall_time_us();
     use_time_sync = false;
     rate_hz = 250 / target_speedup;
     heli_demix = strstr(frame_str, "helidemix") != NULL;
@@ -166,6 +165,7 @@ void FlightAxis::exchange_data(const struct sitl_input &input)
 </soap:Body>
 </soap:Envelope>)");
         free(reply);
+        activation_frame_counter = frame_counter;
         controller_started = true;
     }
 
@@ -240,13 +240,26 @@ void FlightAxis::update(const struct sitl_input &input)
     
     exchange_data(input);
 
-    uint64_t now = get_wall_time_us();
-    uint64_t dt = (now - last_time_us) * target_speedup;
-    float dt_seconds = dt * 1.0e-6f;
+    float dt_seconds = state.m_currentPhysicsTime_SEC - last_time_s;
+    if (dt_seconds <= 0) {
+        return;
+    }
+
+    if (initial_time_s <= 0) {
+        dt_seconds = 0.001f;
+        initial_time_s = state.m_currentPhysicsTime_SEC - dt_seconds;
+    }
     
+    Quaternion quat(state.m_orientationQuaternion_W,
+                    state.m_orientationQuaternion_Z,
+                    -state.m_orientationQuaternion_Y,
+                    -state.m_orientationQuaternion_Z);
+    quat.rotation_matrix(dcm);
     dcm.from_euler(radians(state.m_roll_DEG),
                    radians(state.m_inclination_DEG),
                    -radians(state.m_azimuth_DEG));
+    Quaternion quat2;
+    quat2.from_rotation_matrix(dcm);
     gyro = Vector3f(radians(constrain_float(state.m_rollRate_DEGpSEC, -2000, 2000)),
                     radians(constrain_float(state.m_pitchRate_DEGpSEC, -2000, 2000)),
                     -radians(constrain_float(state.m_yawRate_DEGpSEC, -2000, 2000))) * target_speedup;
@@ -281,20 +294,22 @@ void FlightAxis::update(const struct sitl_input &input)
     rpm2 = state.m_heliMainRotorRPM;
     
     update_position();
-    time_now_us += dt;
+    time_now_us = (state.m_currentPhysicsTime_SEC - initial_time_s)*1.0e6;
 
     if (frame_counter++ % 1000 == 0) {
-        if (last_frame_count_us != 0) {
+        if (last_frame_count_s != 0) {
             printf("%.2f FPS\n",
-                   1000 / ((time_now_us - last_frame_count_us)*1.0e-6f));
+                   1000 / (state.m_currentPhysicsTime_SEC - last_frame_count_s));
+            printf("(%.3f %.3f %.3f %.3f) (%.3f %.3f %.3f %.3f)\n",
+                   quat.q1, quat.q2, quat.q3, quat.q4, 
+                   quat2.q1, quat2.q2, quat2.q3, quat2.q4);
         } else {
             printf("Initial position %f %f %f\n", position.x, position.y, position.z);
         }
-        last_frame_count_us = time_now_us;
+        last_frame_count_s = state.m_currentPhysicsTime_SEC;
     }
 
-    //velocity_ef = vel2;
-    last_time_us = now;
+    last_time_s = state.m_currentPhysicsTime_SEC;
 }
 
 } // namespace SITL
