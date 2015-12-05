@@ -146,13 +146,14 @@ private:
     void exchange_data(const struct sitl_input &input);
     void parse_reply(const char *reply);
 
-    uint64_t start_time_us;
-    uint64_t last_time_us;
-    bool controller_started = false;
+    double initial_time_s = 0;
+    double last_time_s = 0;
     bool heli_demix = false;
     bool rev4_servos = false;
-    uint32_t frame_counter = 0;
-    uint64_t last_frame_count_us = 0;
+    bool controller_started = false;
+    uint64_t frame_counter = 0;
+    uint64_t activation_frame_counter = 0;
+    double last_frame_count_s = 0;
     Vector3f position_offset;
 };
 
