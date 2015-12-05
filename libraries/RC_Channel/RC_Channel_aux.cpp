@@ -12,7 +12,7 @@ const AP_Param::GroupInfo RC_Channel_aux::var_info[] = {
     // @Param: FUNCTION
     // @DisplayName: Servo out function
     // @Description: Setting this to Disabled(0) will setup this output for control by auto missions or MAVLink servo set commands. any other value will enable the corresponding function
-    // @Values: 0:Disabled,1:RCPassThru,2:Flap,3:Flap_auto,4:Aileron,6:mount_pan,7:mount_tilt,8:mount_roll,9:mount_open,10:camera_trigger,11:release,12:mount2_pan,13:mount2_tilt,14:mount2_roll,15:mount2_open,16:DifferentialSpoiler1,17:DifferentialSpoiler2,18:AileronWithInput,19:Elevator,20:ElevatorWithInput,21:Rudder,24:Flaperon1,25:Flaperon2,26:GroundSteering,27:Parachute,28:EPM,29:LandingGear,30:EngineRunEnable
+    // @Values: 0:Disabled,1:RCPassThru,2:Flap,3:Flap_auto,4:Aileron,6:mount_pan,7:mount_tilt,8:mount_roll,9:mount_open,10:camera_trigger,11:release,12:mount2_pan,13:mount2_tilt,14:mount2_roll,15:mount2_open,16:DifferentialSpoiler1,17:DifferentialSpoiler2,18:AileronWithInput,19:Elevator,20:ElevatorWithInput,21:Rudder,24:Flaperon1,25:Flaperon2,26:GroundSteering,27:Parachute,28:EPM,29:LandingGear,30:EngineRunEnable,31:HeliRSC
     // @User: Standard
     AP_GROUPINFO("FUNCTION",       1, RC_Channel_aux, function, 0),
 
@@ -20,7 +20,7 @@ const AP_Param::GroupInfo RC_Channel_aux::var_info[] = {
 };
 
 RC_Channel_aux *RC_Channel_aux::_aux_channels[RC_AUX_MAX_CHANNELS];
-uint32_t RC_Channel_aux::_function_mask;
+uint64_t RC_Channel_aux::_function_mask;
 
 /// map a function to a servo channel and output it
 void
@@ -97,6 +97,9 @@ void RC_Channel_aux::update_aux_servo_function(void)
 		case RC_Channel_aux::k_egg_drop:
 			_aux_channels[i]->set_range_out(0,100);
 			break;
+		case RC_Channel_aux::k_heli_rsc:
+			_aux_channels[i]->set_range_out(0,1000);
+			break;
 		case RC_Channel_aux::k_aileron_with_input:
 		case RC_Channel_aux::k_elevator_with_input:
 		    _aux_channels[i]->set_angle(4500);
@@ -122,7 +125,7 @@ void RC_Channel_aux::update_aux_servo_function(void)
         if (_aux_channels[i]) {
             RC_Channel_aux::Aux_servo_function_t function = (RC_Channel_aux::Aux_servo_function_t)_aux_channels[i]->function.get();
             if (function < k_nr_aux_servo_functions) {
-                _function_mask |= (1UL<<(uint8_t)function);
+                _function_mask |= (1ULL<<(uint8_t)function);
             }
 		}
 	}
@@ -341,7 +344,7 @@ bool
 RC_Channel_aux::function_assigned(RC_Channel_aux::Aux_servo_function_t function)
 {
     if (function < k_nr_aux_servo_functions) {
-        return (_function_mask & (1UL<<function)) != 0;
+        return (_function_mask & (1ULL<<function)) != 0;
     }
 	return false;
 }
