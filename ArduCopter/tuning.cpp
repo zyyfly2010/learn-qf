@@ -17,7 +17,7 @@ void Copter::tuning() {
     }
 
     float tuning_value = (float)g.rc_6.control_in / 1000.0f;
-    g.rc_6.set_range(g.radio_tuning_low,g.radio_tuning_high);
+    g.rc_6.set_range_in(g.radio_tuning_low,g.radio_tuning_high);
 
     Log_Write_Parameter_Tuning(g.radio_tuning, tuning_value, g.rc_6.control_in, g.radio_tuning_low, g.radio_tuning_high);
 
