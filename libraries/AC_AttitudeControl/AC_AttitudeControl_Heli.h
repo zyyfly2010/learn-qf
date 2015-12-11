@@ -52,6 +52,9 @@ public:
 	// subclass non-passthrough too, for external gyro, no flybar
 	void rate_bf_roll_pitch_yaw(float roll_rate_bf, float pitch_rate_bf, float yaw_rate_bf) override;
 
+	// subclass non-passthrough too, for external gyro, no flybar
+	void rate_bf_roll_pitch_yaw_integrated(float roll_rate_bf, float pitch_rate_bf, float yaw_rate_bf);
+	
 	// rate_controller_run - run lowest level body-frame rate controller and send outputs to the motors
 	// should be called at 100hz or more
 	virtual void rate_controller_run();

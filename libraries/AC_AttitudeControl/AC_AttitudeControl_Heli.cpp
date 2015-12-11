@@ -94,6 +94,13 @@ void AC_AttitudeControl_Heli::rate_bf_roll_pitch_yaw(float roll_rate_bf, float p
     AC_AttitudeControl::rate_bf_roll_pitch_yaw(roll_rate_bf, pitch_rate_bf, yaw_rate_bf);
 }
 
+void AC_AttitudeControl_Heli::rate_bf_roll_pitch_yaw_integrated(float roll_rate_bf, float pitch_rate_bf, float yaw_rate_bf)
+{
+    _passthrough_yaw = yaw_rate_bf;
+
+    AC_AttitudeControl::rate_bf_roll_pitch_yaw_integrated(roll_rate_bf, pitch_rate_bf, yaw_rate_bf);
+}
+
 //
 // rate controller (body-frame) methods
 //

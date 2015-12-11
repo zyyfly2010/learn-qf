@@ -138,7 +138,7 @@ public:
     // rate_bf_roll_pitch_yaw - attempts to maintain a roll, pitch and yaw rate (all body frame)
     virtual void rate_bf_roll_pitch_yaw(float roll_rate_bf, float pitch_rate_bf, float yaw_rate_bf);
 
-    void rate_bf_roll_pitch_yaw_integrated(float roll_rate_bf, float pitch_rate_bf, float yaw_rate_bf);
+    virtual void rate_bf_roll_pitch_yaw_integrated(float roll_rate_bf, float pitch_rate_bf, float yaw_rate_bf);
     void reset_angle_error_integrator();
 
     //
