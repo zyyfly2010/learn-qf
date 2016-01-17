@@ -280,6 +280,8 @@ private:
     // mavlink routing object
     static MAVLink_routing routing;
 
+    mavlink_signing_t signing;
+
     // a vehicle can optionally snoop on messages for other systems
     static void (*msg_snoop)(const mavlink_message_t* msg);
 
