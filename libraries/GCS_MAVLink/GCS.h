@@ -181,6 +181,9 @@ public:
      */
     static bool find_by_mavtype(uint8_t mav_type, uint8_t &sysid, uint8_t &compid, mavlink_channel_t &channel) { return routing.find_by_mavtype(mav_type, sysid, compid, channel); }
 
+    // update signing timestamp on GPS lock
+    static void update_signing_timestamp(uint64_t timestamp_usec);
+    
 private:
     void        handleMessage(mavlink_message_t * msg);
 
@@ -280,11 +283,6 @@ private:
     // mavlink routing object
     static MAVLink_routing routing;
 
-    mavlink_signing_t signing;
-    static mavlink_signing_streams_t signing_streams;
-    
-    static StorageAccess _signing_storage;
-
     // a vehicle can optionally snoop on messages for other systems
     static void (*msg_snoop)(const mavlink_message_t* msg);
 
@@ -328,10 +326,16 @@ private:
     // return true if this channel has hardware flow control
     bool have_flow_control(void);
 
+#if MAVLINK_PROTOCOL_VERSION >= 2
+    mavlink_signing_t signing;
+    static mavlink_signing_streams_t signing_streams;
+    
+    static StorageAccess _signing_storage;
     void handle_setup_signing(const mavlink_message_t *msg);
     bool signing_key_save(const struct SigningKey &key);
     bool signing_key_load(struct SigningKey &key);
     void load_signing_key(void);
+#endif // MAVLINK_PROTOCOL_VERSION
 };
 
 #endif // __GCS_H
