@@ -281,6 +281,8 @@ private:
     static MAVLink_routing routing;
 
     mavlink_signing_t signing;
+    static mavlink_signing_streams_t signing_streams;
+    
     static StorageAccess _signing_storage;
 
     // a vehicle can optionally snoop on messages for other systems
